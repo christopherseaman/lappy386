@@ -1,15 +1,14 @@
 ## NECESSITIES
 python3
 gmp
-awscli
 
 ## QUALITY-OF-LIFE
 starship
 font-fira-code
 font-fira-code-nerd-font
 font-source-code-pro
-font-source-sans-pro
-font-source-serif-pro
+font-source-sans-3
+font-source-serif-4
 
 ## VARIOUS FRIENDS
 speedtest
