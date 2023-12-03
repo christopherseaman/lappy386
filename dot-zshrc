@@ -3,12 +3,23 @@ eval "$(starship init zsh)"
 eval "$(`which brew` shellenv)"
 
 
-if [ "$SSH_AUTH_SOCK" = "" -a -x /usr/bin/ssh-agent ]; then
-                eval `/usr/bin/ssh-agent`
-fi
+# Load ssh-agent and keys
+[ -z "$SSH_AUTH_SOCK" ] && eval $(ssh-agent)
 
+# Add ssh keys to ssh-agent
+KEYS=($(grep -i 'identityfile' ~/.ssh/config | sed -e 's/.*IdentityFile \(.*\)$/\1/'))
+for key in "${KEYS[@]}"; do
+    eval ssh-add $key &> /dev/null
+done
+
+# Define a function to load env vars from a file
 load_env () {
     set -o allexport
     source $1
     set +o allexport
 }
+
+# Set up nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
