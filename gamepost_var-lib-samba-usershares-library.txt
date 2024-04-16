@@ -1,0 +1,7 @@
+gamepost@minigame:~$ cat /var/lib/samba/usershares/library 
+#VERSION 2
+path=/home/gamepost/Public
+comment=Game Library
+usershare_acl=S-1-1-0:R
+guest_ok=y
+sharename=library
