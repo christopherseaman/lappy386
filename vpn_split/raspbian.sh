@@ -22,7 +22,7 @@ flush ruleset
 table ip vpn-split {
     set excluded_ports {
         type inet_service
-        elements = { 22, 80, 443, 3389 }
+        elements = { 22, 80, 443, 3389, 5900 }
     }
 
     chain prerouting {
@@ -77,7 +77,7 @@ Table=1000
 Priority=100
 Not=true
 From=0.0.0.0/0
-SourcePort=22,80,443,3389
+SourcePort=22,80,443,3389,5900
 EOF
 
     # Restart systemd-networkd
