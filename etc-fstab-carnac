@@ -1,0 +1,21 @@
+LABEL=cloudimg-rootfs	/	 ext4	discard,commit=30,errors=remount-ro	0 1
+LABEL=BOOT	/boot	ext4	defaults	0 2
+LABEL=UEFI	/boot/efi	vfat	umask=0077	0 1
+
+# CLOUD_IMG: This file was created/modified by the Cloud Image build process
+######################################
+## ORACLE CLOUD INFRASTRUCTURE CUSTOMERS
+##
+## If you are adding an iSCSI remote block volume to this file you MUST
+## include the '_netdev' mount option or your instance will become
+## unavailable after the next reboot.
+## SCSI device names are not stable across reboots; please use the device UUID
+## instead of /dev path.
+##
+## Example:
+## UUID="94c5aade-8bb1-4d55-ad0c-388bb8aa716a" /data1 ext4 defaults,noatime,_netdev 0 2
+##
+## More information:
+## https://docs.us-phoenix-1.oraclecloud.com/Content/Block/Tasks/connectingtoavolume.htm
+##
+UUID=a87ace88-78fe-4c84-937f-766aadc6e5c8 /home/christopher/projects ext4 defaults,nofail 0 2
