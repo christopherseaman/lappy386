@@ -1,0 +1,181 @@
+# fastfetch greeting function
+fastfetch_greeting() {
+  logos=("gnu") # "aperture"
+  selected_logo=${logos[$RANDOM % ${#logos[@]}]}
+  fastfetch --logo $selected_logo
+}
+
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+  alias ls='ls --color=auto'
+  #alias dir='dir --color=auto'
+  #alias vdir='vdir --color=auto'
+
+  alias grep='grep --color=auto'
+  alias fgrep='fgrep --color=auto'
+  alias egrep='egrep --color=auto'
+fi
+
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# Add an "alert" alias for long running commands.  Use like so:
+#   sleep 10; alert
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+
+# Navigation aliases
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+
+# Safety aliases - ask before overwriting
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+
+# Colorize less for man pages and code
+export LESS='-R --use-color -Dd+r$Du+b'
+export MANPAGER="less -R --use-color -Dd+r -Du+b"
+
+# Better grep defaults
+alias grep='grep --color=auto --exclude-dir={.git,.svn,.hg}'
+
+# Use ripgrep if available, otherwise fall back to grep
+if command -v rg &>/dev/null; then
+  alias rg='rg --smart-case'
+  alias rgf='rg --files-with-matches'
+  alias rgi='rg --no-ignore'
+  # Override grep with rg for better performance
+  alias grep='rg'
+fi
+
+# Use fd if available for finding files
+if command -v fd &>/dev/null; then
+  alias fd='fd --hidden --follow'
+  alias fdi='fd --no-ignore --hidden --follow'
+elif command -v fdfind &>/dev/null; then
+  alias fd='fdfind --hidden --follow'
+  alias fdi='fdfind --no-ignore --hidden --follow'
+fi
+
+# Better cat with syntax highlighting
+if command -v bat &>/dev/null; then
+  alias cat='bat --style=plain'
+  alias batl='bat --style=full'
+elif command -v batcat &>/dev/null; then
+  alias cat='batcat --style=plain'
+  alias batl='batcat --style=full'
+  alias bat='batcat'
+fi
+
+# Modern ls replacement
+if command -v eza &>/dev/null; then
+  alias ls='eza --icons'
+  alias ll='eza -la --icons'
+  alias la='eza -a --icons'
+  alias lt='eza --tree --icons'
+elif command -v exa &>/dev/null; then
+  alias ls='exa --icons'
+  alias ll='exa -la --icons'
+  alias la='exa -a --icons'
+  alias lt='exa --tree --icons'
+fi
+
+# Smarter cd
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init bash)"
+fi
+
+# Better disk usage
+if command -v ncdu &>/dev/null; then
+  alias du='ncdu --color dark'
+fi
+
+# Git delta for better diffs
+if command -v delta &>/dev/null; then
+  export GIT_PAGER='delta'
+fi
+
+# FZF-powered aliases if available
+if command -v fzf &>/dev/null; then
+  # History search with fzf
+  alias h='history | fzf --tac'
+
+  # cd to directory using fzf
+  fcd() {
+    local dir
+    dir=$(find ${1:-.} -type d 2>/dev/null | fzf +m) && cd "$dir"
+  }
+
+  # Open file in editor using fzf
+  fe() {
+    local files
+    IFS=$'\n' files=($(fzf --query="$1" --multi --select-1 --exit-0))
+    [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
+  }
+
+  # Kill process using fzf
+  fkill() {
+    local pid
+    pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+    if [ "x$pid" != "x" ]; then
+      echo $pid | xargs kill -${1:-9}
+    fi
+  }
+else
+  # Fallback history search
+  alias h='history | grep'
+fi
+
+# Show open ports
+alias ports='netstat -tulanp'
+
+# Get error messages from journalctl
+alias jctl="sudo journalctl -p 3 -xeb"
+alias jctlf="sudo journalctl -p 3 -xbf"
+
+# Python aliases
+alias py='python3'
+alias pip='python3 -m pip'
+
+# Make directory and cd into it
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+# Extract various archive formats
+extract() {
+  if [ -f "$1" ]; then
+    case "$1" in
+    *.tar.bz2) tar xjf "$1" ;;
+    *.tar.gz) tar xzf "$1" ;;
+    *.bz2) bunzip2 "$1" ;;
+    *.rar) unrar e "$1" ;;
+    *.gz) gunzip "$1" ;;
+    *.tar) tar xf "$1" ;;
+    *.tbz2) tar xjf "$1" ;;
+    *.tgz) tar xzf "$1" ;;
+    *.zip) unzip "$1" ;;
+    *.Z) uncompress "$1" ;;
+    *.7z) 7z x "$1" ;;
+    *) echo "'$1' cannot be extracted via extract()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+yank() {
+  if [[ -f "$1" ]]; then
+    cat "$1" | printf "\033]52;c;%s\033\\" "$(base64 -w0)" >&2
+  else
+    printf "\033]52;c;%s\033\\" "$(cat | base64 -w0)" >&2
+  fi
+}
+
+# System update alias
+alias sup="sudo apt update; sudo apt upgrade"
