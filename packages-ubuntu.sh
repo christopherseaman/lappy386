@@ -14,7 +14,8 @@ apt install \
   qemu-utils \
   spice-vdagent \
   nodejs \
-  npm
+  npm \
+  software-properties-common
 
 npm i -g @anthropic-ai/claude-code
 
@@ -22,7 +23,8 @@ snap install nvim --classic
 
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
+sudo add-apt-repository ppa:jgmath2000/et
 add-apt-repository ppa:zhangsongcui3371/fastfetch
 add-apt-repository ppa:maveonair/helix-editor
 apt update
-apt install fastfetch helix
+apt install fastfetch helix et
