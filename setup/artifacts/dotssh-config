@@ -1,11 +1,52 @@
+# Added by OrbStack: 'orb' SSH host for Linux machines
+# This only works if it's at the top of ssh_config (before any Host blocks).
+# This won't be added again if you remove it.
+Include ~/.orbstack/ssh/config
+
+SetEnv TERM=xterm-256color
+
 ForwardAgent yes
+
+Host glen
+  AddKeysToAgent yes
+  # UseKeychain yes  # macOS only
+  IdentityFile ~/.ssh/glen
+
+Host schmaspberry schmaspberry.duckdns.org
+  AddKeysToAgent yes
+  # UseKeychain yes  # macOS only
+  IdentityFile ~/.ssh/schmaspberry_hive
+
+Host deb-studio deb-y7rgc54-dt deb-y7rgc54-dt-1 deb-y7rgc54
+  User cseaman
+  AddKeysToAgent yes
+  # UseKeychain yes  # macOS only
+  IdentityFile ~/.ssh/schmaspberry_hive
+
+Host hivemind*
+  AddKeysToAgent yes
+  # UseKeychain yes  # macOS only
+  IdentityFile ~/.ssh/hivemind
 
 Host *.github.com
   AddKeysToAgent yes
-  UseKeychain yes
+  # UseKeychain yes  # macOS only
   IdentityFile ~/.ssh/github
 
 Host minigame.duckdns.org
   AddKeysToAgent yes
-  UseKeychain yes
-  IdentityFile ~/.ssh/sfgamepost
+  # UseKeychain yes  # macOS only
+  IdentityFile ~/.ssh/minigame
+
+Host carnac carnac.badmath.org 146.235.221.82
+  AddKeysToAgent yes
+  # UseKeychain yes  # macOS only
+  IdentityFile ~/.ssh/carnac
+
+Host shtheeev shtheeev.local 192.168.4.2 sqrlly.duckdns.org
+  User christopher
+  AddKeysToAgent yes
+  # UseKeychain yes  # macOS only
+  Port 222
+  IdentityFile ~/.ssh/shtheeev
+  IdentitiesOnly yes
