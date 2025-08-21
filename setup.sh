@@ -1,22 +1,18 @@
-## COPY DOT-FILES
-cat dot-zshrc > ~/.zshrc
-mkdir -p ~/.ssh
-cat dotssh-config > ~/.ssh/config
+#!/bin/bash
 
-git config --global user.name 'Christopher Seaman'
-git config --global user.email '86775+christopherseaman@users.noreply.github.com'
+echo "Detecting operating system..."
 
-## INSTALL HOMEBREW
-## https://brew.sh
-# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "Linux detected - running Ubuntu setup"
+    cd setup && ./setup-ubuntu.sh
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "macOS detected - running macOS setup"
+    cd setup && ./setup-macos.sh
+else
+    echo "Unsupported OS: $OSTYPE"
+    echo "Please run the appropriate setup script manually:"
+    echo "  Ubuntu/Linux: setup/setup-ubuntu.sh"
+    echo "  macOS: setup/setup-macos.sh"
+    exit 1
+fi
 
-## INSTALL BREW PACKAGES
-brew tap homebrew/cask-fonts
-brew tap teamookla/speedtest
-brew install $(grep -v '#' brew.lst)
-brew install --cask $(grep -v '#' cask.lst)
-
-## INSTALL NVM AND NODE
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-source .zshrc
-nvm install --lts
