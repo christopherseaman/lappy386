@@ -1,0 +1,19 @@
+# Caddy configuration for code-server and Pi-hole
+
+# Code-server configuration
+carnac.badmath.org, codernac.duckdns.org {
+    reverse_proxy localhost:8080
+}
+
+# Pi-hole configuration  
+pi.badmath.org {
+    reverse_proxy localhost:8081
+}
+
+# Handle /admin routes for any hostname
+:80, :443 {
+    @admin path /admin*
+    handle @admin {
+        reverse_proxy localhost:8081
+    }
+}

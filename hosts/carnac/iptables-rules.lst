@@ -1,0 +1,10 @@
+# Firewall rules for carnac
+# Format: protocol port service_description
+tcp 80 HTTP/Caddy
+tcp 443 HTTPS/Caddy
+tcp 53 DNS/Pi-hole-TCP
+udp 53 DNS/Pi-hole-UDP
+tcp 22 SSH
+tcp 3389 RDP
+tcp 2022 Alt-SSH
+udp 60000:60010 Mosh
