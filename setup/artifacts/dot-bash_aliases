@@ -19,6 +19,9 @@ if [ -x /usr/bin/dircolors ]; then
   alias egrep='egrep --color=auto'
 fi
 
+# update more easily
+alias sup="sudo apt update; sudo apt upgrade"
+
 # some more ls aliases
 alias ll='ls -alF'
 alias la='ls -A'
