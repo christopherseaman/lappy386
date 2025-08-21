@@ -5,11 +5,11 @@ sudo apt install -y \
   bat \
   build-essential \
   cmake \
-  fastfetch \
   fd-find \
   findutils \
   fzf \
   git-delta \
+  gh \
   htop \
   ncdu \
   ripgrep \
