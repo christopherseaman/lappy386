@@ -20,7 +20,7 @@ if [ -x /usr/bin/dircolors ]; then
 fi
 
 # update more easily
-alias sup="sudo apt update; sudo apt upgrade"
+alias sup="sudo apt update && sudo apt upgrade -y && sudo apt autoremove"
 
 # some more ls aliases
 alias ll='ls -alF'
@@ -151,14 +151,6 @@ extract() {
     echo "'$1' is not a valid file"
   fi
 }
-
-#yank() {
-#  if [[ -f "$1" ]]; then
-#    cat "$1" | printf "\033]52;c;%s\033\\" "$(base64 -w0)" >&2
-#  else
-#    printf "\033]52;c;%s\033\\" "$(cat | base64 -w0)" >&2
-#  fi
-#}
 
 yank() {
   local content
