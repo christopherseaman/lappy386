@@ -1,5 +1,12 @@
 # Complete gnome-remote-desktop Configuration Summary
 
+## Prerequisites
+- **Desktop Environment**: Ubuntu Desktop must be installed
+  ```bash
+  sudo apt install ubuntu-desktop
+  ```
+  Without a desktop environment, RDP has nothing to connect to.
+
 ## Systemd Service Status
 - **System service** (`gnome-remote-desktop.service`): **DISABLED**
 - **User service** (`systemctl --user gnome-remote-desktop.service`): **MASKED** 
