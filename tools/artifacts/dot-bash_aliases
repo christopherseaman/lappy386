@@ -7,17 +7,6 @@ fastfetch_greeting() {
   }
 }
 
-# enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
-  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-  alias ls='ls --color=auto'
-  #alias dir='dir --color=auto'
-  #alias vdir='vdir --color=auto'
-
-  alias grep='grep --color=auto'
-  alias fgrep='fgrep --color=auto'
-  alias egrep='egrep --color=auto'
-fi
 
 # update more easily
 alias sup="sudo apt update && sudo apt upgrade -y && sudo apt autoremove"
@@ -37,20 +26,15 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
-# Colorize less for man pages and code
-export LESS='-R --use-color -Dd+r$Du+b'
-export MANPAGER="less -R --use-color -Dd+r -Du+b"
 
-# Better grep defaults
-alias grep='grep --color=auto --exclude-dir={.git,.svn,.hg}'
-
-# Use ripgrep if available, otherwise fall back to grep
+# Better grep - use ripgrep if available, otherwise enhanced grep
 if command -v rg &>/dev/null; then
+  alias grep='rg --smart-case'
   alias rg='rg --smart-case'
   alias rgf='rg --files-with-matches'
   alias rgi='rg --no-ignore'
-  # Override grep with rg for better performance
-  alias grep='rg'
+else
+  alias grep='grep --color=auto --exclude-dir={.git,.svn,.hg}'
 fi
 
 # Use fd if available for finding files
