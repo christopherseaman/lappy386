@@ -8,35 +8,35 @@ cat artifacts/dot-tmux.conf >~/.tmux.conf
 ## SSH CONFIG
 mkdir -p ~/.ssh
 if [ -f ~/.ssh/config ]; then
-    echo "Existing SSH config found at ~/.ssh/config"
-    read -p "Replace existing SSH config? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        cp ~/.ssh/config ~/.ssh/config.backup-$(date +%Y%m%d-%H%M%S)
-        echo "Backed up existing config to ~/.ssh/config.backup-$(date +%Y%m%d-%H%M%S)"
-        cat artifacts/dotssh-config >~/.ssh/config
-    else
-        echo "Keeping existing SSH config"
-    fi
-else
+  echo "Existing SSH config found at ~/.ssh/config"
+  read -p "Replace existing SSH config? (y/N): " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    cp ~/.ssh/config ~/.ssh/config.backup-$(date +%Y%m%d-%H%M%S)
+    echo "Backed up existing config to ~/.ssh/config.backup-$(date +%Y%m%d-%H%M%S)"
     cat artifacts/dotssh-config >~/.ssh/config
+  else
+    echo "Keeping existing SSH config"
+  fi
+else
+  cat artifacts/dotssh-config >~/.ssh/config
 fi
 
 ## NVIM CONFIG
 mkdir -p ~/.config
 if [ -d ~/.config/nvim ]; then
-    echo "Existing nvim config found at ~/.config/nvim"
-    read -p "Replace existing nvim config? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        mv ~/.config/nvim ~/.config/nvim.backup-$(date +%Y%m%d-%H%M%S)
-        echo "Backed up existing config to ~/.config/nvim.backup-$(date +%Y%m%d-%H%M%S)"
-        cp -r artifacts/dot-config-nvim ~/.config/nvim
-    else
-        echo "Keeping existing nvim config"
-    fi
-else
+  echo "Existing nvim config found at ~/.config/nvim"
+  read -p "Replace existing nvim config? (y/N): " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    mv ~/.config/nvim ~/.config/nvim.backup-$(date +%Y%m%d-%H%M%S)
+    echo "Backed up existing config to ~/.config/nvim.backup-$(date +%Y%m%d-%H%M%S)"
     cp -r artifacts/dot-config-nvim ~/.config/nvim
+  else
+    echo "Keeping existing nvim config"
+  fi
+else
+  cp -r artifacts/dot-config-nvim ~/.config/nvim
 fi
 
 ## SETUP CLAUDE GLOBAL CONFIG
@@ -60,5 +60,5 @@ echo ""
 echo "┌─────────────────────────────────────┐"
 echo "│ Setup complete! Remember to run:    │"
 echo "│                                     │"
-echo "│          $(tput bold)gh auth login$(tput sgr0)               │"
+echo "│          $(tput bold)gh auth login$(tput sgr0)              │"
 echo "└─────────────────────────────────────┘"
