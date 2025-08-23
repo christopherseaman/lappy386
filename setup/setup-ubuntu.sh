@@ -22,7 +22,7 @@ sudo snap install nvim --classic
 
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-curl -sS https://starship.rs/install.sh | sh -s -- --yes
+curl -sS https://starship.rs/install.sh | sudo sh -s -- --yes
 
 sudo add-apt-repository -y ppa:zhangsongcui3371/fastfetch
 sudo add-apt-repository -y ppa:maveonair/helix-editor
