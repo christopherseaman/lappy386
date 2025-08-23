@@ -1,5 +1,34 @@
 # lappy386
-setting up a new laptop
+Automated setup scripts for new laptops and development environments.
+
+## Quick Start
+
+Run the main setup script to automatically detect your OS and configure your development environment:
+
+```bash
+./setup.sh
+```
+
+This will:
+- Install essential development tools and packages
+- Configure dotfiles (bashrc, tmux, nvim, etc.)
+- Set up Git configuration
+- Install modern CLI tools (starship, fastfetch, helix, etc.)
+
+After setup completes, remember to run `gh auth login` to authenticate with GitHub.
+
+## Manual Setup
+
+You can also run platform-specific scripts directly:
+
+- **Ubuntu/Linux**: `./tools/setup-ubuntu.sh`
+- **macOS**: `./tools/setup-macos.sh`
+- **Common configuration**: `./tools/setup-common.sh`
+- **Claude MCP setup**: `./tools/setup-claude-mcp.sh`
+
+## Host-Specific Configurations
+
+The `hosts/` directory contains configuration files and setup scripts for specific machines.
 
 # Raspberry Pi 5
 

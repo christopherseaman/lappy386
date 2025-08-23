@@ -2,6 +2,7 @@
 
 ## UBUNTU PACKAGE INSTALLATION
 sudo apt install -y \
+  bash-completion \
   bat \
   build-essential \
   cmake \
