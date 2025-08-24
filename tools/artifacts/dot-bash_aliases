@@ -155,3 +155,23 @@ yank() {
     printf "\033]52;c;%s\033\\" "$(printf "%s" "$content" | base64 -w0)"
   fi
 }
+
+# Claude Flow alias with parameter support
+alias cf='_cf_function'
+
+_cf_function() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: cf <file_path>"
+        echo "Example: cf CS_TMP/REPO-ADAPTER-PLAN.md"
+        return 1
+    fi
+    
+    local file_path="$1"
+    
+    if [ ! -f "$file_path" ]; then
+        echo "Error: File '$file_path' not found"
+        return 1
+    fi
+    
+    ./claude-flow hive-mind spawn "$(cat "$file_path")" --auto-spawn --claude
+}
