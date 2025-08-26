@@ -173,5 +173,5 @@ _cf_function() {
         return 1
     fi
     
-    ./claude-flow hive-mind spawn "$(cat "$file_path")" --auto-spawn --claude
+    ./claude-flow hive-mind spawn "$(cat "$file_path")" --auto-spawn --claude --namespace flow
 }
