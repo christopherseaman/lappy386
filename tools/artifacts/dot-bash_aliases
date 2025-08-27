@@ -7,7 +7,6 @@ fastfetch_greeting() {
   }
 }
 
-
 # update more easily
 alias sup="sudo apt update && sudo apt upgrade -y && sudo apt autoremove"
 
@@ -25,7 +24,6 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
-
 
 # Better grep - use ripgrep if available, otherwise enhanced grep
 if command -v rg &>/dev/null; then
@@ -55,7 +53,6 @@ elif command -v batcat &>/dev/null; then
   alias batl='batcat --style=full'
   alias bat='batcat'
 fi
-
 
 # Better disk usage
 if command -v ncdu &>/dev/null; then
@@ -144,34 +141,45 @@ yank() {
     content=$(cat)
   fi
 
-  if [[ -n "$TMUX" ]]; then
-    # Inside tmux - use tmux's clipboard handling
-    printf "%s" "$content" | tmux load-buffer -
-  elif [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS - use pbcopy
+  if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]]; then
     printf "%s" "$content" | pbcopy
+  elif [[ -n "$TMUX" ]]; then
+    local b64=$(printf "%s" "$content" | base64 | tr -d '\n')
+    echo -en "\033Ptmux;\033\033]52;c;${b64}\007\033\\"
   else
-    # Linux/other - direct OSC52
-    printf "\033]52;c;%s\033\\" "$(printf "%s" "$content" | base64 -w0)"
+    printf "\033]52;c;%s\007" \
+      "$(printf "%s" "$content" | base64 | tr -d '\n')"
   fi
 }
 
 # Claude Flow alias with parameter support
+cf-init() {
+  npm install claude-flow@alpha &&
+    ./claude-flow init \
+      --sparc \
+      --hive-mind \
+      --neural-enhanced \
+      --force
+}
+
 alias cf='_cf_function'
 
 _cf_function() {
-    if [ $# -eq 0 ]; then
-        echo "Usage: cf <file_path>"
-        echo "Example: cf CS_TMP/REPO-ADAPTER-PLAN.md"
-        return 1
-    fi
-    
-    local file_path="$1"
-    
-    if [ ! -f "$file_path" ]; then
-        echo "Error: File '$file_path' not found"
-        return 1
-    fi
-    
-    ./claude-flow hive-mind spawn "$(cat "$file_path")" --auto-spawn --claude
+  if [ $# -eq 0 ]; then
+    echo "Usage: cf <file_path>"
+    echo "Example: cf CS_TMP/REPO-ADAPTER-PLAN.md"
+    return 1
+  fi
+
+  local file_path="$1"
+
+  if [ ! -f "$file_path" ]; then
+    echo "Error: File '$file_path' not found"
+    return 1
+  fi
+
+  ./claude-flow hive-mind spawn "$(cat "$file_path")" \
+    --auto-spawn \
+    --claude \
+    --namespace flow
 }
