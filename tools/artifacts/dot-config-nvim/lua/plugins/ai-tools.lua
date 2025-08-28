@@ -1,34 +1,51 @@
 return {
-  -- Copilot for autocomplete
+  -- Copilot.lua - more modern Copilot integration with ghost text
   {
-    "github/copilot.vim",
+    "zbirenbaum/copilot.lua",
+    cmd = "Copilot",
+    event = "InsertEnter",
     config = function()
-      -- Enable inline suggestions (ghost text)
-      vim.g.copilot_enabled = true
-      
-      -- Disable Copilot in specific filetypes
-      vim.g.copilot_filetypes = {
-        ["*"] = true,  -- Enable for all by default
-        ["gitcommit"] = false,
-        ["TelescopePrompt"] = false,
-        ["neo-tree"] = false,
-      }
-      
-      -- Navigation keys for cycling through multiple suggestions
-      vim.keymap.set('i', '<M-]>', '<Plug>(copilot-next)', { silent = true })
-      vim.keymap.set('i', '<M-[>', '<Plug>(copilot-previous)', { silent = true })
-      
-      -- Esc dismisses inline suggestions instead of accepting them
-      vim.keymap.set("i", "<Esc>", function()
-        if vim.fn["copilot#GetDisplayedSuggestion"]() ~= "" then
-          vim.fn["copilot#Dismiss"]()
-          return ""
-        else
-          return "<Esc>"
-        end
-      end, { expr = true, silent = true })
+      require("copilot").setup({
+        panel = {
+          enabled = true,
+          auto_refresh = false,
+          keymap = {
+            jump_prev = "[[",
+            jump_next = "]]",
+            accept = "<CR>",
+            refresh = "gr",
+            open = "<M-CR>",
+          },
+          layout = {
+            position = "bottom", -- | top | left | right
+            ratio = 0.4,
+          },
+        },
+        suggestion = {
+          enabled = true,  -- This enables ghost text suggestions
+          auto_trigger = true,
+          debounce = 75,
+          keymap = {
+            accept = "<Tab>",
+            accept_word = false,
+            accept_line = false,
+            next = "<M-]>",
+            prev = "<M-[>",
+            dismiss = "<C-]>",
+          },
+        },
+        filetypes = {
+          ["*"] = true,
+          gitcommit = false,
+          TelescopePrompt = false,
+          ["neo-tree"] = false,
+        },
+        copilot_node_command = "node",
+        server_opts_overrides = {},
+      })
     end,
   },
+  
   -- Official Claude Code integration (most advanced)
   {
     "coder/claudecode.nvim",

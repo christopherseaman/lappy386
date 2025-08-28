@@ -1,4 +1,21 @@
 return {
+  -- Markdown concealing for prettier display
+  {
+    "preservim/vim-markdown",
+    ft = "markdown",
+    config = function()
+      vim.g.vim_markdown_folding_disabled = 1
+      vim.g.vim_markdown_conceal = 2
+      vim.g.vim_markdown_conceal_code_blocks = 0
+      vim.g.vim_markdown_math = 1
+      vim.g.vim_markdown_frontmatter = 1
+      vim.g.vim_markdown_strikethrough = 1
+      vim.g.vim_markdown_autowrite = 1
+      vim.g.vim_markdown_edit_url_in = 'tab'
+      vim.g.vim_markdown_follow_anchor = 1
+    end,
+  },
+
   -- Enhanced markdown editing with smart lists, tables, and more
   {
     "bullets-vim/bullets.vim",
@@ -34,7 +51,19 @@ return {
     "iamcco/markdown-preview.nvim",
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
     ft = { "markdown" },
-    build = function() vim.fn["mkdp#util#install"]() end,
+    build = "cd app && npm install",
+    config = function()
+      vim.g.mkdp_auto_start = 0
+      vim.g.mkdp_auto_close = 1
+      vim.g.mkdp_refresh_slow = 0
+      vim.g.mkdp_browser = ""
+      vim.g.mkdp_markdown_css = ""
+      vim.g.mkdp_theme = "dark"
+      vim.g.mkdp_highlight_css = ""
+      vim.g.mkdp_port = ""
+      vim.g.mkdp_page_title = "「${name}」"
+      vim.g.mkdp_filetypes = { "markdown" }
+    end,
     keys = {
       { "<leader>mp", "<cmd>MarkdownPreviewToggle<cr>", desc = "Markdown preview" },
     },
