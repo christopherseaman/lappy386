@@ -143,12 +143,9 @@ yank() {
 
   if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]]; then
     printf "%s" "$content" | pbcopy
-  elif [[ -n "$TMUX" ]]; then
+  else
     local b64=$(printf "%s" "$content" | base64 | tr -d '\n')
     echo -en "\033Ptmux;\033\033]52;c;${b64}\007\033\\"
-  else
-    printf "\033]52;c;%s\007" \
-      "$(printf "%s" "$content" | base64 | tr -d '\n')"
   fi
 }
 
