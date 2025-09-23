@@ -5,11 +5,13 @@ SetEnv TERM=xterm-256color
 ForwardAgent yes
 
 Host glen
+  User christopher
   AddKeysToAgent yes
   # UseKeychain yes  # macOS only
   IdentityFile ~/.ssh/glen
 
 Host schmaspberry schmaspberry.duckdns.org
+  User christopher
   AddKeysToAgent yes
   # UseKeychain yes  # macOS only
   IdentityFile ~/.ssh/schmaspberry_hive
@@ -21,6 +23,7 @@ Host deb-studio deb-y7rgc54-dt deb-y7rgc54-dt-1 deb-y7rgc54
   IdentityFile ~/.ssh/schmaspberry_hive
 
 Host hivemind*
+  User christopher
   AddKeysToAgent yes
   # UseKeychain yes  # macOS only
   IdentityFile ~/.ssh/hivemind
@@ -31,11 +34,13 @@ Host *.github.com
   IdentityFile ~/.ssh/github
 
 Host minigame.duckdns.org
+  User christopher
   AddKeysToAgent yes
   # UseKeychain yes  # macOS only
   IdentityFile ~/.ssh/minigame
 
 Host carnac carnac.badmath.org 146.235.221.82
+  User christopher
   AddKeysToAgent yes
   # UseKeychain yes  # macOS only
   IdentityFile ~/.ssh/carnac

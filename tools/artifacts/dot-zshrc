@@ -1,88 +1,71 @@
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+# ~/.zshrc: executed by zsh for interactive shells
 
-# Path to your Oh My Zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time Oh My Zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-#ZSH_THEME="robbyrussell"
-ZSH_THEME=""
+# History configuration
+HISTSIZE=100000
+SAVEHIST=200000
+HISTFILE=~/.zsh_history
 
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
+# History options
+setopt HIST_IGNORE_DUPS          # Don't record an entry that was just recorded again
+setopt HIST_IGNORE_ALL_DUPS      # Delete old recorded entry if new entry is a duplicate
+setopt HIST_FIND_NO_DUPS         # Do not display a line previously found
+setopt HIST_IGNORE_SPACE         # Don't record an entry starting with a space
+setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history file
+setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry
+setopt HIST_VERIFY               # Don't execute immediately upon history expansion
+setopt INC_APPEND_HISTORY        # Write to history file immediately, not when shell exits
+setopt SHARE_HISTORY             # Share history between all sessions
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-# zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
-
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
-
-source $ZSH/oh-my-zsh.sh
-
-# User configuration
-
-# Additional configurations from pre-oh-my-zsh setup
+# Completion system
 autoload -Uz compinit && compinit
+
+# Better completion settings
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' menu select
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*:ssh:*' hosts-ports $(cat ~/.ssh/known_hosts ~/.ssh/config 2>/dev/null | awk '/^Host[[:space:]]/ { print $2 }' | grep -v '\*' | sort -u)
 
+# Directory options
+setopt AUTO_CD                   # Auto change to a directory without typing cd
+setopt AUTO_PUSHD                # Push the old directory onto the stack on cd
+setopt PUSHD_IGNORE_DUPS         # Do not store duplicates in the stack
+setopt PUSHD_SILENT              # Do not print the directory stack after pushd or popd
+
+# Correction and expansion
+setopt CORRECT                   # Try to correct the spelling of commands
+setopt GLOB_DOTS                 # Include dotfiles in globbing
+
+# Enable colors
+autoload -U colors && colors
+
+# Colored output for common commands
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux
+    alias ls='ls --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    alias ls='ls -G'
+    alias grep='grep --color=auto'
+fi
+
+# Colorize less for man pages and code
+export LESS='-R --use-color -Dd+r$Du+b'
+export MANPAGER="less -R --use-color -Dd+r -Du+b"
+
+# Colored GCC warnings and errors
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+
+# Key bindings
+bindkey -e  # Use emacs key bindings
+
 # Define a function to load env vars from a file
-load_env () {
+load_env() {
     set -o allexport
     source $1
     set +o allexport
@@ -91,39 +74,44 @@ load_env () {
 # Load ssh-agent and keys
 [ -z "$SSH_AUTH_SOCK" ] && eval $(ssh-agent)
 # Add ssh keys to ssh-agent
-KEYS=($(grep -i 'identityfile' ~/.ssh/config | sed -e 's/.*IdentityFile \(.*\)$/\1/'))
+KEYS=($(grep -i 'identityfile' ~/.ssh/config 2>/dev/null | sed -e 's/.*IdentityFile \(.*\)$/\1/'))
 for key in "${KEYS[@]}"; do
     eval ssh-add $key &> /dev/null
 done
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
-eval "$(starship init zsh)"
+# Homebrew setup (macOS)
+if [[ "$OSTYPE" == "darwin"* ]] && [[ -f "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
 
-export PATH="$PATH:/Users/christopher/.local/bin"
-export PATH='/Users/christopher/.duckdb/cli/latest':$PATH
-# export MANPATH="/usr/local/man:$MANPATH"
+# Command-specific completions
+command -v gh >/dev/null && eval "$(gh completion -s zsh)"
+command -v uv >/dev/null && eval "$(uv generate-shell-completion zsh)"
 
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+# Set up fzf key bindings and fuzzy completion
+command -v fzf >/dev/null && source <(fzf --zsh)
 
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='nvim'
-# fi
+# Pretty greeting!
+command -v fastfetch >/dev/null && fastfetch
 
-# Compilation flags
-# export ARCHFLAGS="-arch $(uname -m)"
+# Initialize starship prompt
+command -v starship >/dev/null && eval "$(starship init zsh)"
 
-# Set personal aliases, overriding those provided by Oh My Zsh libs,
-# plugins, and themes. Aliases can be placed here, though Oh My Zsh
-# users are encouraged to define aliases within a top-level file in
-# the $ZSH_CUSTOM folder, with .zsh extension. Examples:
-# - $ZSH_CUSTOM/aliases.zsh
-# - $ZSH_CUSTOM/macos.zsh
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+# Add user's private bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
+# Additional PATH entries (customize as needed)
+[[ -d "$HOME/.duckdb/cli/latest" ]] && export PATH="$HOME/.duckdb/cli/latest:$PATH"
+
+# Language environment
+export LANG=en_US.UTF-8
+
+# Preferred editor
+if [[ -n $SSH_CONNECTION ]]; then
+    export EDITOR='vim'
+else
+    export EDITOR='nvim'
+fi
+
+# Load aliases if they exist
+[[ -f ~/.aliases ]] && source ~/.aliases
