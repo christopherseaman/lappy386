@@ -31,7 +31,7 @@ Host *.github.com
 Host minigame.duckdns.org
   IdentityFile ~/.ssh/minigame
 
-Host carnac carnac.badmath.org 146.235.221.82
+Host carnac carnac.tailf0b9.ts.net carnac.badmath.org 146.235.221.82
   IdentityFile ~/.ssh/carnac
 
 Host shtheeev shtheeev.local 192.168.4.2 sqrlly.duckdns.org
