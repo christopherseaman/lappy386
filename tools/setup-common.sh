@@ -2,7 +2,7 @@
 
 ## COPY DOT-FILES
 cat artifacts/dot-bashrc >~/.bashrc
-cat artifacts/dot-bash_aliases >~/.bash_aliases
+cat artifacts/dot-aliases >~/.aliases
 cat artifacts/dot-tmux.conf >~/.tmux.conf
 
 ## SSH CONFIG
