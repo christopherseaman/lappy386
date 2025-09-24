@@ -94,7 +94,7 @@ export MANPAGER="less -R --use-color -Dd+r -Du+b"
 
 # Alias definitions.
 # You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
+# ~/.aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
 if [ -f ~/.aliases ]; then
@@ -121,6 +121,9 @@ bind "set menu-complete-display-prefix on"
 # Command-specific completions
 command -v gh >/dev/null && eval "$(gh completion -s bash)"
 command -v uv >/dev/null && eval "$(uv generate-shell-completion bash)"
+
+# Set up fzf key bindings and fuzzy completion
+command -v fzf >/dev/null && eval "$(fzf --bash)"
 
 # Pretty greeting!
 fastfetch_greeting

@@ -143,43 +143,50 @@ yank() {
 
   if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]]; then
     printf "%s" "$content" | pbcopy
-  elif [[ -n "$TMUX" ]]; then
+  else
     local b64=$(printf "%s" "$content" | base64 | tr -d '\n')
     echo -en "\033Ptmux;\033\033]52;c;${b64}\007\033\\"
-  else
-    printf "\033]52;c;%s\007" \
-      "$(printf "%s" "$content" | base64 | tr -d '\n')"
   fi
 }
 
-# Claude Flow alias with parameter support
+# Claude Flow aliases with high performance settings
 cf-init() {
-  npm install claude-flow@alpha &&
-    ./claude-flow init \
-      --sparc \
-      --hive-mind \
-      --neural-enhanced \
-      --force
+  npx claude-flow@alpha init \
+    --sparc \
+    --hive-mind \
+    --neural-enhanced \
+    --force
 }
 
-alias cf='_cf_function'
-
-_cf_function() {
+# Claude Flow with high performance settings - takes quoted instruction
+cf() {
   if [ $# -eq 0 ]; then
-    echo "Usage: cf <file_path>"
-    echo "Example: cf CS_TMP/REPO-ADAPTER-PLAN.md"
+    echo "Usage: cf \"instruction\""
+    echo "Example: cf \"Build a REST API with authentication\""
     return 1
   fi
 
-  local file_path="$1"
-
-  if [ ! -f "$file_path" ]; then
-    echo "Error: File '$file_path' not found"
-    return 1
-  fi
-
-  ./claude-flow hive-mind spawn "$(cat "$file_path")" \
+  npx claude-flow@alpha hive-mind spawn "$1" \
     --auto-spawn \
     --claude \
+    --max-workers 20 \
+    --auto-scale \
+    --monitor \
+    --memory-size 200 \
     --namespace flow
+}
+
+# Swarm alias with high performance settings - takes quoted instruction
+sw() {
+  if [ $# -eq 0 ]; then
+    echo "Usage: sw \"instruction\""
+    echo "Example: sw \"Build a REST API with authentication\""
+    return 1
+  fi
+
+  npx claude-flow@alpha swarm "$1" \
+    --parallel \
+    --max-agents 20 \
+    --mode hybrid \
+    --claude
 }

@@ -1,5 +1,40 @@
-## Casks
+## GUI Applications
 1password
+altserver
 balenaetcher
-transmission
+boosteroid
+claude-code
+cursor
+daisydisk
+discord
+firefox
+ghostty
 handbrake
+itsycal
+mountain-duck
+ngrok
+obsidian
+onyx
+orbstack
+qflipper
+raspberry-pi-imager
+signal
+slack
+spotify
+steam
+transmission
+visual-studio-code
+vlc
+
+## Fonts
+font-0xproto
+font-0xproto-nerd-font
+font-cormorant
+font-fira-code-nerd-font
+font-fira-mono
+font-fira-mono-nerd-font
+font-ia-writer-quattro
+font-sauce-code-pro-nerd-font
+font-source-code-pro
+font-source-sans-3
+font-source-serif-4

@@ -4,6 +4,7 @@
 cat artifacts/dot-bashrc >~/.bashrc
 cat artifacts/dot-aliases >~/.aliases
 cat artifacts/dot-tmux.conf >~/.tmux.conf
+cat artifacts/dot-zshrc >~/.zshrc
 
 ## SSH CONFIG
 mkdir -p ~/.ssh
@@ -50,15 +51,30 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 source ~/.bashrc
 nvm install --lts
-npm i -g @anthropic-ai/claude-code
+
+curl -fsSL https://claude.ai/install.sh | bash
 
 git config --global user.name "Christopher Seaman"
 git config --global user.email "86775+christopherseaman@users.noreply.github.com"
 
+
+# Source the appropriate shell config
+if command -v zsh >/dev/null 2>&1; then
+    source ~/.zshrc
+else
+    source ~/.bashrc
+fi
+
 ## REMINDER
 echo ""
 echo "┌─────────────────────────────────────┐"
-echo "│ Setup complete! Remember to run:    │"
+echo "│                                     │"
+if command -v zsh >/dev/null 2>&1; then
+  echo "│ Remember to $(tput bold)source .zshrc$(tput sgr0) and run:  │"
+else
+  echo "│ Remember to $(tput bold)source .bashrc$(tput sgr0) and run: │"
+fi
 echo "│                                     │"
 echo "│          $(tput bold)gh auth login$(tput sgr0)              │"
+echo "│                                     │"
 echo "└─────────────────────────────────────┘"
