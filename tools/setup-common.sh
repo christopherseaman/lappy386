@@ -41,28 +41,27 @@ else
 fi
 
 ## SETUP CLAUDE GLOBAL CONFIG
-mkdir -p ~/.claude
-curl -o ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md
+#mkdir -p ~/.claude
+#curl -o ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md
 
 ## INSTALL NVM AND NODE
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+#curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+#export NVM_DIR="$HOME/.nvm"
+#[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
+#[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 source ~/.bashrc
-nvm install --lts
+#nvm install --lts
 
 curl -fsSL https://claude.ai/install.sh | bash
 
 git config --global user.name "Christopher Seaman"
 git config --global user.email "86775+christopherseaman@users.noreply.github.com"
 
-
 # Source the appropriate shell config
 if command -v zsh >/dev/null 2>&1; then
-    source ~/.zshrc
+  source ~/.zshrc
 else
-    source ~/.bashrc
+  source ~/.bashrc
 fi
 
 ## REMINDER
