@@ -25,6 +25,9 @@ Host deb-studio deb-y7rgc54-dt deb-y7rgc54-dt-1 deb-y7rgc54
 Host hivemind*
   IdentityFile ~/.ssh/hivemind
 
+Host spaceforce spaceforce.tailf0b9.ts.net
+  IdentityFile ~/.ssh/spaceforce
+
 Host *.github.com
   IdentityFile ~/.ssh/github
 
