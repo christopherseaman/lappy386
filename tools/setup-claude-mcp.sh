@@ -3,6 +3,19 @@
 # Combined MCP setup script for Claude - Notion and Atlassian
 # This script sets up both MCP servers at user scope for portability
 
+## TODO
+## Context7
+# claude mcp add context7 -s user -t http https://mcp.context7.com/mcp --header "CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}"
+## MorphLLM
+# claude mcp add filesystem-with-morph -s user -e MORPH_API_KEY=${MORPH_API_KEY} -e ALL_TOOLS=false -- npx @morph-llm/morph-fast-apply
+## Sequential Thinking
+# claude mcp add sequential-thinking -s user "npx -y @modelcontextprotocol/server-sequential-thinking"
+## Zilliz "Claude Context"
+# claude mcp add claude-context -s user \
+#    -e OPENAI_API_KEY=${OPENAI_API_KEY} \
+#    -e MILVUS_TOKEN=${ZILLIZ_API_KEY} \
+#    -- npx @zilliz/claude-context-mcp@latest
+
 set -e  # Exit on error
 
 echo "=== Claude MCP Setup Script ==="
@@ -14,29 +27,13 @@ setup_notion() {
     echo "=== Setting up Notion MCP ==="
     echo ""
     
-    # Check if NOTION_API_KEY is set
-    if [ -z "$NOTION_API_KEY" ]; then
-        echo "NOTION_API_KEY environment variable not set."
-        echo "To get your Notion API key:"
-        echo "1. Go to https://www.notion.so/my-integrations"
-        echo "2. Create a new integration or use an existing one"
-        echo "3. Copy the Internal Integration Token"
-        echo ""
-        read -p "Enter your Notion API key (or press Enter to skip): " NOTION_API_KEY
-        
-        if [ -z "$NOTION_API_KEY" ]; then
-            echo "Skipping Notion setup."
-            return
-        fi
-    fi
-    
     # Remove existing notion MCP server if it exists
-    claude mcp remove notion 2>/dev/null || true
+    claude mcp remove notion -s project 2>/dev/null || true
+    claude mcp remove notion -s local 2>/dev/null || true
+    claude mcp remove notion -s user 2>/dev/null || true
     
     # Add Notion MCP server with the API key at user scope
-    claude mcp add notion -s user \
-      -e "OPENAPI_MCP_HEADERS={\"Authorization\": \"Bearer ${NOTION_API_KEY}\", \"Notion-Version\": \"2022-06-28\"}" \
-      -- npx -y @notionhq/notion-mcp-server
+    claude mcp add notion -t http -s user https://mcp.notion.com/mcp
     
     echo "✓ Notion MCP server configured successfully!"
     echo ""
