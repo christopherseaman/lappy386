@@ -108,6 +108,11 @@ export PATH="$HOME/.local/bin:$PATH"
 # Additional PATH entries (customize as needed)
 [[ -d "$HOME/.duckdb/cli/latest" ]] && export PATH="$HOME/.duckdb/cli/latest:$PATH"
 
+# ngrok autocompletion
+if command -v ngrok &>/dev/null; then
+  eval "$(ngrok completion)"
+fi
+
 # Language environment
 export LANG=en_US.UTF-8
 
