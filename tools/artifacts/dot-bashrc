@@ -122,8 +122,11 @@ bind "set menu-complete-display-prefix on"
 command -v gh >/dev/null && eval "$(gh completion -s bash)"
 command -v uv >/dev/null && eval "$(uv generate-shell-completion bash)"
 
-# Set up fzf key bindings and fuzzy completion
-command -v fzf >/dev/null && eval "$(fzf --bash)"
+# Set up fzf fuzzy completion (vim **<Tab>, cd **<Tab>, etc.)
+[ -f /usr/share/bash-completion/completions/fzf ] && source /usr/share/bash-completion/completions/fzf
+
+# Set up fzf key bindings (Ctrl-R, Ctrl-T, Alt-C)
+[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && source /usr/share/doc/fzf/examples/key-bindings.bash
 
 # Pretty greeting!
 fastfetch_greeting
