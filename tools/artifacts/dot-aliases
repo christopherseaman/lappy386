@@ -150,13 +150,7 @@ yank() {
 }
 
 # Claude Flow aliases with high performance settings
-cf-init() {
-  npx claude-flow@alpha init \
-    --sparc \
-    --hive-mind \
-    --neural-enhanced \
-    --force
-}
+alias cf-init="npx claude-flow@alpha init --force"
 
 # Claude Flow with high performance settings - takes quoted instruction
 cf() {
