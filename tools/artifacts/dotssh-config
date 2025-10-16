@@ -8,10 +8,6 @@ User christopher
 Compression yes
 AddKeysToAgent yes
 
-# macOS-specific settings
-Match host * exec "test $(uname) = Darwin"
-    UseKeychain yes
-
 Host glen
   IdentityFile ~/.ssh/glen
 
@@ -20,7 +16,7 @@ Host schmaspberry schmaspberry.duckdns.org
 
 Host deb-studio deb-y7rgc54-dt deb-y7rgc54-dt-1 deb-y7rgc54
   User cseaman
-  IdentityFile ~/.ssh/schmaspberry_hive
+  IdentityFile ~/.ssh/schmaspberry
 
 Host hivemind*
   IdentityFile ~/.ssh/hivemind
