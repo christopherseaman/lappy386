@@ -123,6 +123,6 @@ else
     export EDITOR='nvim'
 fi
 
-# Auto-attach to tmux session on login
-[[ -z "$TMUX" ]] && { tmux attach || tmux; }
+# Auto-attach to tmux session on SSH login only
+[[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && { tmux attach || tmux; }
 
