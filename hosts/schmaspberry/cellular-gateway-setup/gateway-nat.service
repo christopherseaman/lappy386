@@ -1,0 +1,12 @@
+[Unit]
+Description=Gateway NAT for UniFi to Cellular WAN
+After=network-online.target NetworkManager.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/home/christopher/.local/bin/setup-gateway-nat.sh
+
+[Install]
+WantedBy=multi-user.target
