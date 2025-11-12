@@ -12,7 +12,7 @@ Host glen
   IdentityFile ~/.ssh/glen
 
 Host schmaspberry schmaspberry.duckdns.org
-  IdentityFile ~/.ssh/schmaspberry_hive
+  IdentityFile ~/.ssh/schmaspberry
 
 Host deb-studio deb-y7rgc54-dt deb-y7rgc54-dt-1 deb-y7rgc54
   User cseaman
