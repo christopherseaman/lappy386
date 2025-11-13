@@ -10,18 +10,27 @@ OLD_USER="ubuntu"
 NEW_USER="christopher"
 NEW_HOME="/home/$NEW_USER"
 
+# Add Crostini Sources
+echo "deb [signed-by=/usr/share/keyrings/cros-archive-keyring.gpg] https://storage.googleapis.com/cros-packages bookworm main" > /etc/apt/sources.list.d/cros.list
+
+# Adjust for milestone if present
+if [ -f /dev/.cros_milestone ]; then 
+    sudo sed -i "s?packages?packages/$(cat /dev/.cros_milestone)?" /etc/apt/sources.list.d/cros.list
+fi
+
+# Download and add GPG keys (modern method)
+mkdir -p /usr/share/keyrings
+
+# Add both Google Chrome OS keys
+gpg --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13 4EB27DB2A3B88B8B
+gpg --export 78BD65473CB3BD13 4EB27DB2A3B88B8B | sudo tee /usr/share/keyrings/cros-archive-keyring.gpg > /dev/null
+
+# Update package lists
 apt update
+
+# Update!
 apt upgrade
 apt install binutils
-
-# Add Crostini Sources
-# Download and add GPG keys
-gpg --no-default-keyring --keyring /tmp/cros.gpg --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13 4EB27DB2A3B88B8B
-gpg --export --armor 78BD65473CB3BD13 4EB27DB2A3B88B8B | tee /etc/apt/trusted.gpg.d/cros.asc > /dev/null
-# Add repository
-echo "deb https://storage.googleapis.com/cros-packages bookworm main" > /etc/apt/sources.list.d/cros.list
-if [ -f /dev/.cros_milestone ]; then sudo sed -i "s?packages?packages/$(cat /dev/.cros_milestone)?" /etc/apt/sources.list.d/cros.list; fi
-apt update
 
 # Modify the cros-ui-config package
 apt download cros-ui-config 2>/dev/null
