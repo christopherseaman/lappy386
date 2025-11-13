@@ -62,7 +62,7 @@ rm -rf data.tar.gz
 
 echo "Modified: $DEB_FILE"
 
-apt install cros-gpu cros-guest-tools ./$DEB_FILE
+apt install cros-guest-tools ./$DEB_FILE
 
 # Change default user and home directory
 
