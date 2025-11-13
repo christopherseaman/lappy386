@@ -15,10 +15,11 @@ apt upgrade
 apt install binutils
 
 # Add Crostini Sources
-echo "deb https://storage.googleapis.com/cros-packages bookworm main" > /etc/apt/sources.list.d/cros.list
+# Download and add GPG keys
+gpg --no-default-keyring --keyring /etc/apt/keyrings/cros.gpg --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13 4EB27DB2A3B88B8B
+# Add repository
+echo "deb [signed-by=/etc/apt/keyrings/cros.gpg] https://storage.googleapis.com/cros-packages bookworm main" > /etc/apt/sources.list.d/cros.list
 if [ -f /dev/.cros_milestone ]; then sudo sed -i "s?packages?packages/$(cat /dev/.cros_milestone)?" /etc/apt/sources.list.d/cros.list; fi
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4EB27DB2A3B88B8B
 apt update
 
 # Modify the cros-ui-config package
