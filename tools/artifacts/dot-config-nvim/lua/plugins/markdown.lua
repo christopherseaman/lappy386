@@ -11,7 +11,7 @@ return {
       vim.g.vim_markdown_frontmatter = 1
       vim.g.vim_markdown_strikethrough = 1
       vim.g.vim_markdown_autowrite = 1
-      vim.g.vim_markdown_edit_url_in = 'tab'
+      vim.g.vim_markdown_edit_url_in = "tab"
       vim.g.vim_markdown_follow_anchor = 1
     end,
   },
@@ -51,7 +51,7 @@ return {
     "iamcco/markdown-preview.nvim",
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
     ft = { "markdown" },
-    build = "cd app && npm install",
+    build = "cd app && npx --yes yarn install",
     config = function()
       vim.g.mkdp_auto_start = 0
       vim.g.mkdp_auto_close = 1
@@ -69,3 +69,4 @@ return {
     },
   },
 }
+
