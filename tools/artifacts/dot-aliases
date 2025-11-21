@@ -150,7 +150,7 @@ yank() {
 }
 
 # Claude Flow aliases with high performance settings
-alias cf-init="npx claude-flow@alpha init --force"
+alias cf-init="npx claude-flow@alpha init"
 
 # Claude Flow with high performance settings - takes quoted instruction
 cf() {

@@ -19,6 +19,14 @@ setopt HIST_VERIFY               # Don't execute immediately upon history expans
 setopt INC_APPEND_HISTORY        # Write to history file immediately, not when shell exits
 setopt SHARE_HISTORY             # Share history between all sessions
 
+# Homebrew setup (macOS)
+if [[ "$OSTYPE" == "darwin"* ]] && [[ -f "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+# Add user's private bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 # Load aliases if they exist (early load for potential overrides)
 if [[ -f ~/.aliases ]]; then
   . ~/.aliases
@@ -46,28 +54,9 @@ setopt GLOB_DOTS                 # Include dotfiles in globbing
 # Enable colors
 autoload -U colors && colors
 
-# Colored output for common commands
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux
-    alias ls='ls --color=auto'
-    alias grep='grep --color=auto'
-    alias fgrep='fgrep --color=auto'
-    alias egrep='egrep --color=auto'
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    alias ls='ls -G'
-    alias grep='grep --color=auto'
-fi
-
-# Colorize less for man pages and code
-export LESS='-R --use-color -Dd+r$Du+b'
-export MANPAGER="less -R --use-color -Dd+r -Du+b"
-
 # Colored GCC warnings and errors
+export CLICOLOR=1
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-
-# Key bindings
-bindkey -e  # Use emacs key bindings
 
 # Define a function to load env vars from a file
 load_env() {
@@ -84,11 +73,6 @@ for key in "${KEYS[@]}"; do
     eval ssh-add $key &> /dev/null
 done
 
-# Homebrew setup (macOS)
-if [[ "$OSTYPE" == "darwin"* ]] && [[ -f "/opt/homebrew/bin/brew" ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-
 # Command-specific completions
 command -v gh >/dev/null && eval "$(gh completion -s zsh)"
 command -v uv >/dev/null && eval "$(uv generate-shell-completion zsh)"
@@ -102,27 +86,16 @@ command -v fastfetch >/dev/null && fastfetch
 # Initialize starship prompt
 command -v starship >/dev/null && eval "$(starship init zsh)"
 
-# Add user's private bin to PATH
-export PATH="$HOME/.local/bin:$PATH"
-
 # Additional PATH entries (customize as needed)
 [[ -d "$HOME/.duckdb/cli/latest" ]] && export PATH="$HOME/.duckdb/cli/latest:$PATH"
-
-# ngrok autocompletion
-if command -v ngrok &>/dev/null; then
-  eval "$(ngrok completion)"
-fi
 
 # Language environment
 export LANG=en_US.UTF-8
 
-# Preferred editor
-if [[ -n $SSH_CONNECTION ]]; then
-    export EDITOR='vim'
-else
-    export EDITOR='nvim'
-fi
-
 # Auto-attach to tmux session on SSH login only
 [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && { tmux attach || tmux; }
 
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
