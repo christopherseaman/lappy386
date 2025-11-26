@@ -55,6 +55,7 @@ curl -fsSL https://claude.ai/install.sh | bash
 
 git config --global user.name "Christopher Seaman"
 git config --global user.email "86775+christopherseaman@users.noreply.github.com"
+git config --global --add --bool push.autoSetupRemote true
 
 # Source the appropriate shell config
 if command -v zsh >/dev/null 2>&1; then
