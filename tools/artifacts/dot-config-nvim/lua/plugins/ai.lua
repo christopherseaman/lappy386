@@ -1,25 +1,17 @@
 return {
-  -- Import LazyVim's Copilot extra (now under ai, not coding)
+  -- Import LazyVim's Copilot extra (for completions)
   { import = "lazyvim.plugins.extras.ai.copilot" },
 
-  -- Import LazyVim's Avante extra
+  -- Import LazyVim's Avante extra (for AI chat)
   { import = "lazyvim.plugins.extras.ai.avante" },
 
-  -- Configure Avante to use Claude Code via ACP
-  -- Uses existing Claude Code auth from ~/.claude/config.json
+  -- Customize Avante if needed (this will override the extra's config)
   {
     "yetone/avante.nvim",
     opts = {
-      provider = "claude-code",
-      acp_providers = {
-        ["claude-code"] = {
-          command = "npx",
-          args = { "@zed-industries/claude-code-acp" },
-          env = {
-            NODE_NO_WARNINGS = "1",
-          },
-        },
-      },
+      provider = "copilot",
+      auto_suggestions_provider = "copilot",
+      -- No need for copilot.model or openai config when using Copilot provider
     },
   },
 }

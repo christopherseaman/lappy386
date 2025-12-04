@@ -38,7 +38,7 @@ return {
     config = function()
       vim.g.table_mode_corner = "|"
       vim.g.table_mode_border = 0
-      vim.g.table_mode_fillchar = " "
+      --    vim.g.table_mode_fillchar = " "
     end,
     keys = {
       { "<leader>tm", "<cmd>TableModeToggle<cr>", desc = "Toggle table mode" },
@@ -47,26 +47,25 @@ return {
   },
 
   -- Markdown preview in browser
-  {
-    "iamcco/markdown-preview.nvim",
-    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-    ft = { "markdown" },
-    build = "cd app && npx --yes yarn install",
-    config = function()
-      vim.g.mkdp_auto_start = 0
-      vim.g.mkdp_auto_close = 1
-      vim.g.mkdp_refresh_slow = 0
-      vim.g.mkdp_browser = ""
-      vim.g.mkdp_markdown_css = ""
-      vim.g.mkdp_theme = "dark"
-      vim.g.mkdp_highlight_css = ""
-      vim.g.mkdp_port = ""
-      vim.g.mkdp_page_title = "「${name}」"
-      vim.g.mkdp_filetypes = { "markdown" }
-    end,
-    keys = {
-      { "<leader>mp", "<cmd>MarkdownPreviewToggle<cr>", desc = "Markdown preview" },
-    },
-  },
+  -- {
+  --   "iamcco/markdown-preview.nvim",
+  --   cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+  --   ft = { "markdown" },
+  --   build = "cd app && npx --yes yarn install",
+  --   config = function()
+  --     vim.g.mkdp_auto_start = 0
+  --     vim.g.mkdp_auto_close = 1
+  --     vim.g.mkdp_refresh_slow = 0
+  --     vim.g.mkdp_browser = ""
+  --     vim.g.mkdp_markdown_css = ""
+  --     vim.g.mkdp_theme = "dark"
+  --     vim.g.mkdp_highlight_css = ""
+  --     vim.g.mkdp_port = ""
+  --     vim.g.mkdp_page_title = "「${name}」"
+  --     vim.g.mkdp_filetypes = { "markdown" }
+  --   end,
+  --   keys = {
+  --     { "<leader>mp", "<cmd>MarkdownPreviewToggle<cr>", desc = "Markdown preview" },
+  --   },
+  -- },
 }
-
