@@ -38,8 +38,10 @@ else
   curl -sS https://starship.rs/install.sh | sudo sh -s -- --yes
 fi
 
-sudo add-apt-repository -y ppa:zhangsongcui3371/fastfetch >/dev/null 2>&1
-sudo add-apt-repository -y ppa:maveonair/helix-editor >/dev/null 2>&1
+# Fastfetch and helix should be available in mainline Ubuntu apt sources
+# Uncomment below for older Ubuntu releases if needed:
+# sudo add-apt-repository -y ppa:zhangsongcui3371/fastfetch >/dev/null 2>&1
+# sudo add-apt-repository -y ppa:maveonair/helix-editor >/dev/null 2>&1
 sudo apt update -qq
 sudo apt install -qq -y fastfetch helix
 

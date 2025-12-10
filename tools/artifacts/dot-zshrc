@@ -67,11 +67,8 @@ load_env() {
 
 # Load ssh-agent and keys
 [ -z "$SSH_AUTH_SOCK" ] && eval $(ssh-agent)
-# Add ssh keys to ssh-agent
-KEYS=($(grep -i 'identityfile' ~/.ssh/config 2>/dev/null | sed -e 's/.*IdentityFile \(.*\)$/\1/'))
-for key in "${KEYS[@]}"; do
-    eval ssh-add $key &> /dev/null
-done
+# Add client key to ssh-agent
+[ -f ~/.ssh/client_key ] && ssh-add ~/.ssh/client_key &> /dev/null
 
 # Command-specific completions
 command -v gh >/dev/null && eval "$(gh completion -s zsh)"

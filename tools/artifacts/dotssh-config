@@ -1,40 +1,18 @@
-# Include ~/.orbstack/ssh/config  # macOS only
-
-Host glen
-  IdentityFile ~/.ssh/glen
-
-Host schmaspberry schmaspberry.duckdns.org
-  IdentityFile ~/.ssh/schmaspberry
-
 Host deb.tailf0b9.ts.net deb-studio deb-y7rgc54-dt deb-y7rgc54-dt-1 deb-y7rgc54
   Hostname deb.tailf0b9.ts.net
   User cseaman
-  IdentityFile ~/.ssh/schmaspberry
-
-Host hivemind*
-  IdentityFile ~/.ssh/hivemind
-
-Host spaceforce spaceforce.tailf0b9.ts.net
-  IdentityFile ~/.ssh/spaceforce
 
 Host *.github.com
-  IdentityFile ~/.ssh/github
-
-Host minigame.duckdns.org
-  IdentityFile ~/.ssh/minigame
-
-Host carnac carnac.tailf0b9.ts.net carnac.badmath.org 146.235.221.82
-  IdentityFile ~/.ssh/carnac
+  IdentityFile ~/.ssh/id_ed25519
 
 Host shtheeev shtheeev.local 192.168.4.2 sqrlly.duckdns.org
   Port 222
-  IdentityFile ~/.ssh/shtheeev
 
-# Global defaults (must be at end - first match wins in SSH config)
+# Global defaults
 Host *
   SetEnv TERM=xterm-256color
-  ForwardAgent yes
   IdentitiesOnly yes
   User christopher
   Compression yes
   AddKeysToAgent yes
+  IdentityFile ~/.ssh/client_key
