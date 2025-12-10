@@ -2,6 +2,8 @@
 
 ## UBUNTU PACKAGE INSTALLATION
 sudo apt update -qq --quiet
+sudo apt upgrade -qq --quiet -y
+sudo apt autoremove -qq --quiet -y
 sudo apt install -qq --quiet -y \
   bash-completion \
   bat \
