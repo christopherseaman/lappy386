@@ -1,28 +1,5 @@
 #!/bin/bash
 
-## GIT PULL - Ensure we have latest changes
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-if [ -d "$REPO_ROOT/.git" ]; then
-  cd "$REPO_ROOT"
-  # Get current commit before pull
-  BEFORE_COMMIT=$(git rev-parse HEAD 2>/dev/null)
-  # Pull latest changes
-  git pull
-  # Get commit after pull
-  AFTER_COMMIT=$(git rev-parse HEAD 2>/dev/null)
-  # Abort if new commits were pulled
-  if [ "$BEFORE_COMMIT" != "$AFTER_COMMIT" ]; then
-    echo "New changes were pulled from the repository."
-    echo "Please review the changes and run the setup script again."
-    exit 1
-  fi
-  # Return to tools directory
-  cd "$SCRIPT_DIR"
-else
-  echo "Warning: Not in a git repository, skipping git pull"
-fi
-
 ## COPY DOT-FILES
 cat artifacts/dot-bashrc >~/.bashrc
 cat artifacts/dot-aliases >~/.aliases
@@ -41,8 +18,7 @@ CLIENT_KEY_PATH="$HOME/.ssh/$CLIENT_KEY_NAME"
 CLIENT_PUBKEY_PATH="$HOME/.ssh/$CLIENT_KEY_NAME.pub"
 
 # Ensure public_keys directory exists in repo
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PUBLIC_KEYS_DIR="$REPO_DIR/artifacts/public_keys"
+PUBLIC_KEYS_DIR="artifacts/public_keys"
 mkdir -p "$PUBLIC_KEYS_DIR"
 
 # Check if ed25519 key exists for this client, create if not
@@ -56,37 +32,28 @@ if [ ! -f "$CLIENT_KEY_PATH" ] || [ ! -f "$CLIENT_PUBKEY_PATH" ]; then
   echo "Copied public key to repo: $PUBLIC_KEYS_DIR/$CLIENT_HOSTNAME.pub"
   
   # Git add, status, and prompt for push
-  if [ -d "$REPO_ROOT/.git" ]; then
-    cd "$REPO_ROOT"
-    git add "tools/artifacts/public_keys/$CLIENT_HOSTNAME.pub"
-    echo ""
-    echo "Git status:"
-    git status --short
-    echo ""
-    read -p "Push public key to repository? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-      git push
-      echo "Pushed public key to repository"
-    else
-      echo "Skipping git push (public key staged but not pushed)"
-    fi
-    cd "$SCRIPT_DIR"
+  # Assumes we're running from within the git repo
+  git add "tools/artifacts/public_keys/$CLIENT_HOSTNAME.pub"
+  echo ""
+  echo "Git status:"
+  git status --short
+  echo ""
+  read -p "Push public key to repository? (y/N): " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    git push
+    echo "Pushed public key to repository"
   else
-    echo "Warning: Not in a git repository, skipping git add/push"
+    echo "Skipping git push (public key staged but not pushed)"
   fi
 else
   echo "Key already exists for client: $CLIENT_HOSTNAME"
 fi
 
-# Create authorized_keys from all public keys in repo
-if [ -d "$PUBLIC_KEYS_DIR" ] && [ "$(ls -A $PUBLIC_KEYS_DIR/*.pub 2>/dev/null)" ]; then
-  cat "$PUBLIC_KEYS_DIR"/*.pub > ~/.ssh/authorized_keys
-  chmod 0600 ~/.ssh/authorized_keys
-  echo "Created authorized_keys from $(ls -1 $PUBLIC_KEYS_DIR/*.pub | wc -l) public key(s)"
-else
-  echo "Warning: No public keys found in $PUBLIC_KEYS_DIR"
-fi
+# Replace authorized_keys with all public keys from repo
+cat "$PUBLIC_KEYS_DIR"/*.pub > ~/.ssh/authorized_keys 2>/dev/null || true
+chmod 0600 ~/.ssh/authorized_keys
+echo "Updated authorized_keys from public keys in repo"
 
 # Copy SSH config
 cat artifacts/dotssh-config > ~/.ssh/config
