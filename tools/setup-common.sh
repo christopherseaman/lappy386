@@ -26,11 +26,11 @@ if [ ! -f "$CLIENT_KEY_PATH" ] || [ ! -f "$CLIENT_PUBKEY_PATH" ]; then
   echo "Creating ed25519 key for client: $CLIENT_HOSTNAME"
   ssh-keygen -t ed25519 -f "$CLIENT_KEY_PATH" -N "" -C "$CLIENT_HOSTNAME"
   echo "Created key: $CLIENT_KEY_PATH"
-  
+
   # Copy public key to repo using hostname-based naming
   cp "$CLIENT_PUBKEY_PATH" "$PUBLIC_KEYS_DIR/$CLIENT_HOSTNAME.pub"
   echo "Copied public key to repo: $PUBLIC_KEYS_DIR/$CLIENT_HOSTNAME.pub"
-  
+
   # Git add, status, and prompt for push
   # Assumes we're running from within the git repo
   git add "tools/artifacts/public_keys/$CLIENT_HOSTNAME.pub"
@@ -41,6 +41,7 @@ if [ ! -f "$CLIENT_KEY_PATH" ] || [ ! -f "$CLIENT_PUBKEY_PATH" ]; then
   read -p "Push public key to repository? (y/N): " -n 1 -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
+    git commit -m "Add public key for client: $CLIENT_HOSTNAME"
     git push
     echo "Pushed public key to repository"
   else
@@ -51,12 +52,12 @@ else
 fi
 
 # Replace authorized_keys with all public keys from repo
-cat "$PUBLIC_KEYS_DIR"/*.pub > ~/.ssh/authorized_keys 2>/dev/null || true
+cat "$PUBLIC_KEYS_DIR"/*.pub >~/.ssh/authorized_keys 2>/dev/null || true
 chmod 0600 ~/.ssh/authorized_keys
 echo "Updated authorized_keys from public keys in repo"
 
 # Copy SSH config
-cat artifacts/dotssh-config > ~/.ssh/config
+cat artifacts/dotssh-config >~/.ssh/config
 
 ## NVIM CONFIG
 mkdir -p ~/.config
