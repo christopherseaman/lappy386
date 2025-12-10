@@ -18,8 +18,8 @@ python
 rclone
 ripgrep
 starship
-stress-ng
-tailscale
+# stress-ng
+# tailscale
 tmux
 transmission-cli
 uv
