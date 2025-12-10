@@ -33,7 +33,8 @@ if [ ! -f "$CLIENT_KEY_PATH" ] || [ ! -f "$CLIENT_PUBKEY_PATH" ]; then
 
   # Git add, status, and prompt for push
   # Assumes we're running from within the git repo
-  git add "tools/artifacts/public_keys/$CLIENT_HOSTNAME.pub"
+  git add -A
+  git commit -m "Add public key for client: $CLIENT_HOSTNAME"
   echo ""
   echo "Git status:"
   git status --short
@@ -41,7 +42,6 @@ if [ ! -f "$CLIENT_KEY_PATH" ] || [ ! -f "$CLIENT_PUBKEY_PATH" ]; then
   read -p "Push public key to repository? (y/N): " -n 1 -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
-    git commit -m "Add public key for client: $CLIENT_HOSTNAME"
     git push
     echo "Pushed public key to repository"
   else
