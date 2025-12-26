@@ -15,8 +15,8 @@ return {
           transparent = true,
           styles = {
             comments = "italic",
-            functions = "bold",
-            keywords = "bold,italic",
+            functions = "underline",
+            keywords = "bold",
           },
         },
       })
