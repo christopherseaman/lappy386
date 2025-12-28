@@ -32,9 +32,13 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 echo "Debian detected - running Debian setup"
                 cd tools && ./setup-debian.sh
                 ;;
+            arch)
+                echo "Arch Linux detected - running Arch setup"
+                cd tools && ./setup-arch.sh
+                ;;
             *)
                 echo "Linux distribution: $ID"
-                echo "Unsupported Linux distribution. Supported: Ubuntu, Debian"
+                echo "Unsupported Linux distribution. Supported: Ubuntu, Debian, Arch"
                 echo "Please run the appropriate setup script manually or adapt one."
                 exit 1
                 ;;
@@ -44,6 +48,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "Please run the appropriate setup script manually:"
         echo "  Ubuntu: tools/setup-ubuntu.sh"
         echo "  Debian: tools/setup-debian.sh"
+        echo "  Arch: tools/setup-arch.sh"
         exit 1
     fi
 elif [[ "$OSTYPE" == "darwin"* ]]; then
@@ -54,6 +59,7 @@ else
     echo "Please run the appropriate setup script manually:"
     echo "  Ubuntu: tools/setup-ubuntu.sh"
     echo "  Debian: tools/setup-debian.sh"
+    echo "  Arch: tools/setup-arch.sh"
     echo "  macOS: tools/setup-macos.sh"
     exit 1
 fi

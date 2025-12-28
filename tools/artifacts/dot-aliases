@@ -9,6 +9,7 @@ fastfetch_greeting() {
 
 # update more easily
 alias sup="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y"
+alias pup="sudo pacman -Syu"
 
 # some more ls aliases
 alias ll='ls -alF'
