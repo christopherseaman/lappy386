@@ -11,7 +11,7 @@ mkdir -p ~/.ssh
 chmod 0700 ~/.ssh
 
 # Get hostname for repo public key naming
-CLIENT_HOSTNAME=$(hostname)
+CLIENT_HOSTNAME=$(cat /etc/hostname)
 # Use standard key name on all clients
 CLIENT_KEY_NAME="client_key"
 CLIENT_KEY_PATH="$HOME/.ssh/$CLIENT_KEY_NAME"
@@ -23,32 +23,32 @@ mkdir -p "$PUBLIC_KEYS_DIR"
 
 # Check if ed25519 key exists for this client, create if not
 if [ ! -f "$CLIENT_KEY_PATH" ] || [ ! -f "$CLIENT_PUBKEY_PATH" ]; then
-  echo "Creating ed25519 key for client: $CLIENT_HOSTNAME"
-  ssh-keygen -t ed25519 -f "$CLIENT_KEY_PATH" -N "" -C "$CLIENT_HOSTNAME"
-  echo "Created key: $CLIENT_KEY_PATH"
+	echo "Creating ed25519 key for client: $CLIENT_HOSTNAME"
+	ssh-keygen -t ed25519 -f "$CLIENT_KEY_PATH" -N "" -C "$CLIENT_HOSTNAME"
+	echo "Created key: $CLIENT_KEY_PATH"
 
-  # Copy public key to repo using hostname-based naming
-  cp "$CLIENT_PUBKEY_PATH" "$PUBLIC_KEYS_DIR/$CLIENT_HOSTNAME.pub"
-  echo "Copied public key to repo: $PUBLIC_KEYS_DIR/$CLIENT_HOSTNAME.pub"
+	# Copy public key to repo using hostname-based naming
+	cp "$CLIENT_PUBKEY_PATH" "$PUBLIC_KEYS_DIR/$CLIENT_HOSTNAME.pub"
+	echo "Copied public key to repo: $PUBLIC_KEYS_DIR/$CLIENT_HOSTNAME.pub"
 
-  # Git add, status, and prompt for push
-  # Assumes we're running from within the git repo
-  git add -A
-  git commit -m "Add public key for client: $CLIENT_HOSTNAME"
-  echo ""
-  echo "Git status:"
-  git status --short
-  echo ""
-  read -p "Push public key to repository? (y/N): " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    git push
-    echo "Pushed public key to repository"
-  else
-    echo "Skipping git push (public key staged but not pushed)"
-  fi
+	# Git add, status, and prompt for push
+	# Assumes we're running from within the git repo
+	git add -A
+	git commit -m "Add public key for client: $CLIENT_HOSTNAME"
+	echo ""
+	echo "Git status:"
+	git status --short
+	echo ""
+	read -p "Push public key to repository? (y/N): " -n 1 -r
+	echo
+	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		git push
+		echo "Pushed public key to repository"
+	else
+		echo "Skipping git push (public key staged but not pushed)"
+	fi
 else
-  echo "Key already exists for client: $CLIENT_HOSTNAME"
+	echo "Key already exists for client: $CLIENT_HOSTNAME"
 fi
 
 # Replace authorized_keys with all public keys from repo
@@ -83,9 +83,9 @@ git config --global --add --bool push.autoSetupRemote true
 
 # Source the appropriate shell config
 if command -v zsh >/dev/null 2>&1; then
-  source ~/.zshrc
+	source ~/.zshrc
 else
-  source ~/.bashrc
+	source ~/.bashrc
 fi
 
 ## REMINDER
@@ -93,9 +93,9 @@ echo ""
 echo "┌─────────────────────────────────────┐"
 echo "│                                     │"
 if command -v zsh >/dev/null 2>&1; then
-  echo "│ Remember to $(tput bold)source .zshrc$(tput sgr0) and run:  │"
+	echo "│ Remember to $(tput bold)source .zshrc$(tput sgr0) and run:  │"
 else
-  echo "│ Remember to $(tput bold)source .bashrc$(tput sgr0) and run: │"
+	echo "│ Remember to $(tput bold)source .bashrc$(tput sgr0) and run: │"
 fi
 echo "│                                     │"
 echo "│          $(tput bold)gh auth login$(tput sgr0)              │"
