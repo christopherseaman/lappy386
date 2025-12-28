@@ -7,6 +7,8 @@ sudo pacman -S --quiet --noconfirm \
   bat \
   base-devel \
   cmake \
+  wget \
+  git \
   fd \
   findutils \
   fzf \
@@ -17,6 +19,7 @@ sudo pacman -S --quiet --noconfirm \
   ripgrep \
   qemu-guest-agent \
   spice-vdagent \
+  tmux \
   neovim \
   starship \
   fastfetch \
