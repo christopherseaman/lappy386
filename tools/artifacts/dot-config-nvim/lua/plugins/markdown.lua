@@ -68,4 +68,21 @@ return {
   --     { "<leader>mp", "<cmd>MarkdownPreviewToggle<cr>", desc = "Markdown preview" },
   --   },
   -- },
+
+  {
+    "mfussenegger/nvim-lint",
+    optional = true,
+    opts = {
+      linters_by_ft = {
+        markdown = { "markdownlint" },
+      },
+    },
+    config = function()
+      local markdownlint = require("lint").linters.markdownlint
+      markdownlint.args = {
+        "--disable",
+        "MD013,MD007",
+      }
+    end,
+  },
 }

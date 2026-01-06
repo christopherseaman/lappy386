@@ -1,4 +1,5 @@
 -- lua/plugins/theme.lua
+
 return {
   {
     "projekt0n/github-nvim-theme",
@@ -9,14 +10,6 @@ return {
         groups = {
           github_dark_high_contrast = {
             Normal = { bg = "#000000", fg = "#FFFFFF" },
-          },
-        },
-        options = {
-          transparent = true,
-          styles = {
-            comments = "italic",
-            functions = "underline",
-            keywords = "bold",
           },
         },
       })

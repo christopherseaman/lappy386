@@ -9,3 +9,7 @@ vim.o.autoread = true
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
   command = "checktime",
 })
+
+-- Soft-wrap long lines at word boundaries
+vim.opt.wrap = true
+vim.opt.linebreak = true
