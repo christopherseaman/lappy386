@@ -51,8 +51,11 @@ else
 	echo "Key already exists for client: $CLIENT_HOSTNAME"
 fi
 
-# Replace authorized_keys with all public keys from repo
-cat "$PUBLIC_KEYS_DIR"/*.pub >~/.ssh/authorized_keys 2>/dev/null || true
+# Replace authorized_keys with all public keys from repo, ensuring newline separation
+: >~/.ssh/authorized_keys
+for f in "$PUBLIC_KEYS_DIR"/*.pub; do
+	printf '%s\n' "$(<"$f")" >>~/.ssh/authorized_keys
+done
 chmod 0600 ~/.ssh/authorized_keys
 echo "Updated authorized_keys from public keys in repo"
 
