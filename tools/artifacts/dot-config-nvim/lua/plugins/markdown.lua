@@ -85,4 +85,13 @@ return {
       }
     end,
   },
+
+  -- {
+  --   "MeanderingProgrammer/render-markdown.nvim",
+  --   opts = {
+  --     bullet = {
+  --       icons = { "●", "○", "•", "·" },
+  --     },
+  --   },
+  -- },
 }
