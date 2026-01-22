@@ -10,6 +10,7 @@ sudo apt install --quiet -y \
   bat \
   build-essential \
   cmake \
+  curl \
   fastfetch \
   fd-find \
   findutils \
@@ -23,9 +24,9 @@ sudo apt install --quiet -y \
 
 ## VM TOOLS
 # sudo apt install -qq -y \
-#  qemu-guest-agent \
-#  qemu-utils \
-#  spice-vdagent
+#   qemu-guest-agent \
+#   qemu-utils \
+#   spice-vdagent
 
 sudo snap install nvim --classic 2>/dev/null
 # sudo snap install helix 2>/dev/null
