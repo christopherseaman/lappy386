@@ -142,5 +142,7 @@ export PATH="$HOME/.local/bin:$PATH"
 # Auto-attach to tmux session on SSH login only
 [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && { tmux attach || tmux; }
 
-# Fix VPN routing conflicts
-alias fix-routes='sudo route add -net 10.0.0.0/8 10.1.0.1'
+# Fix VPN routing conflicts - check and add route if not present
+if ! netstat -rn | grep -q "^10\.0\.0\.0/8"; then
+  sudo route add -net 10.0.0.0/8 10.1.0.1 &>/dev/null
+fi
