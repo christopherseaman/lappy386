@@ -20,9 +20,6 @@ lxc init "$IMAGE" "$CONTAINER_NAME" < /dev/null
 echo "==> Applying cloud-config..."
 lxc config set "$CONTAINER_NAME" user.user-data "$(cat /tmp/cloud-config.yaml)"
 
-echo "==> Setting up uid/gid mapping for Crostini..."
-lxc config set "$CONTAINER_NAME" raw.idmap "both 1000 1000"
-
 echo "==> Starting container..."
 lxc start "$CONTAINER_NAME" < /dev/null
 
