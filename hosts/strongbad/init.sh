@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Detach from piped stdin immediately
+exec </dev/null
+
 REPO_BASE="https://raw.githubusercontent.com/christopherseaman/lappy386/refs/heads/master/hosts/strongbad"
 CONTAINER_NAME="penguin"
 IMAGE="ubuntu-daily:26.04"
