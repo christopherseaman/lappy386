@@ -18,7 +18,7 @@ echo "==> Creating container from $IMAGE..."
 lxc init "$IMAGE" "$CONTAINER_NAME"
 
 echo "==> Applying cloud-config..."
-lxc config set "$CONTAINER_NAME" user.user-data - < /tmp/cloud-config.yaml
+lxc config set "$CONTAINER_NAME" user.user-data "$(cat /tmp/cloud-config.yaml)"
 
 echo "==> Starting container..."
 lxc start "$CONTAINER_NAME"
