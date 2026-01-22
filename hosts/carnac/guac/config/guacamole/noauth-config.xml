@@ -1,0 +1,10 @@
+<configs>
+  <config name="carnac" protocol="rdp">
+    <param name="hostname">10.0.0.37</param>
+    <param name="port">3389</param>
+    <param name="username">christopher</param>
+    <param name="security">any</param>
+    <param name="ignore-cert">true</param>
+    <param name="resize-method">display-update</param>
+  </config>
+</configs>
