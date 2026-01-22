@@ -15,13 +15,14 @@ if lxc info "$CONTAINER_NAME" &>/dev/null; then
 fi
 
 echo "==> Creating container from $IMAGE..."
-lxc init "$IMAGE" "$CONTAINER_NAME" </dev/null
+lxc init "$IMAGE" "$CONTAINER_NAME" < /dev/null
 
 echo "==> Applying cloud-config..."
-lxc config set "$CONTAINER_NAME" user.user-data "$(cat /tmp/cloud-config.yaml)"
+CLOUD_CONFIG="$(cat /tmp/cloud-config.yaml)"
+lxc config set "$CONTAINER_NAME" user.user-data "$CLOUD_CONFIG" < /dev/null
 
 echo "==> Starting container..."
-lxc start "$CONTAINER_NAME"
+lxc start "$CONTAINER_NAME" < /dev/null
 
 echo "==> Waiting for cloud-init to complete..."
 for i in {1..60}; do
@@ -29,7 +30,6 @@ for i in {1..60}; do
         echo "==> Cloud-init finished!"
         break
     fi
-    echo "    waiting... ($i/60)"
     sleep 5
 done
 
