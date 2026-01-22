@@ -2,8 +2,6 @@
 hostname: tarski
 users:
   - name: christopher
-    uid: 1000
-    guid: 1000
     groups: [sudo, video, render, audio]
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
