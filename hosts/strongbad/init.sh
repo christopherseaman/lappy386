@@ -10,13 +10,8 @@ curl -fsSL "${REPO_BASE}/cloud-config.yaml" -o /tmp/cloud-config.yaml
 
 echo "==> Checking for existing container..."
 if lxc info "$CONTAINER_NAME" &>/dev/null; then
-    read -p "Container '$CONTAINER_NAME' exists. Delete it? [y/N] " confirm
-    if [[ "$confirm" =~ ^[Yy]$ ]]; then
-        lxc delete "$CONTAINER_NAME" --force
-    else
-        echo "Aborting."
-        exit 1
-    fi
+    echo "==> Deleting existing container '$CONTAINER_NAME'..."
+    lxc delete "$CONTAINER_NAME" --force
 fi
 
 echo "==> Launching $IMAGE as $CONTAINER_NAME..."
