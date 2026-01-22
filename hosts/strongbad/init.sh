@@ -1,9 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Detach from piped stdin immediately
-exec </dev/null
-
 REPO_BASE="https://raw.githubusercontent.com/christopherseaman/lappy386/refs/heads/master/hosts/strongbad"
 CONTAINER_NAME="penguin"
 IMAGE="ubuntu-daily:26.04"
@@ -18,7 +15,7 @@ if lxc info "$CONTAINER_NAME" &>/dev/null; then
 fi
 
 echo "==> Creating container from $IMAGE..."
-lxc init "$IMAGE" "$CONTAINER_NAME"
+lxc init "$IMAGE" "$CONTAINER_NAME" </dev/null
 
 echo "==> Applying cloud-config..."
 lxc config set "$CONTAINER_NAME" user.user-data "$(cat /tmp/cloud-config.yaml)"
