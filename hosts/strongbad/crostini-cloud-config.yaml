@@ -1,0 +1,40 @@
+#cloud-config
+hostname: tarski
+
+users:
+  - name: christopher
+    uid: 1000
+    gid: 1000
+    groups: [sudo, video, render, audio]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKRA8Nq1sdranqblQ4cK7sajEPoeCKgsJBgqwCyeGe2D emojipad
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - git
+  - gh
+  - curl
+  - wget
+  - ca-certificates
+  - gnupg
+  - build-essential
+  - openssh-server
+
+runcmd:
+  # Add Google's cros-packages repo for Crostini integration
+  - mkdir -p /usr/share/keyrings
+  - curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/cros.gpg
+  # Note: milestone number (118) may need adjustment for 26.04 compatibility
+  - echo "deb [signed-by=/usr/share/keyrings/cros.gpg] https://storage.googleapis.com/cros-packages/118 bullseye main" > /etc/apt/sources.list.d/cros.list
+  - apt-get update
+  - apt-get install -y cros-guest-tools || echo "cros-guest-tools install failed - may need manual setup"
+  # Fix home directory ownership (cloud-init sometimes misses this)
+  - chown -R christopher:christopher /home/christopher
+  # Signal completion
+  - echo "cloud-init complete: $(date)" > /home/christopher/.cloud-init-done
+
+final_message: "Cloud-init completed in $UPTIME seconds"
