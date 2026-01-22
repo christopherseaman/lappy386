@@ -18,21 +18,18 @@ echo "==> Creating container from $IMAGE..."
 lxc init "$IMAGE" "$CONTAINER_NAME" < /dev/null
 
 echo "==> Applying cloud-config..."
-CLOUD_CONFIG="$(cat /tmp/cloud-config.yaml)"
-lxc config set "$CONTAINER_NAME" user.user-data "$CLOUD_CONFIG" < /dev/null
+lxc config set "$CONTAINER_NAME" user.user-data "$(cat /tmp/cloud-config.yaml)"
 
 echo "==> Starting container..."
-lxc start "$CONTAINER_NAME" < /dev/null
-
-echo "==> Waiting for cloud-init to complete..."
-for i in {1..60}; do
-    if lxc exec "$CONTAINER_NAME" -- test -f /home/christopher/.cloud-init-done 2>/dev/null; then
-        echo "==> Cloud-init finished!"
-        break
-    fi
-    sleep 5
-done
+lxc start "$CONTAINER_NAME" 
 
 echo "==> Verifying setup..."
+lxc list
 lxc exec "$CONTAINER_NAME" -- id christopher
 lxc exec "$CONTAINER_NAME" -- hostname
+
+echo ""
+echo "Done! You may need to restart the container for Crostini integration:"
+echo "  lxc restart $CONTAINER_NAME"
+echo ""
+echo "Or restart Linux from ChromeOS Settings > Advanced > Developers"
