@@ -21,15 +21,14 @@ echo "==> Applying cloud-config..."
 lxc config set "$CONTAINER_NAME" user.user-data "$(cat /tmp/cloud-config.yaml)"
 
 echo "==> Starting container..."
-lxc start "$CONTAINER_NAME" 
+lxc start "$CONTAINER_NAME" < /dev/null
+
+echo "==> Waiting for cloud-init to complete..."
+lxc exec "$CONTAINER_NAME" -- cloud-init status --wait
 
 echo "==> Verifying setup..."
-lxc list
 lxc exec "$CONTAINER_NAME" -- id christopher
 lxc exec "$CONTAINER_NAME" -- hostname
 
 echo ""
-echo "Done! You may need to restart the container for Crostini integration:"
-echo "  lxc restart $CONTAINER_NAME"
-echo ""
-echo "Or restart Linux from ChromeOS Settings > Advanced > Developers"
+echo "Done! Restart container to enable GUI integration."
