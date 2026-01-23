@@ -47,7 +47,7 @@ def fix_rdp_displays():
     new_logical_monitors = [(
         0,      # x
         0,      # y
-        1.0,    # scale
+        2.0,    # scale
         0,      # transform
         True,   # primary
         [(connector, selected_mode, {})],
