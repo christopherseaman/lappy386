@@ -1,34 +1,33 @@
-#!/bin/bash
-set -euo pipefail
+#cloud-config
+hostname: tarski
 
-REPO_BASE="https://raw.githubusercontent.com/christopherseaman/lappy386/refs/heads/master/hosts/strongbad"
-CONTAINER_NAME="penguin"
-IMAGE="ubuntu-daily:26.04"
+users:
+  - name: christopher
+    groups: [sudo, video, render, audio]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKRA8Nq1sdranqblQ4cK7sajEPoeCKgsJBgqwCyeGe2D emojipad
 
-echo "==> Downloading cloud-config..."
-curl -fsSL "${REPO_BASE}/cloud-config.yaml" -o /tmp/cloud-config.yaml
+package_update: true
 
-echo "==> Checking for existing container..."
-if lxc info "$CONTAINER_NAME" &>/dev/null; then
-    echo "==> Deleting existing container '$CONTAINER_NAME'..."
-    lxc delete "$CONTAINER_NAME" --force
-fi
+packages:
+  - git
+  - gh
+  - curl
+  - wget
+  - ca-certificates
+  - gnupg
+  - build-essential
+  - openssh-server
 
-echo "==> Creating container from $IMAGE..."
-lxc init "$IMAGE" "$CONTAINER_NAME" < /dev/null
+runcmd:
+  - mkdir -p /usr/share/keyrings
+  - curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/cros.gpg
+  - echo "deb [signed-by=/usr/share/keyrings/cros.gpg] https://storage.googleapis.com/cros-packages/118 bullseye main" > /etc/apt/sources.list.d/cros.list
+  - apt-get update
+  - apt-get install -y cros-guest-tools || echo "cros-guest-tools failed"
+  - chown -R christopher:christopher /home/christopher
+  - touch /home/christopher/.cloud-init-done
 
-echo "==> Applying cloud-config..."
-lxc config set "$CONTAINER_NAME" user.user-data "$(cat /tmp/cloud-config.yaml)"
-
-echo "==> Starting container..."
-lxc start "$CONTAINER_NAME" < /dev/null
-
-echo "==> Waiting for cloud-init to complete..."
-lxc exec "$CONTAINER_NAME" -- cloud-init status --wait
-
-echo "==> Verifying setup..."
-lxc exec "$CONTAINER_NAME" -- id christopher
-lxc exec "$CONTAINER_NAME" -- hostname
-
-echo ""
-echo "Done! Restart container to enable GUI integration."
+final_message: "Cloud-init completed in $UPTIME seconds"
