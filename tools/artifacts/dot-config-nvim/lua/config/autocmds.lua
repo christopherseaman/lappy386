@@ -15,3 +15,14 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.shiftwidth = 4
   end,
 })
+
+-- Copy to system clipboard via OSC 52 escape sequence (works over SSH/tmux)
+vim.api.nvim_create_autocmd("TextYankPost", {
+  callback = function()
+    if vim.v.event.operator == "y" then
+      local text = vim.fn.getreg('"')
+      local base64 = vim.fn.system("base64", text):gsub("\n", "")
+      io.write(string.format("\027]52;c;%s\007", base64))
+    end
+  end,
+})
