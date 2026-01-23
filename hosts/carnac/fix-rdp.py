@@ -4,6 +4,7 @@ Disable the virtual headless monitor and make RDP display primary.
 Run when RDP connection is detected.
 """
 import dbus
+import subprocess
 
 def fix_rdp_displays():
     bus = dbus.SessionBus()
@@ -62,6 +63,10 @@ def fix_rdp_displays():
             dbus_interface='org.gnome.Mutter.DisplayConfig'
         )
         print(f"Success: {connector} is now the only display")
+
+        # Halve cursor size to compensate for Guacamole's 192 DPI doubling
+        subprocess.run(['gsettings', 'set', 'org.gnome.desktop.interface', 'cursor-size', '12'])
+        print("Cursor size set to 12")
     except Exception as e:
         print(f"Failed: {e}")
 
