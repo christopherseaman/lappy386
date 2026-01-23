@@ -28,6 +28,6 @@ runcmd:
   - apt-get update
   - apt-get install -y cros-guest-tools || echo "cros-guest-tools failed"
   - chown -R christopher:christopher /home/christopher
-  - echo "cloud-init complete: $(date)" > /home/christopher/.cloud-init-done
+  - touch /home/christopher/.cloud-init-done
 
 final_message: "Cloud-init completed in $UPTIME seconds"
