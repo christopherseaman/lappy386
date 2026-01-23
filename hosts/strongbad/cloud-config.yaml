@@ -26,7 +26,7 @@ runcmd:
   - curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/cros.gpg
   - echo "deb [signed-by=/usr/share/keyrings/cros.gpg] https://storage.googleapis.com/cros-packages/118 bullseye main" > /etc/apt/sources.list.d/cros.list
   - apt-get update
-  - apt-get install -y cros-guest-tools || echo "cros-guest-tools failed"
+  - apt-get install -y --no-install-recommends cros-garcon cros-sftp cros-sommelier cros-sommelier-config || echo "cros packages failed"
   - chown -R christopher:christopher /home/christopher
   - touch /home/christopher/.cloud-init-done
 
