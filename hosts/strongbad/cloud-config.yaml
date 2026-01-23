@@ -1,5 +1,7 @@
+```yaml
 #cloud-config
 hostname: tarski
+
 users:
   - name: christopher
     groups: [sudo, video, render, audio]
@@ -9,7 +11,6 @@ users:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKRA8Nq1sdranqblQ4cK7sajEPoeCKgsJBgqwCyeGe2D emojipad
 
 package_update: true
-package_upgrade: true
 
 packages:
   - git
@@ -26,8 +27,9 @@ runcmd:
   - curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/cros.gpg
   - echo "deb [signed-by=/usr/share/keyrings/cros.gpg] https://storage.googleapis.com/cros-packages/118 bullseye main" > /etc/apt/sources.list.d/cros.list
   - apt-get update
-  - apt-get install -y cros-guest-tools || echo "cros-guest-tools install failed - may need manual setup"
+  - apt-get install -y cros-guest-tools || echo "cros-guest-tools failed"
   - chown -R christopher:christopher /home/christopher
   - echo "cloud-init complete: $(date)" > /home/christopher/.cloud-init-done
 
 final_message: "Cloud-init completed in $UPTIME seconds"
+```
