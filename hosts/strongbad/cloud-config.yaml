@@ -1,6 +1,5 @@
 #cloud-config
 hostname: tarski
-
 users:
   - name: christopher
     groups: [sudo, video, render, audio]
@@ -8,16 +7,13 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKRA8Nq1sdranqblQ4cK7sajEPoeCKgsJBgqwCyeGe2D emojipad
-
 apt:
   conf: |
     Acquire::Retries "3";
     Acquire::http::Timeout "60";
     Acquire::https::Timeout "60";
-
 package_update: true
 package_reboot_if_required: false
-
 packages:
   - git
   - gh
@@ -27,14 +23,29 @@ packages:
   - gnupg
   - build-essential
   - openssh-server
-
+  - bazelisk
 runcmd:
-#  - mkdir -p /usr/share/keyrings
-#  - curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/cros.gpg
-#  - echo "deb [signed-by=/usr/share/keyrings/cros.gpg] https://storage.googleapis.com/cros-packages/118 bullseye main" > /etc/apt/sources.list.d/cros.list
-#  - apt-get update
-#  - apt-get install -y --no-install-recommends cros-garcon cros-sftp cros-sommelier cros-sommelier-config || echo "cros packages failed"
+  - |
+    cd /tmp
+    git clone https://chromium.googlesource.com/chromiumos/containers/cros-container-guest-tools
+    cd cros-container-guest-tools
+    bazelisk build //cros-debs:debs
+    apt-get install -y \
+      ./bazel-bin/cros-debs/trixie-debs/cros-apt-config_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-garcon_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-host-fonts_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-port-listener_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-sftp_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-sommelier_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-sommelier-config_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-sudo-config_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-systemd-overrides_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-vmstat-metrics_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-wayland_*.deb \
+      ./bazel-bin/cros-debs/trixie-debs/cros-xdg-desktop-portal_*.deb \
+      || echo "cros packages install failed"
+    cd /
+    rm -rf /tmp/cros-container-guest-tools
   - chown -R christopher:christopher /home/christopher
   - touch /home/christopher/.cloud-init-done
-
 final_message: "Cloud-init completed in $UPTIME seconds"
