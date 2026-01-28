@@ -5,6 +5,23 @@ REPO_BASE="https://raw.githubusercontent.com/christopherseaman/lappy386/refs/hea
 CONTAINER_NAME="penguin"
 IMAGE="ubuntu-daily:26.04"
 
+# Set up yank() as convenience function in vmc termina in case anything goes wrong
+yank() {
+  local content
+  if [[ -f "$1" ]]; then
+    content=$(cat "$1")
+  else
+    content=$(cat)
+  fi
+
+  if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]]; then
+    printf "%s" "$content" | pbcopy
+  else
+    local b64=$(printf "%s" "$content" | base64 | tr -d '\n')
+    echo -en "\033Ptmux;\033\033]52;c;${b64}\007\033\\"
+  fi
+}
+
 echo "==> Downloading cloud-config..."
 curl -fsSL "${REPO_BASE}/cloud-config.yaml" -o /tmp/cloud-config.yaml
 
@@ -21,15 +38,14 @@ echo "==> Applying cloud-config..."
 lxc config set "$CONTAINER_NAME" user.user-data "$(cat /tmp/cloud-config.yaml)"
 
 echo "==> Starting container..."
-lxc start "$CONTAINER_NAME" 
+lxc start "$CONTAINER_NAME" < /dev/null
+
+echo "==> Waiting for cloud-init to complete..."
+lxc exec "$CONTAINER_NAME" -- cloud-init status --wait
 
 echo "==> Verifying setup..."
-lxc list
 lxc exec "$CONTAINER_NAME" -- id christopher
 lxc exec "$CONTAINER_NAME" -- hostname
 
 echo ""
-echo "Done! You may need to restart the container for Crostini integration:"
-echo "  lxc restart $CONTAINER_NAME"
-echo ""
-echo "Or restart Linux from ChromeOS Settings > Advanced > Developers"
+echo "Done! Restart container to enable GUI integration."
