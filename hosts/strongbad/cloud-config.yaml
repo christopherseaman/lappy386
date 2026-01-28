@@ -23,7 +23,7 @@ packages:
   - gnupg
   - build-essential
   - openssh-server
-  - bazelisk
+
 runcmd:
   - |
     cd /tmp
