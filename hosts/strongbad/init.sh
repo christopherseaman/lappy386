@@ -3,7 +3,10 @@ set -euo pipefail
 
 REPO_BASE="https://raw.githubusercontent.com/christopherseaman/lappy386/refs/heads/master/hosts/strongbad"
 CONTAINER_NAME="penguin"
-IMAGE="ubuntu-daily:26.04"
+IMAGE="ubuntu-minimal-daily:resolute"
+
+# Add remote if needed, squash error if already set up
+lxc remote add --protocol simplestreams ubuntu-minimal-daily https://cloud-images.ubuntu.com/minimal/daily/ 2>/dev/null || true
 
 # Set up yank() as convenience function in vmc termina in case anything goes wrong
 yank() {
