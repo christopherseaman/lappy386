@@ -1,5 +1,4 @@
 ## Formula packages (command-line tools)
-balena-cli
 fastfetch
 fd
 fzf
@@ -8,21 +7,21 @@ git
 git-delta
 gmp
 handbrake
-helix
+# helix
 htop
 ncdu
 neovim
-nvm
-ollama
+# nvm
+# ollama
 python
-rclone
+# rclone
 ripgrep
 starship
 # stress-ng
 # tailscale
 tmux
-transmission-cli
-uv
+# transmission-cli
+# uv
 watch
 wget
 yt-dlp

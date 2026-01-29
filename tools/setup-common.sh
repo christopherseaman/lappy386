@@ -5,6 +5,7 @@ cat artifacts/dot-bashrc >~/.bashrc
 cat artifacts/dot-aliases >~/.aliases
 cat artifacts/dot-tmux.conf >~/.tmux.conf
 cat artifacts/dot-zshrc >~/.zshrc
+export PATH="$HOME/.local/bin:$PATH"
 
 ## SSH CONFIG
 mkdir -p ~/.ssh
@@ -34,7 +35,7 @@ else
   echo "Key already exists for client: $CLIENT_HOSTNAME"
 fi
 
-# Replace authorized_keys with all public keys from repo, ensuring newline separation
+## Replace authorized_keys with all public keys from repo, ensuring newline separation
 : >~/.ssh/authorized_keys
 for f in "$PUBLIC_KEYS_DIR"/*.pub; do
   printf '%s\n' "$(<"$f")" >>~/.ssh/authorized_keys
@@ -42,8 +43,11 @@ done
 chmod 0600 ~/.ssh/authorized_keys
 echo "Updated authorized_keys from public keys in repo"
 
-# Copy SSH config
+## Copy SSH config
 cat artifacts/dotssh-config >~/.ssh/config
+
+## Install Astral uv
+curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
 
 ## NVIM CONFIG
 mkdir -p ~/.config
@@ -52,10 +56,11 @@ cp -r artifacts/dot-config-nvim ~/.config/nvim
 
 ## INSTALL NVM AND NODE
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+export NVM_DIR="$HOME/.config/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 nvm install --lts
+npm install -g npm@latest
 
 ## INSTALL LOCAL AGENT CLI'S
 npm i -g @openai/codex
@@ -66,9 +71,6 @@ curl -fsSL https://claude.ai/install.sh | bash
 mkdir -p ~/.claude
 curl -o ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md
 
-git config --global user.name "Christopher Seaman"
-git config --global user.email "86775+christopherseaman@users.noreply.github.com"
-git config --global --add --bool push.autoSetupRemote true
 
 ## REMINDER
 echo ""

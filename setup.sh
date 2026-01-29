@@ -1,6 +1,13 @@
 #!/bin/bash
 
 ## GIT PULL - Ensure we have latest changes (check FIRST before any setup)
+sudo apt install --quiet -qq -y git
+# Ensure preferred defaulst
+git config --global user.name "Christopher Seaman"
+git config --global user.email "86775+christopherseaman@users.noreply.github.com"
+git config --global --add --bool push.autoSetupRemote true
+git config --global init.defaultBranch main
+git config --global pull.rebase false
 # Assumes we're running from within the git repo
 echo "Pulling latest changes from repository..."
 BEFORE_COMMIT=$(git rev-parse HEAD 2>/dev/null)
@@ -24,35 +31,22 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   if [ -f /etc/os-release ]; then
     . /etc/os-release
     case "$ID" in
-    ubuntu)
-      echo "Ubuntu detected - running Ubuntu setup"
-      cd tools && ./setup-ubuntu.sh
-      ;;
-    debian)
-      echo "Debian detected - running Debian setup"
+    debian|ubuntu)
+      echo "'$ID' detected - running Debian setup"
       cd tools && ./setup-debian.sh
       ;;
-    arch)
-      echo "Arch Linux detected - running Arch setup"
-      cd tools && ./setup-arch.sh
-      ;;
-    archarm)
-      echo "Arch Linux detected (ARM) - running Arch setup"
+    arch|archarm)
+      echo "'$ID' detected - running Arch setup"
       cd tools && ./setup-arch.sh
       ;;
     *)
-      echo "Linux distribution: $ID"
-      echo "Unsupported Linux distribution. Supported: Ubuntu, Debian, Arch"
-      echo "Please run the appropriate setup script manually or adapt one."
+      echo "Detected unknown ID='$ID'"
+      echo "Run the appropriate setup script manually."
       exit 1
       ;;
     esac
   else
     echo "Cannot detect Linux distribution (no /etc/os-release)"
-    echo "Please run the appropriate setup script manually:"
-    echo "  Ubuntu: tools/setup-ubuntu.sh"
-    echo "  Debian: tools/setup-debian.sh"
-    echo "  Arch: tools/setup-arch.sh"
     exit 1
   fi
 elif [[ "$OSTYPE" == "darwin"* ]]; then
@@ -60,10 +54,5 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   cd tools && ./setup-macos.sh
 else
   echo "Unsupported OS: $OSTYPE"
-  echo "Please run the appropriate setup script manually:"
-  echo "  Ubuntu: tools/setup-ubuntu.sh"
-  echo "  Debian: tools/setup-debian.sh"
-  echo "  Arch: tools/setup-arch.sh"
-  echo "  macOS: tools/setup-macos.sh"
   exit 1
 fi
