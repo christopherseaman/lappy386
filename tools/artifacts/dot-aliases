@@ -96,22 +96,6 @@ else
   alias h='history | grep'
 fi
 
-# Show open ports
-alias ports='netstat -tulanp'
-
-# Get error messages from journalctl
-alias jctl="sudo journalctl -p 3 -xeb"
-alias jctlf="sudo journalctl -p 3 -xb -f"
-
-# Python aliases
-alias py='python3'
-alias pip='python3 -m pip'
-
-# Make directory and cd into it
-mkcd() {
-  mkdir -p "$1" && cd "$1"
-}
-
 # Extract various archive formats
 extract() {
   if [ -f "$1" ]; then
