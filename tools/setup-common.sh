@@ -66,6 +66,7 @@ npm install -g npm@latest
 npm i -g @openai/codex
 curl -fsSL https://gh.io/copilot-install | bash
 curl -fsSL https://claude.ai/install.sh | bash
+curl -fsSLhttps://cursor.com/install | bash
 
 ## SETUP CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
