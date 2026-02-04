@@ -5,7 +5,7 @@ AddKeysToAgent yes
 IdentitiesOnly yes
 IdentityFile ~/.ssh/client_key
 
-Host deb.tailf0b9.ts.net deb-studio deb-y7rgc54-dt deb-y7rgc54-dt-1 deb-y7rgc54
+Host deb.tailf0b9.ts.net deb-studio deb-y7rgc54-dt deb deb-y7rgc54
   Hostname deb.tailf0b9.ts.net
   User cseaman
 

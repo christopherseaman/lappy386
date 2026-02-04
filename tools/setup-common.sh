@@ -10,6 +10,7 @@ export PATH="$HOME/.local/bin:$PATH"
 ## SSH CONFIG
 mkdir -p ~/.ssh
 chmod 0700 ~/.ssh
+cat artifacts/dot-ssh-config >~/.ssh/config
 
 # Get hostname for repo public key naming
 CLIENT_HOSTNAME=$(cat /etc/hostname)
@@ -42,9 +43,6 @@ for f in "$PUBLIC_KEYS_DIR"/*.pub; do
 done
 chmod 0600 ~/.ssh/authorized_keys
 echo "Updated authorized_keys from public keys in repo"
-
-## Copy SSH config
-cat artifacts/dotssh-config >~/.ssh/config
 
 ## Install Astral uv
 curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
