@@ -7,12 +7,8 @@ IdentityFile ~/.ssh/client_key
 TCPKeepAlive yes
 ServerAliveInterval 30
 
-Host deb deb.tailf0b9.ts.net deb-studio deb-y7rgc54-dt deb-y7rgc54
-  Hostname 10.1.1.2
+Host deb deb-studio.home deb-studio deb-y7rgc54-dt deb-y7rgc54
   User cseaman
-
-Host carnac
-  Hostname 10.1.1.5
 
 Host github.com *.github.com
   # Use GitHub key (created by gh auth login) instead of client_key
