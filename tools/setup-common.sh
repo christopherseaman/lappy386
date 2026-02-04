@@ -56,22 +56,21 @@ cp -r artifacts/dot-config-nvim ~/.config/nvim
 
 ## INSTALL NVM AND NODE
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-export NVM_DIR="$HOME/.config/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-nvm install --lts
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+eval nvm install --lts
 npm install -g npm@latest
 
 ## INSTALL LOCAL AGENT CLI'S
 npm i -g @openai/codex
 curl -fsSL https://gh.io/copilot-install | bash
 curl -fsSL https://claude.ai/install.sh | bash
-curl -fsSLhttps://cursor.com/install | bash
+curl -fsSL https://cursor.com/install | bash
 
 ## SETUP CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
 curl -o ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md
-
 
 ## REMINDER
 echo ""
