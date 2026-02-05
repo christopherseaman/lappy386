@@ -44,6 +44,12 @@ done
 chmod 0600 ~/.ssh/authorized_keys
 echo "Updated authorized_keys from public keys in repo"
 
+## DNS RESOLVER FOR HOME NETWORK
+# Create /etc/resolver/home for proper .home domain resolution
+sudo mkdir -p /etc/resolver
+echo "nameserver 10.1.0.1" | sudo tee /etc/resolver/home >/dev/null
+echo "Created /etc/resolver/home for .home domain resolution"
+
 ## Install Astral uv
 curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
 

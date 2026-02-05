@@ -92,11 +92,6 @@ export LANG=en_US.UTF-8
 # Auto-attach to tmux session on SSH login only
 [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && { tmux attach || tmux; }
 
-# Fix VPN routing conflicts - check and add route if not present
-if ! netstat -rn | grep -q "^10\.0\.0\.0/8"; then
-  sudo route add -net 10.0.0.0/8 10.1.0.1 &>/dev/null
-fi
-
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
