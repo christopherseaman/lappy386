@@ -51,7 +51,9 @@ sudo apt install --quiet -qq -y \
   htop \
   ncdu \
   ripgrep \
-  starship
+  starship \
+  xdg-desktop-portal \
+  xdg-desktop-portal-gtk
 sudo apt autoremove --quiet -qq -y
 
 ## VM TOOLS
