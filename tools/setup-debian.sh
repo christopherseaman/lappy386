@@ -21,6 +21,10 @@ esac
 
 echo "Detected architecture: $ARCH"
 
+## GPU ACCESS FOR KITTY
+getent group render >/dev/null || sudo groupadd render
+sudo usermod -aG render "$(whoami)"
+
 
 ## Package Update and Install
 sudo apt update --quiet -qq
@@ -35,8 +39,15 @@ sudo apt install --quiet -qq -y \
   fd-find \
   findutils \
   fzf \
+  git \
   git-delta \
   gh \
+  kitty \
+  libegl1 \
+  libegl-mesa0 \
+  libgl1-mesa-dri \
+  libwayland-cursor0 \
+  libwayland-egl1 \
   htop \
   ncdu \
   ripgrep \
@@ -56,6 +67,20 @@ wget -q "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim
 sudo tar -xzf /tmp/nvim.tar.gz -C /opt
 sudo ln -sf /opt/nvim-${NVIM_ARCH}/bin/nvim /usr/local/bin/nvim
 rm /tmp/nvim.tar.gz
+
+## INSTALL NERD FONTS
+echo "Installing Nerd Fonts..."
+NERD_FONTS_VERSION=$(curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+FONT_DIR="$HOME/.local/share/fonts"
+mkdir -p "$FONT_DIR"
+for font in FiraCode FiraMono 0xProto; do
+  echo "  Installing $font Nerd Font..."
+  wget -q "https://github.com/ryanoasis/nerd-fonts/releases/download/${NERD_FONTS_VERSION}/${font}.tar.xz" -O /tmp/${font}.tar.xz
+  mkdir -p "$FONT_DIR/$font"
+  tar -xf /tmp/${font}.tar.xz -C "$FONT_DIR/$font"
+  rm /tmp/${font}.tar.xz
+done
+fc-cache -f "$FONT_DIR"
 
 echo "Debian installation complete."
 
