@@ -7,6 +7,13 @@ cat artifacts/dot-tmux.conf >~/.tmux.conf
 cat artifacts/dot-zshrc >~/.zshrc
 export PATH="$HOME/.local/bin:$PATH"
 
+## Git defaults
+git config --global user.name "Christopher Seaman"
+git config --global user.email "86775+christopherseaman@users.noreply.github.com"
+git config --global --add --bool push.autoSetupRemote true
+git config --global init.defaultBranch main
+git config --global pull.rebase false
+
 ## SSH CONFIG
 mkdir -p ~/.ssh
 chmod 0700 ~/.ssh

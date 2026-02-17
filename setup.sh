@@ -2,12 +2,12 @@
 
 ## GIT PULL - Ensure we have latest changes (check FIRST before any setup)
 sudo apt install --quiet -qq -y git
-# Ensure preferred defaulst
-git config --global user.name "Christopher Seaman"
-git config --global user.email "86775+christopherseaman@users.noreply.github.com"
-git config --global --add --bool push.autoSetupRemote true
-git config --global init.defaultBranch main
-git config --global pull.rebase false
+## Ensure preferred defaults
+#git config --global user.name "Christopher Seaman"
+#git config --global user.email "86775+christopherseaman@users.noreply.github.com"
+#git config --global --add --bool push.autoSetupRemote true
+#git config --global init.defaultBranch main
+#git config --global pull.rebase false
 ## Assumes we're running from within the git repo
 #echo "Pulling latest changes from repository..."
 #BEFORE_COMMIT=$(git rev-parse HEAD 2>/dev/null)
