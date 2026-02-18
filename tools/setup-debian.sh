@@ -3,28 +3,27 @@
 # Detect architecture
 ARCH=$(uname -m)
 case "$ARCH" in
-  x86_64)
-    NVIM_ARCH="linux-x86_64"
-    FASTFETCH_ARCH="amd64"
-    HELIX_ARCH="x86_64"
-    ;;
-  aarch64|arm64)
-    NVIM_ARCH="linux-arm64"
-    FASTFETCH_ARCH="aarch64"
-    HELIX_ARCH="aarch64"
-    ;;
-  *)
-    echo "Unsupported architecture: $ARCH"
-    exit 1
-    ;;
+x86_64)
+  NVIM_ARCH="linux-x86_64"
+  FASTFETCH_ARCH="amd64"
+  HELIX_ARCH="x86_64"
+  ;;
+aarch64 | arm64)
+  NVIM_ARCH="linux-arm64"
+  FASTFETCH_ARCH="aarch64"
+  HELIX_ARCH="aarch64"
+  ;;
+*)
+  echo "Unsupported architecture: $ARCH"
+  exit 1
+  ;;
 esac
 
 echo "Detected architecture: $ARCH"
 
-## GPU ACCESS FOR KITTY
+## GPU ACCESS
 getent group render >/dev/null || sudo groupadd render
 sudo usermod -aG render "$(whoami)"
-
 
 ## Package Update and Install
 sudo apt update --quiet -qq
@@ -42,19 +41,20 @@ sudo apt install --quiet -qq -y \
   git \
   git-delta \
   gh \
-  kitty \
-  libegl1 \
-  libegl-mesa0 \
-  libgl1-mesa-dri \
-  libwayland-cursor0 \
-  libwayland-egl1 \
   htop \
   ncdu \
   ripgrep \
-  starship \
-  xdg-desktop-portal \
-  xdg-desktop-portal-gtk
+  starship
 sudo apt autoremove --quiet -qq -y
+
+## GPU acceleration and UI integration
+# libegl1 \
+# libegl-mesa0 \
+# libgl1-mesa-dri \
+# libwayland-cursor0 \
+# libwayland-egl1 \
+# xdg-desktop-portal \
+# xdg-desktop-portal-gtk
 
 ## VM TOOLS
 # sudo apt install -qq -y \
