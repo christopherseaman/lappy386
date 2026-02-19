@@ -1,0 +1,1 @@
+-smbios type=1,serial=ds=nocloud;s=https://raw.githubusercontent.com/christopherseaman/lappy386/refs/heads/main/hosts/tarski/
