@@ -70,6 +70,7 @@ mkdir -p ~/.config/kitty
 cp artifacts/kitty.conf ~/.config/kitty/kitty.conf
 
 ## INSTALL NVM AND NODE
+mkdir -p "$HOME/.config/nvm"
 export NVM_DIR="$HOME/.config/nvm"
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 \. "$NVM_DIR/nvm.sh"

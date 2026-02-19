@@ -44,7 +44,8 @@ sudo apt install --quiet -qq -y \
   htop \
   ncdu \
   ripgrep \
-  starship
+  starship \
+  tmux
 sudo apt autoremove --quiet -qq -y
 
 ## GPU acceleration and UI integration
