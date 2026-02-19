@@ -32,36 +32,34 @@ sudo apt install --quiet -qq -y \
   bash-completion \
   bat \
   build-essential \
+  ca-certificates \
   cmake \
   curl \
   fastfetch \
   fd-find \
   findutils \
   fzf \
+  gh \
   git \
   git-delta \
-  gh \
+  gnupg \
   htop \
   ncdu \
+  openssh-server \
   ripgrep \
   starship \
-  tmux
+  tmux \
+  wget
 sudo apt autoremove --quiet -qq -y
 
-## GPU acceleration and UI integration
-# libegl1 \
-# libegl-mesa0 \
-# libgl1-mesa-dri \
-# libwayland-cursor0 \
-# libwayland-egl1 \
-# xdg-desktop-portal \
-# xdg-desktop-portal-gtk
-
-## VM TOOLS
-# sudo apt install -qq -y \
-#   qemu-guest-agent \
-#   qemu-utils \
-#   spice-vdagent
+## VM tools (clipboard/resize, host integration)
+if systemd-detect-virt --quiet 2>/dev/null; then
+  echo "VM detected, installing guest tools..."
+  sudo apt install --quiet -qq -y \
+    qemu-guest-agent \
+    qemu-utils \
+    spice-vdagent
+fi
 
 # Install Neovim from GitHub releases
 echo "Installing latest Neovim release from GitHub..."

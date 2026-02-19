@@ -21,54 +21,17 @@ package_upgrade: true
 package_reboot_if_required: false
 
 packages:
-  # Core dev tools
   - git
-  - gh
   - curl
   - wget
   - ca-certificates
-  - gnupg
-  - build-essential
-  - cmake
-  - openssh-server
-  # Modern CLI tools
-  - bash-completion
-  - bat
-  - fd-find
-  - findutils
-  - fzf
-  - git-delta
-  - htop
-  - ncdu
-  - ripgrep
-  - starship
-  - fastfetch
-  # VM tools (spice-vdagent = clipboard/resize, guest-agent = host integration)
-  - qemu-guest-agent
-  - qemu-utils
-  - spice-vdagent
 
 runcmd:
-  # Install latest Neovim from GitHub releases
-  - |
-    ARCH=$(uname -m)
-    case "$ARCH" in
-      x86_64) NVIM_ARCH="linux-x86_64" ;;
-      aarch64|arm64) NVIM_ARCH="linux-arm64" ;;
-    esac
-    NVIM_VERSION=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    wget -q "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-${NVIM_ARCH}.tar.gz" -O /tmp/nvim.tar.gz
-    tar -xzf /tmp/nvim.tar.gz -C /opt
-    ln -sf /opt/nvim-${NVIM_ARCH}/bin/nvim /usr/local/bin/nvim
-    rm /tmp/nvim.tar.gz
-  # Clone dotfiles repo and run setup-common.sh (dotfiles, ssh, uv, nvm, cli agents)
+  # Clone dotfiles repo and run full Debian setup
   - |
     sudo -u christopher git clone https://github.com/christopherseaman/lappy386.git /home/christopher/lappy386
     cd /home/christopher/lappy386/tools
-    sudo -u christopher bash ./setup-common.sh
-  # DNS resolver for home network (.home domain → 10.1.0.1)
-  - mkdir -p /etc/resolver
-  - echo "nameserver 10.1.0.1" > /etc/resolver/home
+    bash ./setup-debian.sh
   # Fix ownership
   - chown -R christopher:christopher /home/christopher
   - touch /home/christopher/.cloud-init-done
