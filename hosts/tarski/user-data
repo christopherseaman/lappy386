@@ -1,5 +1,5 @@
 #cloud-config
-hostname: debian-dev
+hostname: tarski
 
 users:
   - name: christopher
