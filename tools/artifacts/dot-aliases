@@ -172,3 +172,7 @@ sw() {
 
 alias avante='nvim -c "lua vim.defer_fn(function()require(\"avante.api\").zen_mode()end, 100)"'
 
+alias dan='claude --dangerously-skip-permissions'
+
+# Happier (Claude Code UI wrapper) - preview channel since no stable releases yet
+alias install-happier-preview-cli='curl -fsSL https://happier.dev/install | HAPPIER_CHANNEL=preview bash'
