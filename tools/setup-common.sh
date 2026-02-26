@@ -65,10 +65,6 @@ mkdir -p ~/.config
 rm -rf ~/.config/nvim
 cp -r artifacts/dot-config-nvim ~/.config/nvim
 
-## KITTY TERMINAL CONFIG
-mkdir -p ~/.config/kitty
-cp artifacts/kitty.conf ~/.config/kitty/kitty.conf
-
 ## INSTALL NVM AND NODE
 mkdir -p "$HOME/.config/nvm"
 export NVM_DIR="$HOME/.config/nvm"
@@ -78,9 +74,9 @@ nvm install --lts
 npm install -g npm@latest
 
 ## INSTALL LOCAL AGENT CLI'S
-npm i -g @openai/codex
 curl -fsSL https://gh.io/copilot-install | bash
 curl -fsSL https://claude.ai/install.sh | bash
+curl -fsSL https://happier.dev/install-preview | bash
 
 ## SETUP CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
@@ -90,7 +86,7 @@ curl -o ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman
 echo ""
 echo "┌──────────────────────────────┐"
 echo "│                              │"
-if command -v zsh >/dev/null 2>&1; then
+if [[ "$OSTYPE" == "darwin"* ]]; then
   echo "│  Remember to $(tput bold)source .zshrc$(tput sgr0)   │"
 else
   echo "│  Remember to $(tput bold)source .bashrc$(tput sgr0)  │"
