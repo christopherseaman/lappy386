@@ -14,6 +14,9 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHo
 vim.opt.wrap = true
 vim.opt.linebreak = true
 
+-- Status column: signs | line number | separator (puts git signs left of numbers)
+vim.opt.statuscolumn = "%s%l "
+
 -- Tab and indentation settings
 vim.o.tabstop = 2 -- A TAB character looks like 2 spaces
 vim.o.expandtab = true -- Pressing the TAB key will insert spaces instead of a TAB character
