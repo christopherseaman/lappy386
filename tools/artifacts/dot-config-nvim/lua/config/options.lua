@@ -6,7 +6,7 @@
 vim.o.autoread = true
 
 -- Check for file changes when focusing Neovim or switching buffers
-vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
   command = "checktime",
 })
 
