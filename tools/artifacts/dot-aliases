@@ -9,22 +9,11 @@ fastfetch_greeting() {
 
 # update more easily
 alias sup="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y"
-alias pup="sudo pacman -Syu"
 
 # some more ls aliases
 alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
-
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-
-# Navigation aliases
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
 
 # Better grep - use ripgrep if available, otherwise enhanced grep
 if command -v rg &>/dev/null; then
@@ -134,45 +123,8 @@ yank() {
   fi
 }
 
-# Claude Flow aliases with high performance settings
-alias cf-init="npx claude-flow@alpha init"
-
-# Claude Flow with high performance settings - takes quoted instruction
-cf() {
-  if [ $# -eq 0 ]; then
-    echo "Usage: cf \"instruction\""
-    echo "Example: cf \"Build a REST API with authentication\""
-    return 1
-  fi
-
-  npx claude-flow@alpha hive-mind spawn "$1" \
-    --auto-spawn \
-    --claude \
-    --max-workers 20 \
-    --auto-scale \
-    --monitor \
-    --memory-size 200 \
-    --namespace flow
-}
-
-# Swarm alias with high performance settings - takes quoted instruction
-sw() {
-  if [ $# -eq 0 ]; then
-    echo "Usage: sw \"instruction\""
-    echo "Example: sw \"Build a REST API with authentication\""
-    return 1
-  fi
-
-  npx claude-flow@alpha swarm "$1" \
-    --parallel \
-    --max-agents 20 \
-    --mode hybrid \
-    --claude
-}
-
-alias avante='nvim -c "lua vim.defer_fn(function()require(\"avante.api\").zen_mode()end, 100)"'
-
 alias dan='claude --dangerously-skip-permissions'
 
 # Happier (Claude Code UI wrapper) - preview channel since no stable releases yet
-alias install-happier-preview='curl -fsSL https://happier.dev/install-preview | bash'
+alias install-happier-preview='npm i -g @happier-dev/cli@next'
+
