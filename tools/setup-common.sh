@@ -76,7 +76,8 @@ npm install -g npm@latest
 ## INSTALL LOCAL AGENT CLI'S
 curl -fsSL https://gh.io/copilot-install | bash
 curl -fsSL https://claude.ai/install.sh | bash
-curl -fsSL https://happier.dev/install-preview | bash
+# curl -fsSL https://happier.dev/install-preview | bash
+npm i -g @happier-dev/cli@next
 
 ## SETUP CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
