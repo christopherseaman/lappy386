@@ -123,7 +123,7 @@ yank() {
   fi
 }
 
-alias dan='claude --dangerously-skip-permissions'
+alias dan='claude --dangerously-skip-permissions --remote-control'
 
 # Happier (Claude Code UI wrapper) - preview channel since no stable releases yet
 alias install-happier-preview='npm i -g @happier-dev/cli@next'
