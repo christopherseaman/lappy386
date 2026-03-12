@@ -38,6 +38,7 @@ sudo apt install --quiet -qq -y \
   fastfetch \
   fd-find \
   findutils \
+  fontconfig \
   fzf \
   gh \
   git \
