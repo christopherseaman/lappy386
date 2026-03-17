@@ -84,6 +84,34 @@ for font in FiraCode FiraMono 0xProto; do
 done
 fc-cache -f "$FONT_DIR"
 
+## Debian Trixie: enable backports and install crostini packages
+if grep -q 'VERSION_CODENAME=trixie' /etc/os-release 2>/dev/null; then
+  echo "Trixie detected, enabling backports..."
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  sudo cp "$SCRIPT_DIR/artifacts/debian-backports.sources" /etc/apt/sources.list.d/
+  sudo cp "$SCRIPT_DIR/artifacts/99-prefer-backports" /etc/apt/preferences.d/
+  sudo apt update --quiet -qq
+
+  if [ -f /dev/.container_token ]; then
+    echo "Crostini detected, installing crostini packages..."
+    sudo apt install --quiet -qq -y \
+      cros-apt-config \
+      cros-logging \
+      cros-pipe-config \
+      cros-sudo-config \
+      cros-adapta \
+      cros-host-fonts \
+      cros-notificationd \
+      cros-systemd-overrides \
+      cros-ui-config \
+      cros-xdg-desktop-portal \
+      dbus-x11 \
+      file \
+      iptables \
+      unzip
+  fi
+fi
+
 echo "Debian installation complete."
 
 ## RUN COMMON SETUP
