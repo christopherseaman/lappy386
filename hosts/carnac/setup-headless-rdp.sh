@@ -81,6 +81,16 @@ systemctl disable gnome-remote-desktop.service 2>/dev/null || true
 systemctl stop gnome-remote-desktop.service 2>/dev/null || true
 echo "    System-level gnome-remote-desktop.service disabled"
 
+# --- Step 1b: Remove stale monitors.xml ---
+# Mutter crashes (SIGSEGV) if monitors.xml contains modes that don't match
+# what the RDP virtual monitor supports. The headless fix script uses temporary
+# config (method 1), so no persistent monitors.xml is needed.
+MONITORS_XML="/home/${AUTOLOGIN_USER}/.config/monitors.xml"
+if [[ -f "$MONITORS_XML" ]]; then
+    echo "    Removing stale $MONITORS_XML"
+    rm -f "$MONITORS_XML"
+fi
+
 # --- Step 2: Configure GDM autologin + TimedLogin ---
 echo "==> Configuring GDM autologin..."
 
