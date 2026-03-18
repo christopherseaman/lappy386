@@ -4,47 +4,61 @@ Disable the virtual headless monitor and make RDP display primary.
 Run when RDP connection is detected.
 """
 import dbus
-import subprocess
+import fcntl
+import os
+import sys
+import time
+
+IFACE = 'org.gnome.Mutter.DisplayConfig'
+LOCKFILE = '/tmp/fix-rdp.lock'
+
+def get_state():
+    bus = dbus.SessionBus()
+    obj = bus.get_object(IFACE, '/org/gnome/Mutter/DisplayConfig')
+    state = obj.GetCurrentState(dbus_interface=IFACE)
+    return obj, state[0], state[1], state[2]
 
 def fix_rdp_displays():
-    bus = dbus.SessionBus()
-    display_config = bus.get_object(
-        'org.gnome.Mutter.DisplayConfig',
-        '/org/gnome/Mutter/DisplayConfig'
-    )
+    obj, serial, monitors, logical_monitors = get_state()
 
-    current_state = display_config.GetCurrentState(
-        dbus_interface='org.gnome.Mutter.DisplayConfig'
-    )
+    rdp = None
+    others = []
+    for m in monitors:
+        conn = m[0][0]
+        if conn.startswith('Meta-'):
+            rdp = m
+        else:
+            others.append(m)
 
-    serial = current_state[0]
-    monitors = current_state[1]
-
-    # Find the RDP (Meta-*) display
-    rdp_monitor = None
-    for monitor in monitors:
-        connector = monitor[0][0]
-        if connector.startswith('Meta-'):
-            rdp_monitor = monitor
-            print(f"Found RDP display: {connector}")
-            break
-
-    if not rdp_monitor:
+    if not rdp:
         print("No RDP display found")
         return
 
-    connector = rdp_monitor[0][0]
-    modes = rdp_monitor[1]
-
-    # Use the first available mode
+    connector = rdp[0][0]
+    modes = rdp[1]
     if not modes:
         print("No modes available")
         return
 
-    selected_mode = modes[0][0]
-    print(f"Using mode: {selected_mode}")
+    # Check if RDP is already the only logical monitor
+    if len(logical_monitors) == 1:
+        lm_connectors = [mon[0] for mon in logical_monitors[0][5]]
+        if lm_connectors == [connector]:
+            print(f"{connector} is already the only display")
+            return
 
-    # Configure ONLY the RDP display as primary (disables Virtual-1)
+    selected_mode = modes[0][0]
+    print(f"Found RDP display: {connector}")
+    print(f"Using mode: {selected_mode}")
+    if others:
+        print(f"Disabling: {', '.join(m[0][0] for m in others)}")
+
+    # Remove monitors.xml before reconfiguring to prevent stale mode crashes
+    monitors_xml = os.path.expanduser('~/.config/monitors.xml')
+    if os.path.exists(monitors_xml):
+        os.remove(monitors_xml)
+        print(f"Removed stale {monitors_xml}")
+
     new_logical_monitors = [(
         0,      # x
         0,      # y
@@ -55,20 +69,26 @@ def fix_rdp_displays():
     )]
 
     try:
-        display_config.ApplyMonitorsConfig(
+        obj.ApplyMonitorsConfig(
             serial,
-            1,  # temporary - no prompt, reverts on logout
+            1,  # method 1 = temporary, no prompt, reverts on logout
             new_logical_monitors,
             {},
-            dbus_interface='org.gnome.Mutter.DisplayConfig'
+            dbus_interface=IFACE,
         )
         print(f"Success: {connector} is now the only display")
-
-        # Halve cursor size to compensate for Guacamole's 192 DPI doubling
-        subprocess.run(['gsettings', 'set', 'org.gnome.desktop.interface', 'cursor-size', '12'])
-        print("Cursor size set to 12")
     except Exception as e:
-        print(f"Failed: {e}")
+        print(f"ApplyMonitorsConfig failed: {e}")
 
 if __name__ == "__main__":
-    fix_rdp_displays()
+    lock = open(LOCKFILE, 'w')
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("Another instance is running, exiting")
+        sys.exit(0)
+    try:
+        fix_rdp_displays()
+    finally:
+        fcntl.flock(lock, fcntl.LOCK_UN)
+        lock.close()
