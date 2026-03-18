@@ -18,7 +18,8 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- Hide tmux status bar while nvim is open
 if vim.env.TMUX then
-  vim.api.nvim_create_autocmd({ "VimEnter", "VimResume" }, {
+  vim.fn.system("tmux set status off")
+  vim.api.nvim_create_autocmd("VimResume", {
     callback = function()
       vim.fn.system("tmux set status off")
     end,
