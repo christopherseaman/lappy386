@@ -4,10 +4,17 @@ set -euo pipefail
 # Setup script for GNOME Remote Desktop headless mode.
 # Configures GDM autologin + TimedLogin and the user-level --headless service.
 #
-# Usage: sudo ./setup-headless-rdp.sh [username] [rdp_password]
+# Usage: sudo ./setup-headless-rdp.sh [--auto] [username] [rdp_password]
+#   - --auto: non-interactive mode, skips setup if already functional
 #   - Defaults to $SUDO_USER (or $USER) if username is omitted.
 #   - Generates a random 12-char password if rdp_password is omitted.
 #   - Must be run as root (needs to modify GDM config and systemd units).
+
+AUTO_MODE=false
+if [[ "${1:-}" == "--auto" ]]; then
+  AUTO_MODE=true
+  shift
+fi
 
 AUTOLOGIN_USER="${1:-${SUDO_USER:-$USER}}"
 RDP_USER="$AUTOLOGIN_USER"
@@ -26,34 +33,36 @@ fi
 
 AUTOLOGIN_UID=$(id -u "$AUTOLOGIN_USER")
 
-if [[ -z "$RDP_PASS" ]]; then
-  RDP_PASS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 12)
-  echo "    Generated RDP password"
-fi
-
-# Export so parent scripts can display it in their summary
-export RDP_PASSWORD="$RDP_PASS"
-
-echo "==> Checking for existing headless RDP setup..."
-
-HEADLESS_STATUS=$(sudo -u "$AUTOLOGIN_USER" \
-  DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${AUTOLOGIN_UID}/bus" \
-  systemctl --user is-enabled gnome-remote-desktop-headless.service 2>/dev/null || true)
-
+## Check for existing setup
 HEADLESS_ACTIVE=$(sudo -u "$AUTOLOGIN_USER" \
   DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${AUTOLOGIN_UID}/bus" \
   systemctl --user is-active gnome-remote-desktop-headless.service 2>/dev/null || true)
 
-if [[ "$HEADLESS_ACTIVE" == "active" ]]; then
-  echo "    Headless service is already running. Checking port..."
-  if ss -tlnp | grep -q ':3389'; then
-    echo "    Port 3389 is already listening — setup appears functional."
-    read -rp "    Continue anyway and re-apply config? [y/N] " REPLY
-    [[ "$REPLY" =~ ^[Yy]$ ]] || exit 0
+if [[ "$HEADLESS_ACTIVE" == "active" ]] && ss -tlnp | grep -q ':3389'; then
+  if [[ "$AUTO_MODE" == "true" ]]; then
+    echo "    Headless RDP already running, skipped."
+    exit 0
   fi
-elif [[ "$HEADLESS_STATUS" == "enabled" ]]; then
-  echo "    Headless service is enabled but not running."
+  echo "    Headless RDP is already running on port 3389."
+  read -rp "    Continue anyway and re-apply config? [y/N] " REPLY
+  [[ "$REPLY" =~ ^[Yy]$ ]] || exit 0
 fi
+
+## Resolve RDP password
+PASS_FILE="/home/${AUTOLOGIN_USER}/.rdp_pass"
+if [[ -z "$RDP_PASS" && -f "$PASS_FILE" ]]; then
+  RDP_PASS=$(cat "$PASS_FILE")
+  echo "    Reusing existing RDP password"
+elif [[ -z "$RDP_PASS" ]]; then
+  RDP_PASS=$(head -c 100 /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 12)
+  echo "    Generated RDP password"
+fi
+
+export RDP_PASSWORD="$RDP_PASS"
+
+echo "$RDP_PASS" > "$PASS_FILE"
+chown "$AUTOLOGIN_USER":"$AUTOLOGIN_USER" "$PASS_FILE"
+chmod 600 "$PASS_FILE"
 
 # --- Step 1: Clean up system-mode artifacts ---
 echo "==> Cleaning up system-mode artifacts..."

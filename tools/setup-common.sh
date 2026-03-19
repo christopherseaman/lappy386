@@ -82,6 +82,7 @@ npm i -g @happier-dev/cli@next
 ## SETUP CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
 curl -o ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md
+cp artifacts/claude-settings.json ~/.claude/settings.json
 
 ## REMINDER
 echo ""

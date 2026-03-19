@@ -21,9 +21,27 @@ esac
 
 echo "Detected architecture: $ARCH"
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 ## GPU ACCESS
 getent group render >/dev/null || sudo groupadd render
 sudo usermod -aG render "$(whoami)"
+
+## Remove snapd if present
+if command -v snap &>/dev/null; then
+  echo "Removing snapd and all installed snaps..."
+  # Remove all non-base snaps first, then bases, then snapd
+  snap list 2>/dev/null | awk 'NR>1 && $1!="snapd" && $NF!~/base/ {print $1}' | while read -r pkg; do
+    sudo snap remove --purge "$pkg" 2>/dev/null
+  done
+  snap list 2>/dev/null | awk 'NR>1 && $1!="snapd" && $NF~/base/ {print $1}' | while read -r pkg; do
+    sudo snap remove --purge "$pkg" 2>/dev/null
+  done
+  sudo snap remove --purge snapd 2>/dev/null
+  sudo apt purge --quiet -qq -y snapd gnome-software-plugin-snap
+  sudo apt-mark hold snapd
+  rm -rf ~/snap
+fi
 
 ## Package Update and Install
 sudo apt update --quiet -qq
@@ -62,6 +80,31 @@ if systemd-detect-virt --quiet 2>/dev/null; then
     spice-vdagent
 fi
 
+## Install VS Code if not present
+if ! command -v code &>/dev/null; then
+  echo "Installing VS Code..."
+  case "$ARCH" in
+    x86_64)          VSCODE_OS="linux-deb-x64" ;;
+    aarch64 | arm64) VSCODE_OS="linux-deb-arm64" ;;
+  esac
+  if [[ -n "${VSCODE_OS:-}" ]]; then
+    wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${VSCODE_OS}"
+    sudo apt install --quiet -qq -y /tmp/vscode.deb
+    rm /tmp/vscode.deb
+  else
+    echo "  Skipping VS Code: unsupported architecture $ARCH"
+  fi
+fi
+
+## Install Zed editor if not present
+if ! command -v zed &>/dev/null; then
+  echo "Installing Zed editor..."
+  curl -f https://zed.dev/install.sh | sh
+fi
+
+## Install Firefox from Mozilla apt repo
+"$SCRIPT_DIR/setup-firefox.sh"
+
 # Install Neovim from GitHub releases
 echo "Installing latest Neovim release from GitHub..."
 NVIM_VERSION=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
@@ -87,7 +130,6 @@ fc-cache -f "$FONT_DIR"
 ## Debian Trixie: enable backports and install crostini packages
 if grep -q 'VERSION_CODENAME=trixie' /etc/os-release 2>/dev/null; then
   echo "Trixie detected, enabling backports..."
-  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
   sudo cp "$SCRIPT_DIR/artifacts/debian-backports.sources" /etc/apt/sources.list.d/
   sudo cp "$SCRIPT_DIR/artifacts/99-prefer-backports" /etc/apt/preferences.d/
   sudo apt update --quiet -qq
@@ -115,8 +157,7 @@ fi
 ## Headless RDP setup (if GDM is installed)
 if dpkg -l gdm3 &>/dev/null; then
   echo "GDM detected, setting up headless RDP..."
-  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-  sudo --preserve-env=RDP_PASSWORD "$SCRIPT_DIR/rdp/setup-headless-rdp.sh"
+  sudo --preserve-env=RDP_PASSWORD "$SCRIPT_DIR/rdp/setup-headless-rdp.sh" --auto
 fi
 
 echo "Debian installation complete."
