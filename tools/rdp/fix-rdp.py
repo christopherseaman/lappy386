@@ -40,11 +40,14 @@ def fix_rdp_displays():
         print("No modes available")
         return
 
-    # Check if RDP is already the only logical monitor
+    # Check if RDP is already the only logical monitor at correct scale
+    target_scale = 2.0
     if len(logical_monitors) == 1:
-        lm_connectors = [mon[0] for mon in logical_monitors[0][5]]
-        if lm_connectors == [connector]:
-            print(f"{connector} is already the only display")
+        lm = logical_monitors[0]
+        lm_connectors = [mon[0] for mon in lm[5]]
+        current_scale = float(lm[2])
+        if lm_connectors == [connector] and current_scale == target_scale:
+            print(f"{connector} is already the only display at {target_scale}x")
             return
 
     selected_mode = modes[0][0]
@@ -62,7 +65,7 @@ def fix_rdp_displays():
     new_logical_monitors = [(
         0,      # x
         0,      # y
-        2.0,    # scale
+        target_scale,
         0,      # transform
         True,   # primary
         [(connector, selected_mode, {})],

@@ -112,6 +112,13 @@ if grep -q 'VERSION_CODENAME=trixie' /etc/os-release 2>/dev/null; then
   fi
 fi
 
+## Headless RDP setup (if GDM is installed)
+if dpkg -l gdm3 &>/dev/null; then
+  echo "GDM detected, setting up headless RDP..."
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  sudo --preserve-env=RDP_PASSWORD "$SCRIPT_DIR/rdp/setup-headless-rdp.sh"
+fi
+
 echo "Debian installation complete."
 
 ## RUN COMMON SETUP

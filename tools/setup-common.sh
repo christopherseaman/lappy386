@@ -92,5 +92,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 else
   echo "│  Remember to $(tput bold)source .bashrc$(tput sgr0)  │"
 fi
+if [[ -n "${RDP_PASSWORD:-}" ]]; then
+  echo "│                              │"
+  printf "│  RDP password: $(tput bold)%-13s$(tput sgr0)│\n" "$RDP_PASSWORD"
+fi
 echo "│                              │"
 echo "└──────────────────────────────┘"
