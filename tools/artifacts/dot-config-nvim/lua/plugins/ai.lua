@@ -11,25 +11,17 @@ return {
     end,
   },
 
-  -- Customize Avante if needed (this will override the extra's config)
+  -- -- Avante: use Claude with Max subscription
   -- {
   --   "yetone/avante.nvim",
   --   opts = {
-  --     provider = "codex",
-  --     -- acp_provider = "codex",
-  --     -- acp_providers = {
-  --     --   ["codex"] = {
-  --     --     command = "npx",
-  --     --     args = { "@zed-industries/codex-acp" },
-  --     --     env = {
-  --     --       NODE_NO_WARNINGS = "1",
-  --     --     },
-  --     --   },
-  --     -- },
-  --     -- provider = "copilot",
-  --     -- No need for copilot.model or openai config when using Copilot provider
-  --     auto_suggestions = false,
-  --     -- auto_suggestions_provider = "copilot",
+  --     provider = "claude",
+  --     providers = {
+  --       claude = {
+  --         auth_type = "max",
+  --         model = "claude-opus-4-6",
+  --       },
+  --     },
   --   },
   -- },
 }

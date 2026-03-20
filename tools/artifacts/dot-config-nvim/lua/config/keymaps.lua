@@ -28,3 +28,7 @@ vim.keymap.set("i", "<Tab>", function()
   -- Finally, just insert a tab
   vim.api.nvim_feedkeys("\t", "n", false)
 end, { desc = "Smart Tab" })
+
+-- Easy terminal escape and window switching
+vim.keymap.set("t", "<C-h>", "<C-\\><C-n><C-w>h", { desc = "Switch to left window" })
+vim.keymap.set("t", "<C-l>", "<C-\\><C-n><C-w>l", { desc = "Switch to right window" })
