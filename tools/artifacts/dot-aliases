@@ -124,6 +124,7 @@ yank() {
 }
 
 alias dan='claude --dangerously-skip-permissions --remote-control'
+alias bye='tmux detach -P'
 
 # Happier (Claude Code UI wrapper) - preview channel since no stable releases yet
 alias install-happier-preview='npm i -g @happier-dev/cli@next'
