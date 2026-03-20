@@ -5,13 +5,11 @@ ARCH=$(uname -m)
 case "$ARCH" in
 x86_64)
   NVIM_ARCH="linux-x86_64"
-  FASTFETCH_ARCH="amd64"
-  HELIX_ARCH="x86_64"
+  CODE_ARCH="linux-deb-x64"
   ;;
 aarch64 | arm64)
   NVIM_ARCH="linux-arm64"
-  FASTFETCH_ARCH="aarch64"
-  HELIX_ARCH="aarch64"
+  CODE_ARCH="linux-deb-arm64"
   ;;
 *)
   echo "Unsupported architecture: $ARCH"
@@ -45,7 +43,7 @@ fi
 
 ## Package Update and Install
 sudo apt update --quiet -qq
-sudo apt upgrade --quiet -qq -y
+sudo apt full-upgrade --quiet -qq -y
 sudo apt install --quiet -qq -y \
   bash-completion \
   bat \
@@ -66,7 +64,6 @@ sudo apt install --quiet -qq -y \
   ncdu \
   openssh-server \
   ripgrep \
-  starship \
   tmux \
   wget
 sudo apt autoremove --quiet -qq -y
@@ -83,16 +80,12 @@ fi
 ## Install VS Code if not present
 if ! command -v code &>/dev/null; then
   echo "Installing VS Code..."
-  case "$ARCH" in
-    x86_64)          VSCODE_OS="linux-deb-x64" ;;
-    aarch64 | arm64) VSCODE_OS="linux-deb-arm64" ;;
-  esac
-  if [[ -n "${VSCODE_OS:-}" ]]; then
-    wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${VSCODE_OS}"
+  if [[ -n "${CODE_ARCH:-}" ]]; then
+    wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${CODE_ARCH}"
     sudo apt install --quiet -qq -y /tmp/vscode.deb
     rm /tmp/vscode.deb
   else
-    echo "  Skipping VS Code: unsupported architecture $ARCH"
+    echo "  Skipping VS Code: unknown architecture $ARCH"
   fi
 fi
 
@@ -102,30 +95,48 @@ if ! command -v zed &>/dev/null; then
   curl -f https://zed.dev/install.sh | sh
 fi
 
-## Install Firefox from Mozilla apt repo
-"$SCRIPT_DIR/setup-firefox.sh"
+## Install Firefox from Mozilla apt repo (skip on Raspberry Pi, skip if already configured)
+if [ ! -f /etc/apt/sources.list.d/mozilla.sources ] && [ ! -f /etc/rpi-issue ]; then
+  "$SCRIPT_DIR/setup-firefox.sh"
+fi
 
-# Install Neovim from GitHub releases
-echo "Installing latest Neovim release from GitHub..."
-NVIM_VERSION=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-wget -q "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-${NVIM_ARCH}.tar.gz" -O /tmp/nvim.tar.gz
-sudo tar -xzf /tmp/nvim.tar.gz -C /opt
-sudo ln -sf /opt/nvim-${NVIM_ARCH}/bin/nvim /usr/local/bin/nvim
-rm /tmp/nvim.tar.gz
+# Install or update Neovim from GitHub releases (always ensure latest)
+NVIM_LATEST=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+NVIM_CURRENT=$(nvim --version 2>/dev/null | head -1 | sed -E 's/NVIM //' || true)
+if [ "$NVIM_CURRENT" != "$NVIM_LATEST" ]; then
+  echo "Updating Neovim: ${NVIM_CURRENT:-none} -> $NVIM_LATEST"
+  wget -q "https://github.com/neovim/neovim/releases/download/${NVIM_LATEST}/nvim-${NVIM_ARCH}.tar.gz" -O /tmp/nvim.tar.gz
+  sudo rm -rf /opt/nvim-${NVIM_ARCH}
+  sudo tar -xzf /tmp/nvim.tar.gz -C /opt
+  sudo ln -sf /opt/nvim-${NVIM_ARCH}/bin/nvim /usr/local/bin/nvim
+  rm /tmp/nvim.tar.gz
+else
+  echo "Neovim already at latest ($NVIM_LATEST), skipping."
+fi
 
-## INSTALL NERD FONTS
-echo "Installing Nerd Fonts..."
-NERD_FONTS_VERSION=$(curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+## INSTALL NERD FONTS (skip if already present)
 FONT_DIR="$HOME/.local/share/fonts"
-mkdir -p "$FONT_DIR"
+FONTS_NEEDED=()
 for font in FiraCode FiraMono 0xProto; do
-  echo "  Installing $font Nerd Font..."
-  wget -q "https://github.com/ryanoasis/nerd-fonts/releases/download/${NERD_FONTS_VERSION}/${font}.tar.xz" -O /tmp/${font}.tar.xz
-  mkdir -p "$FONT_DIR/$font"
-  tar -xf /tmp/${font}.tar.xz -C "$FONT_DIR/$font"
-  rm /tmp/${font}.tar.xz
+  if [ ! -d "$FONT_DIR/$font" ] || [ -z "$(ls -A "$FONT_DIR/$font" 2>/dev/null)" ]; then
+    FONTS_NEEDED+=("$font")
+  fi
 done
-fc-cache -f "$FONT_DIR"
+if [ ${#FONTS_NEEDED[@]} -gt 0 ]; then
+  echo "Installing Nerd Fonts: ${FONTS_NEEDED[*]}..."
+  NERD_FONTS_VERSION=$(curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+  mkdir -p "$FONT_DIR"
+  for font in "${FONTS_NEEDED[@]}"; do
+    echo "  Installing $font Nerd Font..."
+    wget -q "https://github.com/ryanoasis/nerd-fonts/releases/download/${NERD_FONTS_VERSION}/${font}.tar.xz" -O /tmp/${font}.tar.xz
+    mkdir -p "$FONT_DIR/$font"
+    tar -xf /tmp/${font}.tar.xz -C "$FONT_DIR/$font"
+    rm /tmp/${font}.tar.xz
+  done
+  fc-cache -f "$FONT_DIR"
+else
+  echo "Nerd Fonts already installed, skipping."
+fi
 
 ## Debian Trixie: enable backports and install crostini packages
 if grep -q 'VERSION_CODENAME=trixie' /etc/os-release 2>/dev/null; then

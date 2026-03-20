@@ -57,25 +57,54 @@ sudo mkdir -p /etc/resolver
 echo "nameserver 10.1.0.1" | sudo tee /etc/resolver/home >/dev/null
 echo "Created /etc/resolver/home for .home domain resolution"
 
-## Install Astral uv
-curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
+## Install or update starship prompt
+if command -v starship &>/dev/null; then
+  # Remove apt version if installed, prefer upstream binary
+  if dpkg -l starship 2>/dev/null | grep -q '^ii'; then
+    sudo apt purge --quiet -qq -y starship
+  fi
+fi
+curl -sS https://starship.rs/install.sh | sudo sh -s -- -y >/dev/null
+
+## Install or update Astral uv
+if command -v uv &>/dev/null; then
+  uv self update 2>/dev/null || true
+else
+  curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
+fi
 
 ## NVIM CONFIG
 mkdir -p ~/.config
 rm -rf ~/.config/nvim
 cp -r artifacts/dot-config-nvim ~/.config/nvim
 
-## INSTALL NVM AND NODE
-mkdir -p "$HOME/.config/nvm"
+## STARSHIP CONFIG
+cp artifacts/starship.toml ~/.config/starship.toml
+
+## INSTALL OR UPDATE NVM AND NODE
 export NVM_DIR="$HOME/.config/nvm"
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
-\. "$NVM_DIR/nvm.sh"
-nvm install --lts
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  \. "$NVM_DIR/nvm.sh"
+  echo "nvm already installed, skipping."
+else
+  mkdir -p "$NVM_DIR"
+  wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+  \. "$NVM_DIR/nvm.sh"
+  nvm install --lts
+fi
 npm install -g npm@latest
 
-## INSTALL LOCAL AGENT CLI'S
-curl -fsSL https://gh.io/copilot-install | bash
-curl -fsSL https://claude.ai/install.sh | bash
+## INSTALL OR UPDATE LOCAL AGENT CLI'S
+if command -v github-copilot-cli &>/dev/null || command -v copilot &>/dev/null; then
+  copilot update 2>/dev/null || true
+else
+  curl -fsSL https://gh.io/copilot-install | bash
+fi
+if command -v claude &>/dev/null; then
+  claude update 2>/dev/null || true
+else
+  curl -fsSL https://claude.ai/install.sh | bash
+fi
 # curl -fsSL https://happier.dev/install-preview | bash
 npm i -g @happier-dev/cli@next
 

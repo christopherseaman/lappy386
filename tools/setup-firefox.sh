@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Install Firefox from Mozilla's official apt repository
-# Removes snap version if present
 
 ## Remove Firefox snap if snapd is available
 if command -v snap &>/dev/null && snap list firefox &>/dev/null; then
@@ -9,8 +8,11 @@ if command -v snap &>/dev/null && snap list firefox &>/dev/null; then
   sudo snap remove --purge firefox
 fi
 
-## Remove any existing Mozilla apt config to avoid duplicates
-sudo rm -f /etc/apt/sources.list.d/mozilla.list /etc/apt/sources.list.d/mozilla.sources
+## Remove distro Firefox so Mozilla's version installs cleanly
+if dpkg -l firefox 2>/dev/null | grep -q '^ii'; then
+  echo "Removing distro Firefox..."
+  sudo apt purge --quiet -qq -y firefox
+fi
 
 ## Set up Mozilla apt repository
 echo "Setting up Mozilla apt repository..."

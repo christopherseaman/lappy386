@@ -1,0 +1,14 @@
+# HSS (Host Shorthand) configuration
+# Pattern-based hostname expansion for rootshell and compatible tools
+patterns:
+  - note: "deb-studio shorthand"
+    short: "^deb$"
+    long: "deb-studio.home"
+
+  - note: "deb-studio without domain"
+    short: "^deb-studio$"
+    long: "deb-studio.home"
+
+  - note: "Pass through .home domains"
+    short: "^(.+\\.home)$"
+    long: "\\1"

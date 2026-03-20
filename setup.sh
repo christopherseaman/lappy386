@@ -11,10 +11,6 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
       echo "'$ID' detected - running Debian setup"
       cd tools && ./setup-debian.sh
       ;;
-    arch|archarm)
-      echo "'$ID' detected - running Arch setup"
-      cd tools && ./setup-arch.sh
-      ;;
     *)
       echo "Detected unknown ID='$ID'"
       echo "Run the appropriate setup script manually."
