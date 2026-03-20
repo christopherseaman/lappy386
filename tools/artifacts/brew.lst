@@ -14,10 +14,10 @@ neovim
 # nvm
 # ollama
 python
-qemu
+# qemu
 # rclone
 ripgrep
-starship
+# starship
 # stress-ng
 # tailscale
 tmux

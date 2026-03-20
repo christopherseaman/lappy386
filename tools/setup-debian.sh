@@ -95,8 +95,12 @@ if ! command -v zed &>/dev/null; then
   curl -f https://zed.dev/install.sh | sh
 fi
 
-## Install Firefox from Mozilla apt repo (skip on Raspberry Pi, skip if already configured)
-if [ ! -f /etc/apt/sources.list.d/mozilla.sources ] && [ ! -f /etc/rpi-issue ]; then
+## Firefox from Mozilla apt repo (skip on RPi, skip if already configured)
+if [ -f /etc/rpi-issue ]; then
+  echo "Firefox: skipped (Raspberry Pi)"
+elif [ -f /etc/apt/sources.list.d/mozilla.sources ]; then
+  echo "Firefox: Mozilla apt repo already configured"
+else
   "$SCRIPT_DIR/setup-firefox.sh"
 fi
 

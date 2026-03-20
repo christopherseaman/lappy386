@@ -19,98 +19,85 @@ mkdir -p ~/.ssh
 chmod 0700 ~/.ssh
 cat artifacts/dot-ssh-config >~/.ssh/config
 
-# Get hostname for repo public key naming
 CLIENT_HOSTNAME=$(cat /etc/hostname)
-# Use standard key name on all clients
-CLIENT_KEY_NAME="client_key"
-CLIENT_KEY_PATH="$HOME/.ssh/$CLIENT_KEY_NAME"
-CLIENT_PUBKEY_PATH="$HOME/.ssh/$CLIENT_KEY_NAME.pub"
-
-# Ensure public_keys directory exists in repo
+CLIENT_KEY_PATH="$HOME/.ssh/client_key"
+CLIENT_PUBKEY_PATH="$HOME/.ssh/client_key.pub"
 PUBLIC_KEYS_DIR="artifacts/public_keys"
 mkdir -p "$PUBLIC_KEYS_DIR"
 
-# Check if ed25519 key exists for this client, create if not
 if [ ! -f "$CLIENT_KEY_PATH" ] || [ ! -f "$CLIENT_PUBKEY_PATH" ]; then
-  echo "Creating ed25519 key for client: $CLIENT_HOSTNAME"
+  echo "SSH: creating ed25519 key for $CLIENT_HOSTNAME"
   ssh-keygen -t ed25519 -f "$CLIENT_KEY_PATH" -N "" -C "$CLIENT_HOSTNAME"
-  echo "Created key: $CLIENT_KEY_PATH"
-
-  # Copy public key to repo using hostname-based naming
   cp "$CLIENT_PUBKEY_PATH" "$PUBLIC_KEYS_DIR/$CLIENT_HOSTNAME.pub"
-  echo "Copied public key to repo: $PUBLIC_KEYS_DIR/$CLIENT_HOSTNAME.pub"
-else
-  echo "Key already exists for client: $CLIENT_HOSTNAME"
 fi
 
-## Replace authorized_keys with all public keys from repo, ensuring newline separation
 : >~/.ssh/authorized_keys
 for f in "$PUBLIC_KEYS_DIR"/*.pub; do
   printf '%s\n' "$(<"$f")" >>~/.ssh/authorized_keys
 done
 chmod 0600 ~/.ssh/authorized_keys
-echo "Updated authorized_keys from public keys in repo"
 
 ## DNS RESOLVER FOR HOME NETWORK
-# Create /etc/resolver/home for proper .home domain resolution
 sudo mkdir -p /etc/resolver
 echo "nameserver 10.1.0.1" | sudo tee /etc/resolver/home >/dev/null
-echo "Created /etc/resolver/home for .home domain resolution"
 
-## Install or update starship prompt
-if command -v starship &>/dev/null; then
-  # Remove apt version if installed, prefer upstream binary
-  if dpkg -l starship 2>/dev/null | grep -q '^ii'; then
-    sudo apt purge --quiet -qq -y starship
-  fi
-fi
-curl -sS https://starship.rs/install.sh | sudo sh -s -- -y >/dev/null
-
-## Install or update Astral uv
-if command -v uv &>/dev/null; then
-  uv self update 2>/dev/null || true
-else
-  curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
-fi
-
-## NVIM CONFIG
+## CONFIGS
 mkdir -p ~/.config
 rm -rf ~/.config/nvim
 cp -r artifacts/dot-config-nvim ~/.config/nvim
-
-## STARSHIP CONFIG
 cp artifacts/starship.toml ~/.config/starship.toml
 
-## INSTALL OR UPDATE NVM AND NODE
-export NVM_DIR="$HOME/.config/nvm"
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-  \. "$NVM_DIR/nvm.sh"
-  echo "nvm already installed, skipping."
+## STARSHIP (upstream binary, not apt)
+if dpkg -l starship 2>/dev/null | grep -q '^ii'; then
+  sudo apt purge --quiet -qq -y starship
+fi
+curl -sS https://starship.rs/install.sh | sudo sh -s -- -y >/dev/null
+echo "Starship: $(starship --version | head -1)"
+
+## UV
+if command -v uv &>/dev/null; then
+  uv self update &>/dev/null || true
+  echo "uv: $(uv --version | head -1)"
 else
+  echo "uv: installing..."
+  curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
+fi
+
+## NVM + NODE
+export NVM_DIR="$HOME/.config/nvm"
+if [ -s "$NVM_DIR/nvm.sh" ] && ls "$NVM_DIR/versions/node/" &>/dev/null; then
+  \. "$NVM_DIR/nvm.sh"
+  echo "Node: $(node --version)"
+else
+  echo "Node: installing nvm + LTS..."
   mkdir -p "$NVM_DIR"
   wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
   \. "$NVM_DIR/nvm.sh"
   nvm install --lts
+  npm install -g npm@latest
 fi
-npm install -g npm@latest
 
-## INSTALL OR UPDATE LOCAL AGENT CLI'S
-if command -v github-copilot-cli &>/dev/null || command -v copilot &>/dev/null; then
-  copilot update 2>/dev/null || true
+## AGENT CLI'S
+if command -v copilot &>/dev/null || command -v github-copilot-cli &>/dev/null; then
+  copilot update &>/dev/null || true
 else
-  curl -fsSL https://gh.io/copilot-install | bash
+  echo "Copilot: installing..."
+  curl -fsSL https://gh.io/copilot-install | bash &>/dev/null
 fi
+echo "Copilot: $(copilot --version 2>/dev/null | head -1)"
 if command -v claude &>/dev/null; then
-  claude update 2>/dev/null || true
+  claude update &>/dev/null || true
 else
-  curl -fsSL https://claude.ai/install.sh | bash
+  echo "Claude: installing..."
+  curl -fsSL https://claude.ai/install.sh | bash &>/dev/null
 fi
-# curl -fsSL https://happier.dev/install-preview | bash
-npm i -g @happier-dev/cli@next
+echo "Claude: $(claude --version 2>/dev/null | head -1)"
+npm i -g @happier-dev/cli@next --silent &>/dev/null || true
+echo "Happier: $(happier --version 2>/dev/null | head -1)"
 
-## SETUP CLAUDE GLOBAL CONFIG
+## CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
-curl -o ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md
+curl -so ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md
 cp artifacts/claude-settings.json ~/.claude/settings.json
 
 ## REMINDER
