@@ -92,8 +92,13 @@ else
   curl -fsSL https://claude.ai/install.sh | bash &>/dev/null
 fi
 echo "Claude: $(claude --version 2>/dev/null | head -1)"
-npm i -g @happier-dev/cli@next --silent &>/dev/null || true
-echo "Happier: $(happier --version 2>/dev/null | head -1)"
+HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1)
+HAPPIER_LATEST=$(npm view @happier-dev/cli@next version 2>/dev/null)
+if [[ "$HAPPIER_INSTALLED" != *"$HAPPIER_LATEST"* ]]; then
+  npm i -g @happier-dev/cli@next --silent &>/dev/null || true
+  HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1)
+fi
+echo "Happier: $HAPPIER_INSTALLED"
 
 ## CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
