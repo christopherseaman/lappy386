@@ -3,6 +3,7 @@
 format = """
 [](red)\
 $os\
+$hostname\
 $username\
 [](bg:peach fg:red)\
 $directory\
@@ -59,6 +60,12 @@ RedHatEnterprise = "󱄛"
 [username]
 disabled = true
 
+[hostname]
+disabled = false
+ssh_only = false
+style = "bg:red fg:crust"
+format = "[$hostname ]($style)"
+
 [directory]
 style = "bg:peach fg:crust"
 format = "[ $path ]($style)"
@@ -84,47 +91,47 @@ format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
 [nodejs]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[[ $symbol ](fg:crust bg:green)]($style)'
 
 [c]
 symbol = " "
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[[ $symbol ](fg:crust bg:green)]($style)'
 
 [rust]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[[ $symbol ](fg:crust bg:green)]($style)'
 
 [golang]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[[ $symbol ](fg:crust bg:green)]($style)'
 
 [php]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[[ $symbol ](fg:crust bg:green)]($style)'
 
 [java]
 symbol = " "
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[[ $symbol ](fg:crust bg:green)]($style)'
 
 [kotlin]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[[ $symbol ](fg:crust bg:green)]($style)'
 
 [haskell]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[[ $symbol ](fg:crust bg:green)]($style)'
 
 [python]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version)(\(#$virtualenv\)) ](fg:crust bg:green)]($style)'
+format = '[[ $symbol(\(#$virtualenv\)) ](fg:crust bg:green)]($style)'
 
 [docker_context]
 symbol = ""
@@ -138,7 +145,7 @@ format = '[$symbol$environment ]($style)'
 ignore_base = false
 
 [time]
-disabled = false
+disabled = true
 time_format = "%I:%M %p"
 style = "bg:lavender"
 format = '[[  $time ](fg:crust bg:lavender)]($style)'
