@@ -6,10 +6,12 @@ case "$ARCH" in
 x86_64)
   NVIM_ARCH="linux-x86_64"
   CODE_ARCH="linux-deb-x64"
+  OBSIDIAN_ARCH="amd64"
   ;;
 aarch64 | arm64)
   NVIM_ARCH="linux-arm64"
   CODE_ARCH="linux-deb-arm64"
+  OBSIDIAN_ARCH="arm64"
   ;;
 *)
   echo "Unsupported architecture: $ARCH"
@@ -93,6 +95,42 @@ fi
 if ! command -v zed &>/dev/null; then
   echo "Installing Zed editor..."
   curl -f https://zed.dev/install.sh | sh
+fi
+
+## Install or update Obsidian
+OBSIDIAN_LATEST=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
+  OBSIDIAN_CURRENT=$(dpkg-query -W -f='${Version}' obsidian 2>/dev/null || true)
+else
+  OBSIDIAN_CURRENT=$(cat "$HOME/.local/share/obsidian/.version" 2>/dev/null || true)
+fi
+if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
+  echo "Installing Obsidian: ${OBSIDIAN_CURRENT:-none} -> $OBSIDIAN_LATEST"
+  if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
+    wget -q "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBSIDIAN_LATEST}/obsidian_${OBSIDIAN_LATEST}_${OBSIDIAN_ARCH}.deb" -O /tmp/obsidian.deb
+    sudo apt install --quiet -qq -y /tmp/obsidian.deb
+    rm /tmp/obsidian.deb
+  else
+    wget -q "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBSIDIAN_LATEST}/obsidian-${OBSIDIAN_LATEST}-${OBSIDIAN_ARCH}.tar.gz" -O /tmp/obsidian.tar.gz
+    rm -rf "$HOME/.local/share/obsidian"
+    mkdir -p "$HOME/.local/share/obsidian"
+    tar -xzf /tmp/obsidian.tar.gz -C "$HOME/.local/share/obsidian" --strip-components=1
+    rm /tmp/obsidian.tar.gz
+    echo "$OBSIDIAN_LATEST" > "$HOME/.local/share/obsidian/.version"
+    ln -sf "$HOME/.local/share/obsidian/obsidian" "$HOME/.local/bin/obsidian"
+    mkdir -p "$HOME/.local/share/applications"
+    cat > "$HOME/.local/share/applications/obsidian.desktop" <<DESKTOP
+[Desktop Entry]
+Name=Obsidian
+Exec=$HOME/.local/share/obsidian/obsidian %u
+Icon=$HOME/.local/share/obsidian/resources/icon.png
+Type=Application
+Categories=Office;
+MimeType=x-scheme-handler/obsidian;
+DESKTOP
+  fi
+else
+  echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
 fi
 
 ## Firefox from Mozilla apt repo (skip on RPi, skip if already configured)
