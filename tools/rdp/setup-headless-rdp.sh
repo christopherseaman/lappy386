@@ -207,7 +207,7 @@ echo "    TLS certificate configured for headless RDP"
 # --- Step 3b: Install RDP display fix service ---
 echo "==> Installing RDP display fix service..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-sudo -u "$AUTOLOGIN_USER" bash "$SCRIPT_DIR/install_fixrdp_service.sh"
+run_as_user bash "$SCRIPT_DIR/install_fixrdp_service.sh"
 
 # --- Step 4: Restart GDM ---
 echo "==> Restarting GDM..."
