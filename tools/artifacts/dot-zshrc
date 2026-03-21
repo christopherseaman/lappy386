@@ -88,6 +88,7 @@ command -v starship >/dev/null && eval "$(starship init zsh)"
 
 # Language environment
 export LANG=en_US.UTF-8
+export TZ='America/Los_Angeles'
 
 # Auto-attach to tmux session on SSH login only
 [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && { tmux attach || tmux; }
