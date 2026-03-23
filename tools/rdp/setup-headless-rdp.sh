@@ -204,11 +204,6 @@ run_as_user grdctl --headless rdp set-tls-cert "$TLS_CERT"
 run_as_user grdctl --headless rdp set-tls-key "$TLS_KEY"
 echo "    TLS certificate configured for headless RDP"
 
-# --- Step 3b: Install RDP display fix service ---
-echo "==> Installing RDP display fix service..."
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-run_as_user bash "$SCRIPT_DIR/install_fixrdp_service.sh"
-
 # --- Step 4: Restart GDM ---
 echo "==> Restarting GDM..."
 systemctl restart gdm

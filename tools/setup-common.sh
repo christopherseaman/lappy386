@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 ## COPY DOT-FILES
 cat artifacts/dot-bashrc >~/.bashrc
@@ -82,27 +83,27 @@ if command -v copilot &>/dev/null || command -v github-copilot-cli &>/dev/null; 
   copilot update &>/dev/null || true
 else
   echo "Copilot: installing..."
-  curl -fsSL https://gh.io/copilot-install | bash &>/dev/null
+  curl -fsSL https://gh.io/copilot-install | bash &>/dev/null || true
 fi
-echo "Copilot: $(copilot --version 2>/dev/null | head -1)"
+echo "Copilot: $(copilot --version 2>/dev/null | head -1 || true)"
 if command -v claude &>/dev/null; then
   claude update &>/dev/null || true
 else
   echo "Claude: installing..."
-  curl -fsSL https://claude.ai/install.sh | bash &>/dev/null
+  curl -fsSL https://claude.ai/install.sh | bash &>/dev/null || true
 fi
-echo "Claude: $(claude --version 2>/dev/null | head -1)"
-HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1)
-HAPPIER_LATEST=$(npm view @happier-dev/cli@next version 2>/dev/null)
+echo "Claude: $(claude --version 2>/dev/null | head -1 || true)"
+HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1 || true)
+HAPPIER_LATEST=$(npm view @happier-dev/cli@next version 2>/dev/null || true)
 if [[ "$HAPPIER_INSTALLED" != *"$HAPPIER_LATEST"* ]]; then
   npm i -g @happier-dev/cli@next --silent &>/dev/null || true
-  HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1)
+  HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1 || true)
 fi
 echo "Happier: $HAPPIER_INSTALLED"
 
 ## CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
-curl -so ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md
+curl -so ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md || true
 cp artifacts/claude-settings.json ~/.claude/settings.json
 
 ## REMINDER

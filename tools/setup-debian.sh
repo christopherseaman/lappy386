@@ -211,6 +211,12 @@ fi
 if dpkg -l gdm3 &>/dev/null; then
   echo "GDM detected, setting up headless RDP..."
   sudo --preserve-env=RDP_PASSWORD "$SCRIPT_DIR/rdp/setup-headless-rdp.sh" --auto
+
+  FIXRDP_OUTPUT=$(DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus" \
+    XDG_RUNTIME_DIR="/run/user/$(id -u)" \
+      bash "$SCRIPT_DIR/rdp/install_fixrdp_service.sh" 2>&1) \
+    && echo "RDP display fix service installed." \
+    || { echo "Warning: RDP display fix service install failed:" >&2; echo "$FIXRDP_OUTPUT" >&2; }
 fi
 
 echo "Debian installation complete."

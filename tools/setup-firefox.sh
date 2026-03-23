@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Install Firefox from Mozilla's official apt repository
 
