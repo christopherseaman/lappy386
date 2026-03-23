@@ -1,6 +1,7 @@
 # fastfetch greeting function
 fastfetch_greeting() {
-  shopt -q login_shell && [[ -z "$TMUX" ]] && {
+  shopt -q login_shell && {
+#  shopt -q login_shell && [[ -z "$TMUX" ]] && {
     logos=("gnu") # "aperture"
     selected_logo=${logos[$RANDOM % ${#logos[@]}]}
     fastfetch --logo $selected_logo
