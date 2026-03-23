@@ -20,7 +20,7 @@ mkdir -p ~/.ssh
 chmod 0700 ~/.ssh
 cat artifacts/dot-ssh-config >~/.ssh/config
 
-CLIENT_HOSTNAME=$(cat /etc/hostname)
+CLIENT_HOSTNAME=$(hostname)
 CLIENT_KEY_PATH="$HOME/.ssh/client_key"
 CLIENT_PUBKEY_PATH="$HOME/.ssh/client_key.pub"
 PUBLIC_KEYS_DIR="artifacts/public_keys"
