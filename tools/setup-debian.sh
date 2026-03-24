@@ -133,9 +133,11 @@ else
   echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
 fi
 
-## Firefox from Mozilla apt repo (skip on RPi, skip if already configured)
+## Firefox from Mozilla apt repo (skip on RPi, skip on ChromeOS, skip if already configured)
 if [ -f /etc/rpi-issue ]; then
   echo "Firefox: skipped (Raspberry Pi)"
+elif [ -f /dev/.container_token ]; then
+  echo "Firefox: skipped (ChromeOS)"
 elif [ -f /etc/apt/sources.list.d/mozilla.sources ]; then
   echo "Firefox: Mozilla apt repo already configured"
 else
@@ -188,7 +190,7 @@ if grep -q 'VERSION_CODENAME=trixie' /etc/os-release 2>/dev/null; then
   sudo apt update --quiet -qq
 
   if [ -f /dev/.container_token ]; then
-    echo "Crostini detected, installing crostini packages..."
+    echo "ChromeOS detected, installing ChromeOS packages..."
     sudo apt install --quiet -qq -y \
       cros-apt-config \
       cros-logging \
