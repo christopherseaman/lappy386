@@ -64,7 +64,29 @@ disabled = true
 disabled = false
 ssh_only = false
 style = "bg:red fg:crust"
-format = "[$hostname ]($style)"
+format = "[ $hostname ]($style)"
+
+[hostname.aliases]
+"DEB-5670H9F-LT" = "󱔎"                   # nf-md-snake U+F150E (plissken)
+"plissken.home" = "󱔎"                    # nf-md-snake U+F150E
+"plissken" = "󱔎"                         # nf-md-snake U+F150E
+"DEB-Y7RGC54-DT" = "󰏘"                   # nf-md-palette U+F03D8 (deb-studio)
+"deb-studio.home" = "󰏘"                  # nf-md-palette U+F03D8
+"deb-studio" = "󰏘"                       # nf-md-palette U+F03D8
+"glen.home" = "󰆼"                        # nf-md-database U+F01BC
+"glen" = "󰆼"                             # nf-md-database U+F01BC
+"carnac.home" = "󱑷"                      # nf-md-wizard_hat U+F1477
+"carnac" = "󱑷"                           # nf-md-wizard_hat U+F1477
+"minigame.home" = "󱎓"                    # nf-md-nintendo_game_boy U+F1393
+"minigame" = "󱎓"                         # nf-md-nintendo_game_boy U+F1393
+"hivemind.home" = "󱃎"                    # nf-md-beehive_outline U+F10CE
+"hivemind" = "󱃎"                         # nf-md-beehive_outline U+F10CE
+"schmaspberry.home" = "󱁄"                # nf-md-fruit_grapes U+F1044
+"schmaspberry" = "󱁄"                     # nf-md-fruit_grapes U+F1044
+"spaceforce.home" = "󱓞"                  # nf-md-rocket_launch U+F14DE
+"spaceforce" = "󱓞"                       # nf-md-rocket_launch U+F14DE
+"tarski.home" = "󰿉"                      # nf-md-math_integral_box U+F0FC9
+"tarski" = "󰿉"                           # nf-md-math_integral_box U+F0FC9
 
 [directory]
 style = "bg:peach fg:crust"
@@ -73,11 +95,23 @@ truncation_length = 3
 truncation_symbol = "…/"
 
 [directory.substitutions]
-"Documents" = "󰈙 "
-"Downloads" = " "
-"Music" = "󰝚 "
-"Pictures" = " "
-"Developer" = "󰲋 "
+"Documents" = "󰈙"                        # nf-md-file_document U+F0219
+"Downloads" = "󰇚"                        # nf-md-download U+F01DA
+"Music" = "󰝚"                            # nf-md-music U+F075A
+"Pictures" = "󰋩"                         # nf-md-image U+F02E9
+"Developer" = "󰲋"                        # nf-md-code_braces_box U+F0C8B
+"Movies" = "󰿎"                           # nf-md-filmstrip U+F0FCE
+"Dropbox" = "󰇣"                          # nf-md-dropbox U+F01E3
+"Games" = "󰊗"                            # nf-md-gamepad_variant U+F0297
+"projects" = "󰅩"                         # nf-md-code_braces U+F0169
+"Desktop" = "󰇤"                          # nf-md-desktop_mac U+F01E4
+"Applications" = "󰀻"                     # nf-md-apps U+F003B
+"Library" = "󰂺"                          # nf-md-book_open_variant U+F00BA
+"Public" = "󰖟"                           # nf-md-earth U+F059F
+"OneDrive - UCSF" = "󰁯"                  # nf-md-cloud U+F006F
+"code" = "󰅩"                             # nf-md-code_braces U+F0169
+"Reading" = "󰂿"                          # nf-md-book_open_page_variant U+F00BF
+"Camera Uploads" = "󰄀"                   # nf-md-camera U+F0100
 
 [git_branch]
 symbol = ""

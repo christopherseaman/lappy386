@@ -37,11 +37,9 @@ fi
 
 # Better cat with syntax highlighting
 if command -v bat &>/dev/null; then
-  alias cat='bat --style=plain'
-  alias batl='bat --style=full'
+  alias cat='bat --style=plain --paging=never'
 elif command -v batcat &>/dev/null; then
-  alias cat='batcat --style=plain'
-  alias batl='batcat --style=full'
+  alias cat='batcat --style=plain --paging=never'
   alias bat='batcat'
 fi
 
