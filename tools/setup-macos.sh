@@ -12,20 +12,40 @@ if ! command -v brew &>/dev/null; then
   echo "Homebrew: installing..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 else
-  brew update --quiet
+  brew update --quiet >/dev/null
 fi
-echo "Homebrew: $(brew --version | head -1)"
 
 ## BREW PACKAGES
+echo "Brew: upgrading packages"
+brew upgrade --quiet >/dev/null
+
+echo "Brew: installing formulas"
 brew tap teamookla/speedtest 2>/dev/null
-brew install --quiet $(grep -v '#' artifacts/brew.lst)
-brew install --cask --quiet $(grep -v '#' artifacts/cask.lst)
-brew upgrade --quiet
-brew cleanup --quiet
+brew install --quiet $(grep -v '#' artifacts/brew.lst) >/dev/null
+
+echo "Brew: installing fonts"
+brew install --cask --quiet $(grep -v '#' artifacts/fonts.lst) >/dev/null
+
+installed_casks=$(brew list --cask -1)
+new_casks=()
+for cask in $(grep -v '#' artifacts/cask.lst); do
+  if ! echo "$installed_casks" | grep -qx "$cask"; then
+    new_casks+=("$cask")
+  fi
+done
+if [[ ${#new_casks[@]} -gt 0 ]]; then
+  for cask in "${new_casks[@]}"; do
+    echo "Brew: installing cask $cask"
+    brew install --cask --quiet "$cask" >/dev/null
+  done
+else
+  echo "Brew: all casks already installed"
+fi
+
+brew cleanup --quiet >/dev/null
 
 ## DOCK
 if defaults read com.apple.dock persistent-apps | grep -q "Music.app"; then
-  echo "Dock: clearing defaults"
   defaults write com.apple.dock persistent-apps -array
 fi
 defaults write com.apple.dock autohide -bool true

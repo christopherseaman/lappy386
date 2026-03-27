@@ -16,6 +16,9 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 
+# git init + push alias
+alias ginit='git init && git add . && git commit -m "init" && gh repo create --private --source . --push'
+
 # Better grep - use ripgrep if available, otherwise enhanced grep
 if command -v rg &>/dev/null; then
   alias grep='rg --smart-case'
