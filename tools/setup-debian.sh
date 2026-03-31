@@ -104,24 +104,32 @@ if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
 else
   OBSIDIAN_CURRENT=$(cat "$HOME/.local/share/obsidian/.version" 2>/dev/null || true)
 fi
-if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
-  echo "Installing Obsidian: ${OBSIDIAN_CURRENT:-none} -> $OBSIDIAN_LATEST"
-  if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
+if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
+  if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
+    echo "Installing Obsidian: ${OBSIDIAN_CURRENT:-none} -> $OBSIDIAN_LATEST"
     wget -q "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBSIDIAN_LATEST}/obsidian_${OBSIDIAN_LATEST}_${OBSIDIAN_ARCH}.deb" -O /tmp/obsidian.deb
     sudo apt install --quiet -qq -y /tmp/obsidian.deb
     rm /tmp/obsidian.deb
   else
+    echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
+  fi
+else
+  if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
+    echo "Installing Obsidian: ${OBSIDIAN_CURRENT:-none} -> $OBSIDIAN_LATEST"
     wget -q "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBSIDIAN_LATEST}/obsidian-${OBSIDIAN_LATEST}-${OBSIDIAN_ARCH}.tar.gz" -O /tmp/obsidian.tar.gz
     rm -rf "$HOME/.local/share/obsidian"
     mkdir -p "$HOME/.local/share/obsidian"
     tar -xzf /tmp/obsidian.tar.gz -C "$HOME/.local/share/obsidian" --strip-components=1
     rm /tmp/obsidian.tar.gz
-    sudo chown root:root "$HOME/.local/share/obsidian/chrome-sandbox"
-    sudo chmod 4755 "$HOME/.local/share/obsidian/chrome-sandbox"
     echo "$OBSIDIAN_LATEST" > "$HOME/.local/share/obsidian/.version"
-    ln -sf "$HOME/.local/share/obsidian/obsidian" "$HOME/.local/bin/obsidian"
-    mkdir -p "$HOME/.local/share/applications"
-    cat > "$HOME/.local/share/applications/obsidian.desktop" <<DESKTOP
+  else
+    echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
+  fi
+  sudo chown root:root "$HOME/.local/share/obsidian/chrome-sandbox"
+  sudo chmod 4755 "$HOME/.local/share/obsidian/chrome-sandbox"
+  ln -sf "$HOME/.local/share/obsidian/obsidian" "$HOME/.local/bin/obsidian"
+  mkdir -p "$HOME/.local/share/applications"
+  cat > "$HOME/.local/share/applications/obsidian.desktop" <<DESKTOP
 [Desktop Entry]
 Name=Obsidian
 Exec=$HOME/.local/share/obsidian/obsidian %u
@@ -130,9 +138,6 @@ Type=Application
 Categories=Office;
 MimeType=x-scheme-handler/obsidian;
 DESKTOP
-  fi
-else
-  echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
 fi
 
 ## Firefox from Mozilla apt repo (skip on RPi, skip on ChromeOS, skip if already configured)
