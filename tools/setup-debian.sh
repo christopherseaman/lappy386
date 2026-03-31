@@ -116,6 +116,8 @@ if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
     mkdir -p "$HOME/.local/share/obsidian"
     tar -xzf /tmp/obsidian.tar.gz -C "$HOME/.local/share/obsidian" --strip-components=1
     rm /tmp/obsidian.tar.gz
+    sudo chown root:root "$HOME/.local/share/obsidian/chrome-sandbox"
+    sudo chmod 4755 "$HOME/.local/share/obsidian/chrome-sandbox"
     echo "$OBSIDIAN_LATEST" > "$HOME/.local/share/obsidian/.version"
     ln -sf "$HOME/.local/share/obsidian/obsidian" "$HOME/.local/bin/obsidian"
     mkdir -p "$HOME/.local/share/applications"
