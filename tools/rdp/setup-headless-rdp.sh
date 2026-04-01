@@ -211,7 +211,13 @@ run_as_user gsettings set org.gnome.desktop.screensaver idle-activation-enabled 
 run_as_user gsettings set org.gnome.desktop.session idle-delay 0
 echo "    Screen lock and idle activation disabled for headless RDP"
 
-# --- Step 4: Restart GDM ---
+# --- Step 4: Install RDP display fix service ---
+echo "==> Installing RDP display fix service..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+run_as_user bash "$SCRIPT_DIR/install_fixrdp_service.sh"
+echo "    RDP display fix service installed"
+
+# --- Step 5: Restart GDM ---
 echo "==> Restarting GDM..."
 systemctl restart gdm
 
