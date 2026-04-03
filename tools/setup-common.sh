@@ -6,6 +6,9 @@ cat artifacts/dot-bashrc >~/.bashrc
 cat artifacts/dot-aliases >~/.aliases
 cat artifacts/dot-tmux.conf >~/.tmux.conf
 cat artifacts/dot-zshrc >~/.zshrc
+mkdir -p ~/.local/bin
+cp artifacts/tmux-zen.sh ~/.local/bin/tmux-zen.sh
+chmod +x ~/.local/bin/tmux-zen.sh
 export PATH="$HOME/.local/bin:$PATH"
 
 ## Git defaults
