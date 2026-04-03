@@ -6,10 +6,9 @@
 #
 # <file system> <mount point>   <type>  <options>       <dump>  <pass>
 # / was on /dev/nvme0n1p2 during curtin installation
-/dev/disk/by-uuid/4d4dfd88-0d30-4ceb-9335-69b9eaeb9c4b / ext4 defaults 0 1
+/dev/disk/by-uuid/d00ed0d7-41c6-41d4-b12f-b6a4a8ef7a2c / ext4 defaults 0 1
 # /boot/efi was on /dev/nvme0n1p1 during curtin installation
-/dev/disk/by-uuid/FDB1-5998 /boot/efi vfat defaults 0 1
+/dev/disk/by-uuid/7AE5-E704 /boot/efi vfat defaults 0 1
 /swap.img	none	swap	sw	0	0
+//anemone.home/share /media/anemone cifs credentials=/home/christopher/.smb,uid=christopher,gid=render,dir_mode=0775,file_mode=0664,noperm,iocharset=utf8,rw 0 0
 
-//shtheeev.local/share /media/shtheeev cifs credentials=/home/christopher/.smb,uid=christopher,gid=render,dir_mode=0775,file_mode=0664,noperm,iocharset=utf8,rw 0 0
-#//shtheeev.local/share /media/shtheeev cifs credentials=/home/christopher/.smb,uid=christopher,gid=render,dir_mode=0770,file_mode=0660,nounix,rw 0 0
