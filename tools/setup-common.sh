@@ -45,6 +45,10 @@ chmod 0600 ~/.ssh/authorized_keys
 sudo mkdir -p /etc/resolver
 echo "nameserver 10.1.0.1" | sudo tee /etc/resolver/home >/dev/null
 
+## SUDOERS
+sudo cp artifacts/sudoers_nopasswd /etc/sudoers.d/sudoers_nopasswd
+sudo chmod 440 /etc/sudoers.d/sudoers_nopasswd
+
 ## CONFIGS
 mkdir -p ~/.config
 rm -rf ~/.config/nvim

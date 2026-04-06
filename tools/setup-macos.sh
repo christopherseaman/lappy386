@@ -4,9 +4,6 @@
 cat artifacts/dot-zshrc >~/.zshrc
 mkdir -p ~/Library/Application\ Support/com.mitchellh.ghostty
 cp artifacts/ghostty.config ~/Library/Application\ Support/com.mitchellh.ghostty/config
-sudo cp artifacts/sudoers_nopasswd /etc/sudoers.d/sudoers_nopasswd
-sudo chmod 440 /etc/sudoers.d/sudoers_nopasswd
-
 ## HOMEBREW
 if ! command -v brew &>/dev/null; then
   echo "Homebrew: installing..."
