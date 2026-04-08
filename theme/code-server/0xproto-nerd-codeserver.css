@@ -1,0 +1,18 @@
+@font-face {
+    font-family: "0xProto Nerd Font Mono";
+    font-style: normal;
+    font-weight: 400;
+    src: url(/static/out/fonts/0xProtoNerdFontMono-Regular.ttf) format('truetype');
+}
+@font-face {
+    font-family: "0xProto Nerd Font Mono";
+    font-style: normal;
+    font-weight: 700;
+    src: url(/static/out/fonts/0xProtoNerdFontMono-Bold.ttf) format('truetype');
+}
+@font-face {
+    font-family: "0xProto Nerd Font Mono";
+    font-style: italic;
+    font-weight: 400;
+    src: url(/static/out/fonts/0xProtoNerdFontMono-Italic.ttf) format('truetype');
+}
