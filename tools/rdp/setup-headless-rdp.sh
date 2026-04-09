@@ -209,6 +209,7 @@ echo "    TLS certificate configured for headless RDP"
 run_as_user gsettings set org.gnome.desktop.screensaver lock-enabled false
 run_as_user gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
 run_as_user gsettings set org.gnome.desktop.session idle-delay 0
+run_as_user gsettings set org.gnome.desktop.lockdown disable-lock-screen true
 echo "    Screen lock and idle activation disabled for headless RDP"
 
 # --- Step 4: Install RDP display fix service ---
