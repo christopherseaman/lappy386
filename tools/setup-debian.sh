@@ -7,11 +7,13 @@ x86_64)
   NVIM_ARCH="linux-x86_64"
   CODE_ARCH="linux-deb-x64"
   OBSIDIAN_ARCH="amd64"
+  FASTFETCH_ARCH="amd64"
   ;;
 aarch64 | arm64)
   NVIM_ARCH="linux-arm64"
   CODE_ARCH="linux-deb-arm64"
   OBSIDIAN_ARCH="arm64"
+  FASTFETCH_ARCH="aarch64"
   ;;
 *)
   echo "Unsupported architecture: $ARCH"
@@ -53,7 +55,6 @@ sudo apt install --quiet -qq -y \
   ca-certificates \
   cmake \
   curl \
-  fastfetch \
   fd-find \
   findutils \
   fontconfig \
@@ -163,6 +164,18 @@ if [ "$NVIM_CURRENT" != "$NVIM_LATEST" ]; then
   rm /tmp/nvim.tar.gz
 else
   echo "Neovim already at latest ($NVIM_LATEST), skipping."
+fi
+
+## Install or update fastfetch from GitHub releases (apt version lags upstream)
+FASTFETCH_LATEST=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+FASTFETCH_CURRENT=$(fastfetch --version 2>/dev/null | awk '{print $2}' || true)
+if [ "$FASTFETCH_CURRENT" != "$FASTFETCH_LATEST" ]; then
+  echo "Updating fastfetch: ${FASTFETCH_CURRENT:-none} -> $FASTFETCH_LATEST"
+  wget -q "https://github.com/fastfetch-cli/fastfetch/releases/download/${FASTFETCH_LATEST}/fastfetch-linux-${FASTFETCH_ARCH}.deb" -O /tmp/fastfetch.deb
+  sudo apt install --quiet -qq -y /tmp/fastfetch.deb
+  rm /tmp/fastfetch.deb
+else
+  echo "fastfetch already at latest ($FASTFETCH_LATEST), skipping."
 fi
 
 ## INSTALL NERD FONTS (skip if already present)
