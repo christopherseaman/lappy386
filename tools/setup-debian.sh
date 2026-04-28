@@ -29,6 +29,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 getent group render >/dev/null || sudo groupadd render
 sudo usermod -aG render "$(whoami)"
 
+## LOGIN SHELL: ensure bash (cloud-init/installer sometimes leaves /bin/sh)
+BASH_PATH="$(command -v bash)"
+if [ "$(getent passwd "$USER" | cut -d: -f7)" != "$BASH_PATH" ]; then
+  echo "Setting login shell to $BASH_PATH for $USER..."
+  sudo chsh -s "$BASH_PATH" "$USER"
+fi
+
 ## Remove snapd if present
 if command -v snap &>/dev/null; then
   echo "Removing snapd and all installed snaps..."
