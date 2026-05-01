@@ -1,0 +1,29 @@
+[Unit]
+Description=opencode web server
+Documentation=https://github.com/sst/opencode
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/opencode web --port 4096 --hostname 127.0.0.1 %h/projects
+WorkingDirectory=%h/projects
+Restart=on-failure
+RestartSec=5
+
+# Headless: prevent any browser-launch attempts
+Environment=DISPLAY=
+Environment=WAYLAND_DISPLAY=
+Environment=BROWSER=true
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-write
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=default.target
