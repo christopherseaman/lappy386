@@ -47,15 +47,15 @@ if command -v snap &>/dev/null; then
     sudo snap remove --purge "$pkg" 2>/dev/null
   done
   sudo snap remove --purge snapd 2>/dev/null
-  sudo apt purge --quiet -qq -y snapd gnome-software-plugin-snap
+  sudo apt purge --quiet -qq -y --allow-change-held-packages snapd gnome-software-plugin-snap
   sudo apt-mark hold snapd
   rm -rf ~/snap
 fi
 
 ## Package Update and Install
 sudo apt update --quiet -qq
-sudo apt full-upgrade --quiet -qq -y
-sudo apt install --quiet -qq -y \
+sudo apt full-upgrade --quiet -qq -y --allow-change-held-packages
+sudo apt install --quiet -qq -y --allow-change-held-packages \
   bash-completion \
   bat \
   build-essential \
@@ -81,7 +81,7 @@ sudo apt autoremove --quiet -qq -y
 ## VM tools (clipboard/resize, host integration)
 if systemd-detect-virt --quiet 2>/dev/null; then
   echo "VM detected, installing guest tools..."
-  sudo apt install --quiet -qq -y \
+  sudo apt install --quiet -qq -y --allow-change-held-packages \
     qemu-guest-agent \
     qemu-utils \
     spice-vdagent
@@ -92,7 +92,7 @@ if ! command -v code &>/dev/null; then
   echo "Installing VS Code..."
   if [[ -n "${CODE_ARCH:-}" ]]; then
     wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${CODE_ARCH}"
-    sudo apt install --quiet -qq -y /tmp/vscode.deb
+    sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/vscode.deb
     rm /tmp/vscode.deb
   else
     echo "  Skipping VS Code: unknown architecture $ARCH"
@@ -116,7 +116,7 @@ if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
   if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
     echo "Installing Obsidian: ${OBSIDIAN_CURRENT:-none} -> $OBSIDIAN_LATEST"
     wget -q "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBSIDIAN_LATEST}/obsidian_${OBSIDIAN_LATEST}_${OBSIDIAN_ARCH}.deb" -O /tmp/obsidian.deb
-    sudo apt install --quiet -qq -y /tmp/obsidian.deb
+    sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/obsidian.deb
     rm /tmp/obsidian.deb
   else
     echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
@@ -129,7 +129,7 @@ else
     mkdir -p "$HOME/.local/share/obsidian"
     tar -xzf /tmp/obsidian.tar.gz -C "$HOME/.local/share/obsidian" --strip-components=1
     rm /tmp/obsidian.tar.gz
-    echo "$OBSIDIAN_LATEST" > "$HOME/.local/share/obsidian/.version"
+    echo "$OBSIDIAN_LATEST" >"$HOME/.local/share/obsidian/.version"
   else
     echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
   fi
@@ -137,7 +137,7 @@ else
   sudo chmod 4755 "$HOME/.local/share/obsidian/chrome-sandbox"
   ln -sf "$HOME/.local/share/obsidian/obsidian" "$HOME/.local/bin/obsidian"
   mkdir -p "$HOME/.local/share/applications"
-  cat > "$HOME/.local/share/applications/obsidian.desktop" <<DESKTOP
+  cat >"$HOME/.local/share/applications/obsidian.desktop" <<DESKTOP
 [Desktop Entry]
 Name=Obsidian
 Exec=$HOME/.local/share/obsidian/obsidian %u
@@ -179,7 +179,7 @@ FASTFETCH_CURRENT=$(fastfetch --version 2>/dev/null | awk '{print $2}' || true)
 if [ "$FASTFETCH_CURRENT" != "$FASTFETCH_LATEST" ]; then
   echo "Updating fastfetch: ${FASTFETCH_CURRENT:-none} -> $FASTFETCH_LATEST"
   wget -q "https://github.com/fastfetch-cli/fastfetch/releases/download/${FASTFETCH_LATEST}/fastfetch-linux-${FASTFETCH_ARCH}.deb" -O /tmp/fastfetch.deb
-  sudo apt install --quiet -qq -y /tmp/fastfetch.deb
+  sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/fastfetch.deb
   rm /tmp/fastfetch.deb
 else
   echo "fastfetch already at latest ($FASTFETCH_LATEST), skipping."
@@ -218,7 +218,7 @@ if grep -q 'VERSION_CODENAME=trixie' /etc/os-release 2>/dev/null; then
 
   if [ -f /dev/.container_token ]; then
     echo "ChromeOS detected, installing ChromeOS packages..."
-    sudo apt install --quiet -qq -y \
+    sudo apt install --quiet -qq -y --allow-change-held-packages \
       cros-apt-config \
       cros-logging \
       cros-pipe-config \
@@ -242,10 +242,13 @@ if dpkg -l gdm3 &>/dev/null; then
   sudo --preserve-env=RDP_PASSWORD "$SCRIPT_DIR/rdp/setup-headless-rdp.sh" --auto
 
   FIXRDP_OUTPUT=$(DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus" \
-    XDG_RUNTIME_DIR="/run/user/$(id -u)" \
-      bash "$SCRIPT_DIR/rdp/install_fixrdp_service.sh" 2>&1) \
-    && echo "RDP display fix service installed." \
-    || { echo "Warning: RDP display fix service install failed:" >&2; echo "$FIXRDP_OUTPUT" >&2; }
+  XDG_RUNTIME_DIR="/run/user/$(id -u)" \
+    bash "$SCRIPT_DIR/rdp/install_fixrdp_service.sh" 2>&1) &&
+    echo "RDP display fix service installed." ||
+    {
+      echo "Warning: RDP display fix service install failed:" >&2
+      echo "$FIXRDP_OUTPUT" >&2
+    }
 fi
 
 echo "Debian installation complete."
