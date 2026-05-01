@@ -10,14 +10,41 @@ ZEN_TAG="@zen-spacer"
 ZEN_CENTER="@zen-center"
 ZEN_WIDTH_OPT="@zen-width"
 DEFAULT_WIDTH=100
+LOG_FILE="/tmp/tmux-zen.log"
 
+# Logging is opt-in: `touch /tmp/tmux-zen.log` to enable, `rm` to disable.
+log() {
+  [ -e "$LOG_FILE" ] || return 0
+  local ts panes
+  ts=$(date '+%Y-%m-%d %H:%M:%S')
+  panes=$(tmux list-panes -F '#{pane_id}[s=#{@zen-spacer},c=#{@zen-center},a=#{?pane_active,1,0}]' 2>/dev/null | tr '\n' ' ')
+  echo "[$ts] $* | $panes" >> "$LOG_FILE"
+}
+
+count_tagged() {
+  tmux list-panes -F "#{$1}" 2>/dev/null | grep -c "^1$" || true
+}
+
+# Permissive: any zen tag means we have state to clean up. This lets toggle-off
+# recover from partial states (orphan spacer, missing center, lost tag) instead
+# of silently no-op'ing.
 is_zen() {
-  local count
-  count=$(tmux list-panes -F "#{${ZEN_TAG}}" | grep -c "^1$" || true)
-  [ "$count" -ge 2 ]
+  local spacers center
+  spacers=$(count_tagged "$ZEN_TAG")
+  center=$(count_tagged "$ZEN_CENTER")
+  [ $((spacers + center)) -ge 1 ]
+}
+
+# Healthy zen has exactly 2 spacers + 1 center. Anything else is partial.
+is_zen_healthy() {
+  local spacers center
+  spacers=$(count_tagged "$ZEN_TAG")
+  center=$(count_tagged "$ZEN_CENTER")
+  [ "$spacers" -eq 2 ] && [ "$center" -eq 1 ]
 }
 
 create_zen() {
+  log "create_zen arg=${1:-}"
   if is_zen; then
     tmux display-message "Already in zen mode"
     return
@@ -84,11 +111,17 @@ create_zen() {
 
 destroy_zen() {
   local quiet="${1:-}"
+  log "destroy_zen quiet=$quiet"
 
   if ! is_zen; then
     [ -z "$quiet" ] && tmux display-message "Not in zen mode"
     return
   fi
+
+  # Unset hooks FIRST — killing spacers and resizing the window would
+  # otherwise fire pane-exited/after-resize-window callbacks mid-teardown.
+  tmux set-hook -uw after-resize-window 2>/dev/null || true
+  tmux set-hook -uw pane-exited 2>/dev/null || true
 
   # Focus center pane first so killing spacers doesn't shift focus
   local center
@@ -98,37 +131,38 @@ destroy_zen() {
     tmux set-option -pu -t "$center" "$ZEN_CENTER"
   fi
 
-  # Kill spacer panes
+  # Kill spacer panes (tolerate already-dead panes)
   for pane in $(tmux list-panes -F '#{pane_id} #{@zen-spacer}' | grep ' 1$' | cut -d' ' -f1); do
-    tmux kill-pane -t "$pane"
+    tmux kill-pane -t "$pane" 2>/dev/null || true
   done
 
-  # Clean up window options and hooks
-  tmux set-option -wu "$ZEN_WIDTH_OPT"
-  tmux set-option -wu pane-border-style
-  tmux set-option -wu pane-active-border-style
-  tmux set-hook -uw after-resize-window
-  tmux set-hook -uw pane-exited
+  # Clean up window options
+  tmux set-option -wu "$ZEN_WIDTH_OPT" 2>/dev/null || true
+  tmux set-option -wu pane-border-style 2>/dev/null || true
+  tmux set-option -wu pane-active-border-style 2>/dev/null || true
 
+  log "destroy_zen done"
   [ -z "$quiet" ] && tmux display-message "Zen mode off"
 }
 
-# Called by pane-exited hook — if the center pane died, tear down spacers
+# Called by pane-exited hook — if anything zen-related is now incomplete,
+# tear down whatever's left. The original version only reacted to a missing
+# center, leaving orphan spacers if a spacer died first.
 cleanup_zen() {
+  log "cleanup_zen"
   if ! is_zen; then
     return
   fi
 
-  # Check if center pane still exists
-  local center
-  center=$(tmux list-panes -F '#{pane_id} #{@zen-center}' | grep ' 1$' | cut -d' ' -f1 || true)
-  if [ -z "$center" ]; then
+  if ! is_zen_healthy; then
+    log "cleanup_zen partial-state -> destroy"
     destroy_zen --quiet
   fi
 }
 
 rebalance_zen() {
-  if ! is_zen; then
+  log "rebalance_zen"
+  if ! is_zen_healthy; then
     return
   fi
 
@@ -159,6 +193,7 @@ case "${1:-}" in
   --rebalance) rebalance_zen ;;
   --cleanup)   cleanup_zen ;;
   *)
+    log "toggle arg=${1:-}"
     if is_zen; then
       destroy_zen
     else
