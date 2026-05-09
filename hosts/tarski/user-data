@@ -7,8 +7,8 @@ users:
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys:
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKRA8Nq1sdranqblQ4cK7sajEPoeCKgsJBgqwCyeGe2D emojipad
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICGsu7XuIb3UwlRJgHuheyK9EoJGv6dD9fO/10hyZGhA plissken
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII4a1FlqaEzSEvb1JZGAzx+hx2d4rxCf+E0M9BTI8gVm emojipad
 
 apt:
   conf: |
