@@ -86,27 +86,27 @@ else
 fi
 
 ## AGENT CLI'S
-if command -v copilot &>/dev/null || command -v github-copilot-cli &>/dev/null; then
-  copilot update &>/dev/null || true
-else
-  echo "Copilot: installing..."
-  curl -fsSL https://gh.io/copilot-install | bash &>/dev/null || true
-fi
-echo "Copilot: $(copilot --version 2>/dev/null | head -1 || true)"
-if command -v claude &>/dev/null; then
-  claude update &>/dev/null || true
-else
-  echo "Claude: installing..."
-  curl -fsSL https://claude.ai/install.sh | bash &>/dev/null || true
-fi
-echo "Claude: $(claude --version 2>/dev/null | head -1 || true)"
-HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1 || true)
-HAPPIER_LATEST=$(npm view @happier-dev/cli@next version 2>/dev/null || true)
-if [[ "$HAPPIER_INSTALLED" != *"$HAPPIER_LATEST"* ]]; then
-  npm i -g @happier-dev/cli@next --silent &>/dev/null || true
-  HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1 || true)
-fi
-echo "Happier: $HAPPIER_INSTALLED"
+# if command -v copilot &>/dev/null || command -v github-copilot-cli &>/dev/null; then
+#   copilot update &>/dev/null || true
+# else
+#   echo "Copilot: installing..."
+#   curl -fsSL https://gh.io/copilot-install | bash &>/dev/null || true
+# fi
+# echo "Copilot: $(copilot --version 2>/dev/null | head -1 || true)"
+# if command -v claude &>/dev/null; then
+#   claude update &>/dev/null || true
+# else
+#   echo "Claude: installing..."
+#   curl -fsSL https://claude.ai/install.sh | bash &>/dev/null || true
+# fi
+# echo "Claude: $(claude --version 2>/dev/null | head -1 || true)"
+# HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1 || true)
+# HAPPIER_LATEST=$(npm view @happier-dev/cli@next version 2>/dev/null || true)
+# if [[ "$HAPPIER_INSTALLED" != *"$HAPPIER_LATEST"* ]]; then
+#   npm i -g @happier-dev/cli@next --silent &>/dev/null || true
+#   HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1 || true)
+# fi
+# echo "Happier: $HAPPIER_INSTALLED"
 
 ## CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
