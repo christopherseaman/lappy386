@@ -87,77 +87,77 @@ if systemd-detect-virt --quiet 2>/dev/null; then
     spice-vdagent
 fi
 
-## Install VS Code if not present
-if ! command -v code &>/dev/null; then
-  echo "Installing VS Code..."
-  if [[ -n "${CODE_ARCH:-}" ]]; then
-    wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${CODE_ARCH}"
-    sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/vscode.deb
-    rm /tmp/vscode.deb
-  else
-    echo "  Skipping VS Code: unknown architecture $ARCH"
-  fi
-fi
+# ## Install VS Code if not present
+# if ! command -v code &>/dev/null; then
+#   echo "Installing VS Code..."
+#   if [[ -n "${CODE_ARCH:-}" ]]; then
+#     wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${CODE_ARCH}"
+#     sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/vscode.deb
+#     rm /tmp/vscode.deb
+#   else
+#     echo "  Skipping VS Code: unknown architecture $ARCH"
+#   fi
+# fi
 
-## Install Zed editor if not present
-if ! command -v zed &>/dev/null; then
-  echo "Installing Zed editor..."
-  curl -f https://zed.dev/install.sh | sh
-fi
+# ## Install Zed editor if not present
+# if ! command -v zed &>/dev/null; then
+#   echo "Installing Zed editor..."
+#   curl -f https://zed.dev/install.sh | sh
+# fi
 
-## Install or update Obsidian
-OBSIDIAN_LATEST=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
-if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
-  OBSIDIAN_CURRENT=$(dpkg-query -W -f='${Version}' obsidian 2>/dev/null || true)
-else
-  OBSIDIAN_CURRENT=$(cat "$HOME/.local/share/obsidian/.version" 2>/dev/null || true)
-fi
-if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
-  if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
-    echo "Installing Obsidian: ${OBSIDIAN_CURRENT:-none} -> $OBSIDIAN_LATEST"
-    wget -q "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBSIDIAN_LATEST}/obsidian_${OBSIDIAN_LATEST}_${OBSIDIAN_ARCH}.deb" -O /tmp/obsidian.deb
-    sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/obsidian.deb
-    rm /tmp/obsidian.deb
-  else
-    echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
-  fi
-else
-  if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
-    echo "Installing Obsidian: ${OBSIDIAN_CURRENT:-none} -> $OBSIDIAN_LATEST"
-    wget -q "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBSIDIAN_LATEST}/obsidian-${OBSIDIAN_LATEST}-${OBSIDIAN_ARCH}.tar.gz" -O /tmp/obsidian.tar.gz
-    rm -rf "$HOME/.local/share/obsidian"
-    mkdir -p "$HOME/.local/share/obsidian"
-    tar -xzf /tmp/obsidian.tar.gz -C "$HOME/.local/share/obsidian" --strip-components=1
-    rm /tmp/obsidian.tar.gz
-    echo "$OBSIDIAN_LATEST" >"$HOME/.local/share/obsidian/.version"
-  else
-    echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
-  fi
-  sudo chown root:root "$HOME/.local/share/obsidian/chrome-sandbox"
-  sudo chmod 4755 "$HOME/.local/share/obsidian/chrome-sandbox"
-  ln -sf "$HOME/.local/share/obsidian/obsidian" "$HOME/.local/bin/obsidian"
-  mkdir -p "$HOME/.local/share/applications"
-  cat >"$HOME/.local/share/applications/obsidian.desktop" <<DESKTOP
-[Desktop Entry]
-Name=Obsidian
-Exec=$HOME/.local/share/obsidian/obsidian %u
-Icon=$HOME/.local/share/obsidian/resources/icon.png
-Type=Application
-Categories=Office;
-MimeType=x-scheme-handler/obsidian;
-DESKTOP
-fi
+# ## Install or update Obsidian
+# OBSIDIAN_LATEST=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+# if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
+#   OBSIDIAN_CURRENT=$(dpkg-query -W -f='${Version}' obsidian 2>/dev/null || true)
+# else
+#   OBSIDIAN_CURRENT=$(cat "$HOME/.local/share/obsidian/.version" 2>/dev/null || true)
+# fi
+# if [ "$OBSIDIAN_ARCH" = "amd64" ]; then
+#   if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
+#     echo "Installing Obsidian: ${OBSIDIAN_CURRENT:-none} -> $OBSIDIAN_LATEST"
+#     wget -q "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBSIDIAN_LATEST}/obsidian_${OBSIDIAN_LATEST}_${OBSIDIAN_ARCH}.deb" -O /tmp/obsidian.deb
+#     sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/obsidian.deb
+#     rm /tmp/obsidian.deb
+#   else
+#     echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
+#   fi
+# else
+#   if [ "$OBSIDIAN_CURRENT" != "$OBSIDIAN_LATEST" ]; then
+#     echo "Installing Obsidian: ${OBSIDIAN_CURRENT:-none} -> $OBSIDIAN_LATEST"
+#     wget -q "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBSIDIAN_LATEST}/obsidian-${OBSIDIAN_LATEST}-${OBSIDIAN_ARCH}.tar.gz" -O /tmp/obsidian.tar.gz
+#     rm -rf "$HOME/.local/share/obsidian"
+#     mkdir -p "$HOME/.local/share/obsidian"
+#     tar -xzf /tmp/obsidian.tar.gz -C "$HOME/.local/share/obsidian" --strip-components=1
+#     rm /tmp/obsidian.tar.gz
+#     echo "$OBSIDIAN_LATEST" >"$HOME/.local/share/obsidian/.version"
+#   else
+#     echo "Obsidian already at latest ($OBSIDIAN_LATEST), skipping."
+#   fi
+#   sudo chown root:root "$HOME/.local/share/obsidian/chrome-sandbox"
+#   sudo chmod 4755 "$HOME/.local/share/obsidian/chrome-sandbox"
+#   ln -sf "$HOME/.local/share/obsidian/obsidian" "$HOME/.local/bin/obsidian"
+#   mkdir -p "$HOME/.local/share/applications"
+#   cat >"$HOME/.local/share/applications/obsidian.desktop" <<DESKTOP
+# [Desktop Entry]
+# Name=Obsidian
+# Exec=$HOME/.local/share/obsidian/obsidian %u
+# Icon=$HOME/.local/share/obsidian/resources/icon.png
+# Type=Application
+# Categories=Office;
+# MimeType=x-scheme-handler/obsidian;
+# DESKTOP
+# fi
 
-## Firefox from Mozilla apt repo (skip on RPi, skip on ChromeOS, skip if already configured)
-if [ -f /etc/rpi-issue ]; then
-  echo "Firefox: skipped (Raspberry Pi)"
-elif [ -f /dev/.container_token ]; then
-  echo "Firefox: skipped (ChromeOS)"
-elif [ -f /etc/apt/sources.list.d/mozilla.sources ]; then
-  echo "Firefox: Mozilla apt repo already configured"
-else
-  "$SCRIPT_DIR/setup-firefox.sh"
-fi
+# ## Firefox from Mozilla apt repo (skip on RPi, skip on ChromeOS, skip if already configured)
+# if [ -f /etc/rpi-issue ]; then
+#   echo "Firefox: skipped (Raspberry Pi)"
+# elif [ -f /dev/.container_token ]; then
+#   echo "Firefox: skipped (ChromeOS)"
+# elif [ -f /etc/apt/sources.list.d/mozilla.sources ]; then
+#   echo "Firefox: Mozilla apt repo already configured"
+# else
+#   "$SCRIPT_DIR/setup-firefox.sh"
+# fi
 
 # Install or update Neovim from GitHub releases (always ensure latest)
 NVIM_LATEST=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
