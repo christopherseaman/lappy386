@@ -46,9 +46,11 @@ runcmd:
   - systemctl restart ssh
   # Clone dotfiles repo and run full Debian setup
   - |
-    sudo -u christopher git clone https://github.com/christopherseaman/lappy386.git /home/christopher/lappy386
-    cd /home/christopher/lappy386/tools
-    bash ./setup-debian.sh
+    sudo -iu christopher bash -c '
+      git clone https://github.com/christopherseaman/lappy386.git ~/lappy386
+      cd ~/lappy386/tools
+      bash ./setup-debian.sh
+    '
   # Fix ownership
   - chown -R christopher:christopher /home/christopher
   - touch /home/christopher/.cloud-init-done
