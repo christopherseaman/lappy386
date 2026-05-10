@@ -3,6 +3,9 @@
 #cloud-config
 hostname: tarski
 
+# Note: to reset cloud-init
+# ssh tarski 'sudo cloud-init clean --logs && sudo reboot'
+
 users:
   - name: {{ user }}
     groups: [sudo, video, render, audio]
