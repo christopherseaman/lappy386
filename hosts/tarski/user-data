@@ -26,7 +26,24 @@ packages:
   - wget
   - ca-certificates
 
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-fast-login.conf
+    content: |
+      UseDNS no
+      GSSAPIAuthentication no
+  - path: /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=-/sbin/agetty --autologin christopher --noclear %I $TERM
+
 runcmd:
+  - |
+    sed -i 's|^GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)"|GRUB_CMDLINE_LINUX_DEFAULT="\1 clocksource=tsc tsc=reliable no_timer_check nohz=off processor.max_cstate=1"|' /etc/default/grub
+  - update-grub
+  - systemctl daemon-reload
+  - systemctl restart serial-getty@ttyS0.service
+  - systemctl restart ssh
   # Clone dotfiles repo and run full Debian setup
   - |
     sudo -u christopher git clone https://github.com/christopherseaman/lappy386.git /home/christopher/lappy386
