@@ -64,5 +64,7 @@ runcmd:
   # Fix ownership
   - chown -R {{ user }}:{{ user }} /home/{{ user }}
   - touch /home/{{ user }}/.cloud-init-done
+  - touch /etc/cloud/cloud-init.disabled
+
 
 final_message: "Cloud-init completed in $UPTIME seconds"
