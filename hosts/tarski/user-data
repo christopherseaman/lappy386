@@ -50,7 +50,7 @@ runcmd:
   - systemctl restart serial-getty@ttyAMA0.service
   - systemctl restart ssh
   # Clone dotfiles repo and run full Debian setup
-  - sudo -Hu {{ user }} git clone https://github.com/christopherseaman/lappy386.git /home/{{ user }}/lappy386
+  - test -d /home/{{ user }}/lappy386 || sudo -Hu {{ user }} git clone https://github.com/christopherseaman/lappy386.git /home/{{ user }}/lappy386
   - sudo -Hu {{ user }} bash -c "cd /home/{{ user }}/lappy386/tools && bash ./setup-debian.sh"
   # Fix ownership
   - chown -R {{ user }}:{{ user }} /home/{{ user }}
