@@ -41,16 +41,16 @@ write_files:
       [Service]
       ExecStart=
       ExecStart=-/sbin/agetty --autologin {{ user }} --noclear %I $TERM
-  - path: /etc/systemd/system/getty@tty1.service.d/autologin.conf
-    content: |
-      [Service]
-      ExecStart=
-      ExecStart=-/sbin/agetty --autologin {{ user }} --noclear %I $TERM
+#  - path: /etc/systemd/system/getty@tty1.service.d/autologin.conf
+#    content: |
+#      [Service]
+#      ExecStart=
+#      ExecStart=-/sbin/agetty --autologin {{ user }} --noclear %I $TERM
 
 
 runcmd:
   - systemctl daemon-reload
-  - systemctl restart getty@tty1.service
+#  - systemctl restart getty@tty1.service
   - systemctl restart serial-getty@ttyAMA0.service
   - systemctl restart ssh
   # Clone dotfiles repo and run full Debian setup
