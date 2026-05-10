@@ -1,8 +1,10 @@
+## template: jinja
+{% set user = 'christopher' %}
 #cloud-config
 hostname: tarski
 
 users:
-  - name: christopher
+  - name: {{ user }}
     groups: [sudo, video, render, audio]
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -35,7 +37,7 @@ write_files:
     content: |
       [Service]
       ExecStart=
-      ExecStart=-/sbin/agetty --autologin christopher --noclear %I $TERM
+      ExecStart=-/sbin/agetty --autologin {{ user }} --noclear %I $TERM
 
 runcmd:
   - |
@@ -46,7 +48,7 @@ runcmd:
   - systemctl restart ssh
   # Clone dotfiles repo and run full Debian setup
   - |
-    sudo -iu christopher bash -c '
+    sudo -iu {{ user }} bash -c '
       git clone https://github.com/christopherseaman/lappy386.git ~/lappy386
       cd ~/lappy386/tools
       bash ./setup-debian.sh
