@@ -186,28 +186,28 @@ else
 fi
 
 ## INSTALL NERD FONTS (skip if already present)
-#FONT_DIR="$HOME/.local/share/fonts"
-#FONTS_NEEDED=()
-#for font in FiraCode FiraMono 0xProto; do
-#  if [ ! -d "$FONT_DIR/$font" ] || [ -z "$(ls -A "$FONT_DIR/$font" 2>/dev/null)" ]; then
-#    FONTS_NEEDED+=("$font")
-#  fi
-#done
-#if [ ${#FONTS_NEEDED[@]} -gt 0 ]; then
-#  echo "Installing Nerd Fonts: ${FONTS_NEEDED[*]}..."
-#  NERD_FONTS_VERSION=$(curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-#  mkdir -p "$FONT_DIR"
-#  for font in "${FONTS_NEEDED[@]}"; do
-#    echo "  Installing $font Nerd Font..."
-#    wget -q "https://github.com/ryanoasis/nerd-fonts/releases/download/${NERD_FONTS_VERSION}/${font}.tar.xz" -O /tmp/${font}.tar.xz
-#    mkdir -p "$FONT_DIR/$font"
-#    tar -xf /tmp/${font}.tar.xz -C "$FONT_DIR/$font"
-#    rm /tmp/${font}.tar.xz
-#  done
-#  fc-cache -f "$FONT_DIR"
-#else
-#  echo "Nerd Fonts already installed, skipping."
-#fi
+FONT_DIR="$HOME/.local/share/fonts"
+FONTS_NEEDED=()
+for font in FiraCode FiraMono 0xProto; do
+  if [ ! -d "$FONT_DIR/$font" ] || [ -z "$(ls -A "$FONT_DIR/$font" 2>/dev/null)" ]; then
+    FONTS_NEEDED+=("$font")
+  fi
+done
+if [ ${#FONTS_NEEDED[@]} -gt 0 ]; then
+  echo "Installing Nerd Fonts: ${FONTS_NEEDED[*]}..."
+  NERD_FONTS_VERSION=$(curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+  mkdir -p "$FONT_DIR"
+  for font in "${FONTS_NEEDED[@]}"; do
+    echo "  Installing $font Nerd Font..."
+    wget -q "https://github.com/ryanoasis/nerd-fonts/releases/download/${NERD_FONTS_VERSION}/${font}.tar.xz" -O /tmp/${font}.tar.xz
+    mkdir -p "$FONT_DIR/$font"
+    tar -xf /tmp/${font}.tar.xz -C "$FONT_DIR/$font"
+    rm /tmp/${font}.tar.xz
+  done
+  fc-cache -f "$FONT_DIR"
+else
+  echo "Nerd Fonts already installed, skipping."
+fi
 
 ## Debian Trixie: enable backports and install crostini packages
 if grep -q 'VERSION_CODENAME=trixie' /etc/os-release 2>/dev/null; then
