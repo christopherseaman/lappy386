@@ -1,0 +1,4 @@
+if [[ -z "$FBTERM_STARTED" ]] && [[ "$(tty)" =~ ^/dev/tty[1-6]$ ]]; then
+  export FBTERM_STARTED=1
+  exec fbterm -s 14 -n "0xProto Nerd Font Mono"
+fi
