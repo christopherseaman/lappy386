@@ -44,15 +44,12 @@ runcmd:
     sed -i 's|^GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)"|GRUB_CMDLINE_LINUX_DEFAULT="\1 clocksource=tsc tsc=reliable no_timer_check nohz=off processor.max_cstate=1"|' /etc/default/grub
   - update-grub
   - systemctl daemon-reload
+  - systemctl enable serial-getty@ttyS0.service
   - systemctl restart serial-getty@ttyS0.service
   - systemctl restart ssh
   # Clone dotfiles repo and run full Debian setup
-  - |
-    sudo -iu {{ user }} bash -c '
-      git clone https://github.com/christopherseaman/lappy386.git ~/lappy386
-      cd ~/lappy386/tools
-      bash ./setup-debian.sh
-    '
+  - sudo -Hu {{ user }} git clone https://github.com/christopherseaman/lappy386.git /home/{{ user }}/lappy386
+  - sudo -Hu {{ user }} bash -c "cd /home/{{ user }}/lappy386/tools && bash ./setup-debian.sh"
   # Fix ownership
   - chown -R christopher:christopher /home/christopher
   - touch /home/christopher/.cloud-init-done
