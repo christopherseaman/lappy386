@@ -51,7 +51,7 @@ runcmd:
   - sudo -Hu {{ user }} git clone https://github.com/christopherseaman/lappy386.git /home/{{ user }}/lappy386
   - sudo -Hu {{ user }} bash -c "cd /home/{{ user }}/lappy386/tools && bash ./setup-debian.sh"
   # Fix ownership
-  - chown -R {{ user }}:{{ user }} /home/christopher
+  - chown -R {{ user }}:{{ user }} /home/{{ user }}
   - touch /home/{{ user }}/.cloud-init-done
 
 final_message: "Cloud-init completed in $UPTIME seconds"
