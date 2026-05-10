@@ -1,8 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-HOME="${HOME:-/home/christopher}"
-
 ## COPY DOT-FILES
 cat artifacts/dot-bashrc >~/.bashrc
 cat artifacts/dot-aliases >~/.aliases
