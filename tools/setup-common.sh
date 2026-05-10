@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+if [[ -z "${HOME}" ]]; then
+  HOME="/home/christopher"
+fi
+
 ## COPY DOT-FILES
 cat artifacts/dot-bashrc >~/.bashrc
 cat artifacts/dot-aliases >~/.aliases
