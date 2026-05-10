@@ -1,9 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-if [[ -z "${HOME}" ]]; then
-  HOME="/home/christopher"
-fi
+HOME="${HOME:-/home/christopher}"
 
 ## COPY DOT-FILES
 cat artifacts/dot-bashrc >~/.bashrc
