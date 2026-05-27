@@ -65,6 +65,7 @@ sudo apt install --quiet -qq -y --allow-change-held-packages \
   fd-find \
   findutils \
   fontconfig \
+  fonts-symbola \
   fzf \
   gh \
   git \
@@ -120,6 +121,14 @@ if ! command -v ghostty &>/dev/null; then
       cp "$ICON_SRC" "$ICON_DST"
     fi
   fi
+fi
+
+## Seed ghostty config on fresh installs only (preserves per-machine tweaks on re-runs)
+GHOSTTY_CONFIG="$HOME/.config/ghostty/config.ghostty"
+if [ ! -f "$GHOSTTY_CONFIG" ]; then
+  echo "Seeding ghostty config from repo..."
+  mkdir -p "$(dirname "$GHOSTTY_CONFIG")"
+  cp "$SCRIPT_DIR/../theme/config.ghostty" "$GHOSTTY_CONFIG"
 fi
 
 # ## Install or update Obsidian
