@@ -109,6 +109,17 @@ fi
 if ! command -v ghostty &>/dev/null; then
   echo "Installing Ghostty..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
+
+  ## ChromeOS: drop the lappy386 ghost as the launcher icon while Chrome's
+  ## icon cache is still cold (Chrome only re-fetches on app install/uninstall).
+  if [ -f /dev/.container_token ]; then
+    ICON_SRC="$SCRIPT_DIR/../theme/icons/hicolor/256x256/apps/com.mitchellh.ghostty.png"
+    ICON_DST="$HOME/.local/share/icons/hicolor/256x256/apps/com.mitchellh.ghostty.png"
+    if [ -f "$ICON_SRC" ]; then
+      mkdir -p "$(dirname "$ICON_DST")"
+      cp "$ICON_SRC" "$ICON_DST"
+    fi
+  fi
 fi
 
 # ## Install or update Obsidian
@@ -239,27 +250,6 @@ if grep -q 'VERSION_CODENAME=trixie' /etc/os-release 2>/dev/null; then
       file \
       iptables \
       unzip
-  fi
-fi
-
-## ChromeOS: override Ghostty launcher icon with the lappy386 ghost
-## (user-level XDG override; safe to run before Ghostty is installed)
-if [ -f /dev/.container_token ]; then
-  GHOSTTY_ICON_SRC="$SCRIPT_DIR/../theme/ghostty-chromeos.png"
-  GHOSTTY_DESKTOP_SRC=/usr/share/applications/com.mitchellh.ghostty.desktop
-  USER_ICON_DIR="$HOME/.local/share/icons/hicolor/512x512/apps"
-  USER_APPS_DIR="$HOME/.local/share/applications"
-
-  if [ -f "$GHOSTTY_ICON_SRC" ]; then
-    mkdir -p "$USER_ICON_DIR"
-    cp "$GHOSTTY_ICON_SRC" "$USER_ICON_DIR/com.mitchellh.ghostty.png"
-    if [ -f "$GHOSTTY_DESKTOP_SRC" ]; then
-      mkdir -p "$USER_APPS_DIR"
-      cp "$GHOSTTY_DESKTOP_SRC" "$USER_APPS_DIR/"
-      update-desktop-database "$USER_APPS_DIR" 2>/dev/null || true
-    fi
-    gtk-update-icon-cache -f -t "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
-    echo "Ghostty launcher icon overridden for ChromeOS."
   fi
 fi
 
