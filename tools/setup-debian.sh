@@ -87,23 +87,23 @@ if systemd-detect-virt --quiet 2>/dev/null; then
     spice-vdagent
 fi
 
-# ## Install VS Code if not present
-# if ! command -v code &>/dev/null; then
-#   echo "Installing VS Code..."
-#   if [[ -n "${CODE_ARCH:-}" ]]; then
-#     wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${CODE_ARCH}"
-#     sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/vscode.deb
-#     rm /tmp/vscode.deb
-#   else
-#     echo "  Skipping VS Code: unknown architecture $ARCH"
-#   fi
-# fi
+## Install VS Code if not present
+if ! command -v code &>/dev/null; then
+  echo "Installing VS Code..."
+  if [[ -n "${CODE_ARCH:-}" ]]; then
+    wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${CODE_ARCH}"
+    sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/vscode.deb
+    rm /tmp/vscode.deb
+  else
+    echo "  Skipping VS Code: unknown architecture $ARCH"
+  fi
+fi
 
-# ## Install Zed editor if not present
-# if ! command -v zed &>/dev/null; then
-#   echo "Installing Zed editor..."
-#   curl -f https://zed.dev/install.sh | sh
-# fi
+## Install Zed editor if not present
+if ! command -v zed &>/dev/null; then
+  echo "Installing Zed editor..."
+  curl -f https://zed.dev/install.sh | sh
+fi
 
 ## Install Ghostty if not present (Debian trixie / Ubuntu via mkasberg/ghostty-ubuntu)
 if ! command -v ghostty &>/dev/null; then
