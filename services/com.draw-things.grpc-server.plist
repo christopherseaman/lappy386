@@ -9,6 +9,8 @@
     <array>
         <string>/Users/cseaman/.local/bin/gRPCServerCLI-macOS</string>
         <string>/Users/cseaman/Library/Containers/com.liuliu.draw-things/Data/Documents/Models</string>
+        <string>--port</string>
+        <string>7000</string>
     </array>
 
     <key>RunAtLoad</key>
