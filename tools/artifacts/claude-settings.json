@@ -17,5 +17,6 @@
     "playground@claude-plugins-official": true,
     "sourcegraph@claude-plugins-official": true
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "ultracode": true
 }
