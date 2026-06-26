@@ -125,7 +125,28 @@ yank() {
   fi
 }
 
-alias dan='claude --dangerously-skip-permissions --remote-control'
+# dan: run Claude inside the sqrlbot sandbox user (created by setup-debian.sh / setup-macos.sh).
+# Fails closed if sqrlbot is absent — never falls back to your own account, since that would
+# run --dangerously-skip-permissions outside the sandbox.
+#   dan [args]    interactive sandboxed session (skip-perms + remote-control)
+#   dan install   install/update the sandbox user's Claude CLI (alias: dan update)
+dan() {
+  if ! id -u sqrlbot &>/dev/null; then
+    echo "dan: sqrlbot sandbox user not found." >&2
+    echo "     Create it by running setup-debian.sh (Linux) or setup-macos.sh (macOS)." >&2
+    return 1
+  fi
+  local pre=(sudo -u sqrlbot -H)       # -H => HOME=~sqrlbot (its own ~/.claude); cwd preserved
+  local bin=~sqrlbot/.local/bin/claude # sudo resets PATH, so launch via absolute path
+  case "${1:-}" in
+  install | update)
+    "${pre[@]}" bash -lc '[ -x "$HOME/.local/bin/claude" ] && "$HOME/.local/bin/claude" install || curl -fsSL https://claude.ai/install.sh | bash'
+    ;;
+  *)
+    "${pre[@]}" "$bin" --dangerously-skip-permissions --remote-control "$@"
+    ;;
+  esac
+}
 alias bye='if [ -n "$TMUX" ]; then tmux detach -P; else exit; fi'
 
 # Happier (Claude Code UI wrapper) - preview channel since no stable releases yet
