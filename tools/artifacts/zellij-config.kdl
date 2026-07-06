@@ -1,0 +1,5 @@
+// Managed by lappy386 (tools/artifacts/zellij-config.kdl). Edit the artifact, not ~/.config/zellij/config.kdl.
+// Deliberately near-stock. The one change from defaults:
+//   compact layout drops zellij's verbose bottom status bar (keeps a thin tab bar), so it
+//   doesn't stack under nvim's own statusline. Everything else is zellij's out-of-the-box behavior.
+default_layout "compact"

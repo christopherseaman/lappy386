@@ -54,6 +54,8 @@ mkdir -p ~/.config
 rm -rf ~/.config/nvim
 cp -r artifacts/dot-config-nvim ~/.config/nvim
 cp artifacts/starship.toml ~/.config/starship.toml
+mkdir -p ~/.config/zellij
+cp artifacts/zellij-config.kdl ~/.config/zellij/config.kdl
 
 ## STARSHIP (upstream binary, not apt)
 if dpkg -l starship 2>/dev/null | grep -q '^ii'; then
