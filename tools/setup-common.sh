@@ -115,17 +115,6 @@ mkdir -p ~/.claude
 curl -so ~/.claude/CLAUDE.md https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md || true
 cp artifacts/claude-settings.json ~/.claude/settings.json
 
-## SANDBOX USER CLAUDE (sqrlbot): own install + config so `dan` can run Claude as it.
-## Auth itself is a one-time manual step (see banner) — credentials are never copied.
-if id -u sqrlbot &>/dev/null; then
-  echo "Provisioning Claude for sqrlbot sandbox..."
-  SQRLBOT_HOME=$(eval echo ~sqrlbot)
-  sudo -u sqrlbot bash -lc '[ -x "$HOME/.local/bin/claude" ] && "$HOME/.local/bin/claude" install >/dev/null 2>&1 || curl -fsSL https://claude.ai/install.sh | bash >/dev/null 2>&1' || true
-  sudo -u sqrlbot mkdir -p "$SQRLBOT_HOME/.claude"
-  sudo -u sqrlbot tee "$SQRLBOT_HOME/.claude/settings.json" <artifacts/claude-settings.json >/dev/null || true
-  curl -so- https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md 2>/dev/null | sudo -u sqrlbot tee "$SQRLBOT_HOME/.claude/CLAUDE.md" >/dev/null || true
-fi
-
 ## REMINDER
 echo ""
 echo "┌──────────────────────────────┐"
@@ -141,7 +130,3 @@ if [[ -n "${RDP_PASSWORD:-}" ]]; then
 fi
 echo "│                              │"
 echo "└──────────────────────────────┘"
-if id -u sqrlbot &>/dev/null; then
-  echo ""
-  echo "sqrlbot sandbox ready. One-time Claude login:  $(tput bold)sudo -iu sqrlbot claude$(tput sgr0)"
-fi
