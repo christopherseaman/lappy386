@@ -18,5 +18,6 @@
     "sourcegraph@claude-plugins-official": true
   },
   "skipDangerousModePermissionPrompt": true,
+  "remoteControlAtStartup": true,
   "ultracode": true
 }

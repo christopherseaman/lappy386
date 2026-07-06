@@ -83,6 +83,9 @@ command -v fastfetch >/dev/null && fastfetch
 # Initialize starship prompt
 command -v starship >/dev/null && eval "$(starship init zsh)"
 
+# zoxide (smarter cd: z <dir>, zi to pick interactively)
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+
 # Additional PATH entries (customize as needed)
 [[ -d "$HOME/.duckdb/cli/latest" ]] && export PATH="$HOME/.duckdb/cli/latest:$PATH"
 
@@ -93,6 +96,6 @@ export TZ='America/Los_Angeles'
 # Auto-attach to tmux session on SSH login only (skip for biscuit)
 [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && [[ "$USER" != "biscuit" ]] && { tmux attach || tmux; }
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export NVM_DIR="$HOME/.config/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
