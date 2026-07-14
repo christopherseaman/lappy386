@@ -14,5 +14,6 @@
   },
   "ultracode": true,
   "skipDangerousModePermissionPrompt": true,
-  "remoteControlAtStartup": true
+  "remoteControlAtStartup": true,
+  "tui": "fullscreen"
 }
