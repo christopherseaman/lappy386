@@ -134,21 +134,12 @@ yank() {
 }
 
 dan() {
-  if ! id -u sqrlbot &>/dev/null; then
-    echo "dan: sqrlbot sandbox user not found." >&2
-    echo "     Create it by running setup-debian.sh (Linux) or setup-macos.sh (macOS)." >&2
+  command -v codex >/dev/null 2>&1 || {
+    echo "dan: codex not installed (run tools/setup-common.sh)" >&2
     return 1
-  fi
-  local pre=(sudo -u sqrlbot -H)       # -H => HOME=~sqrlbot (its own ~/.claude); cwd preserved
-  # run via login shell so sqrlbot's ~/.bash_profile sets PATH and (on macOS) unlocks its keychain
-  case "${1:-}" in
-  install | update)
-    "${pre[@]}" bash -lc 'export CI=1; [ -x "$HOME/.local/bin/claude" ] && "$HOME/.local/bin/claude" install || curl -fsSL https://claude.ai/install.sh | bash'
-    ;;
-  *)
-    "${pre[@]}" bash -lc 'exec "$HOME/.local/bin/claude" --dangerously-skip-permissions "$@"' _ "$@"
-    ;;
-  esac
+  }
+  # DANgerous interactive agent: Codex with approvals + sandbox bypassed, as you.
+  codex --dangerously-bypass-approvals-and-sandbox "$@"
 }
 alias bye='if [ -n "$TMUX" ]; then tmux detach -P; elif [ -n "$ZELLIJ" ]; then zellij action detach; else exit; fi'
 
