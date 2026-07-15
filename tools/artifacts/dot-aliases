@@ -1,7 +1,6 @@
 # fastfetch greeting function
 fastfetch_greeting() {
   shopt -q login_shell && {
-#  shopt -q login_shell && [[ -z "$TMUX" ]] && {
     logos=("gnu") # "aperture"
     selected_logo=${logos[$RANDOM % ${#logos[@]}]}
     fastfetch --logo $selected_logo
@@ -117,19 +116,42 @@ yank() {
     content=$(cat)
   fi
 
-  if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]]; then
+  # Native pbcopy only on a bare macOS terminal (no multiplexer to tunnel through).
+  if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]] && [[ -z "$ZELLIJ" ]]; then
     printf "%s" "$content" | pbcopy
+    return
+  fi
+
+  local b64
+  b64=$(printf "%s" "$content" | base64 | tr -d '\n')
+  if [[ -n "$TMUX" ]]; then
+    # tmux needs OSC52 wrapped in its DCS passthrough
+    printf '\033Ptmux;\033\033]52;c;%s\007\033\\' "$b64"
   else
-    local b64=$(printf "%s" "$content" | base64 | tr -d '\n')
-    echo -en "\033Ptmux;\033\033]52;c;${b64}\007\033\\"
+    # zellij copies OSC52 natively; bare terminals pass it to the host
+    printf '\033]52;c;%s\007' "$b64"
   fi
 }
 
-alias dan='claude --dangerously-skip-permissions --remote-control'
-alias bye='if [ -n "$TMUX" ]; then tmux detach -P; else exit; fi'
+dan() {
+  if ! id -u sqrlbot &>/dev/null; then
+    echo "dan: sqrlbot sandbox user not found." >&2
+    echo "     Create it by running setup-debian.sh (Linux) or setup-macos.sh (macOS)." >&2
+    return 1
+  fi
+  local pre=(sudo -u sqrlbot -H)       # -H => HOME=~sqrlbot (its own ~/.claude); cwd preserved
+  # run via login shell so sqrlbot's ~/.bash_profile sets PATH and (on macOS) unlocks its keychain
+  case "${1:-}" in
+  install | update)
+    "${pre[@]}" bash -lc 'export CI=1; [ -x "$HOME/.local/bin/claude" ] && "$HOME/.local/bin/claude" install || curl -fsSL https://claude.ai/install.sh | bash'
+    ;;
+  *)
+    "${pre[@]}" bash -lc 'exec "$HOME/.local/bin/claude" --dangerously-skip-permissions "$@"' _ "$@"
+    ;;
+  esac
+}
+alias bye='if [ -n "$TMUX" ]; then tmux detach -P; elif [ -n "$ZELLIJ" ]; then zellij action detach; else exit; fi'
 
-# Happier (Claude Code UI wrapper) - preview channel since no stable releases yet
-alias install-happier-preview='curl -fsSL https://happier.dev/install-preview | bash'
-# alias install-happier-preview='npm i -g @happier-dev/cli@next'
-alias happier='hprev'
+# Draw Things gRPC image-generation server
+alias grpc='gRPCServerCLI-macOS ~/Library/Containers/com.liuliu.draw-things/Data/Documents/Models --port 7000'
 

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=JASP
+Comment=Statistical analysis package
+Keywords=statistics;data
+Exec=env QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_SCREEN_SCALE_FACTORS=1 QT_SCALE_FACTOR=1 XCURSOR_SIZE=24 /usr/bin/flatpak run --branch=stable --arch=aarch64 --command=org.jaspstats.JASP --file-forwarding org.jaspstats.JASP @@ %f @@
+Terminal=false
+Type=Application
+MimeType=application/x-jaspstats-jasp;application/x-spss-sav;
+StartupWMClass=org.jasp-stats.JASP
+StartupNotify=true
+Icon=org.jaspstats.JASP
+Categories=Science;Education;DataVisualization
+X-Flatpak=org.jaspstats.JASP

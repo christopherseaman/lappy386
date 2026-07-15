@@ -1,10 +1,14 @@
 #!/bin/bash
 
 ## Self-update from upstream before running setup
+## Only fast-forwards if HEAD is strictly behind origin/main; skips if ahead or diverged.
 if command -v git &>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null; then
   git fetch --quiet origin main
-  if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
-    git pull --quiet origin main
+  LOCAL=$(git rev-parse HEAD)
+  REMOTE=$(git rev-parse origin/main)
+  BASE=$(git merge-base HEAD origin/main)
+  if [ "$LOCAL" != "$REMOTE" ] && [ "$LOCAL" = "$BASE" ]; then
+    git pull --quiet --ff-only origin main
     echo "Updated to latest. Please re-run ./setup.sh"
     exit 0
   fi

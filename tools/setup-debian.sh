@@ -55,27 +55,32 @@ fi
 ## Package Update and Install
 sudo apt update --quiet -qq
 #sudo apt full-upgrade --quiet -qq -y --allow-change-held-packages
-sudo apt install --quiet -qq -y --allow-change-held-packages \
-  bash-completion \
-  bat \
-  build-essential \
-  ca-certificates \
-  cmake \
-  curl \
-  fd-find \
-  findutils \
-  fontconfig \
-  fzf \
-  gh \
-  git \
-  git-delta \
-  gnupg \
-  htop \
-  ncdu \
-  openssh-server \
-  ripgrep \
-  tmux \
+APT_PACKAGES=(
+  bash-completion
+  bat
+  build-essential
+  ca-certificates
+  # cmake        # no CMake project builds here; build-essential covers gcc/make
+  curl
+  fd-find
+  # findutils    # provides `find`, already part of the Debian base system
+  fontconfig
+  fonts-symbola
+  fzf
+  gh
+  git
+  git-delta
+  gnupg
+  htop
+  ncdu
+  openssh-server
+  ripgrep
+  tmux
   wget
+  zellij
+  zoxide
+)
+sudo apt install --quiet -qq -y --allow-change-held-packages "${APT_PACKAGES[@]}"
 sudo apt autoremove --quiet -qq -y
 
 ## VM tools (clipboard/resize, host integration)
@@ -87,23 +92,48 @@ if systemd-detect-virt --quiet 2>/dev/null; then
     spice-vdagent
 fi
 
-# ## Install VS Code if not present
-# if ! command -v code &>/dev/null; then
-#   echo "Installing VS Code..."
-#   if [[ -n "${CODE_ARCH:-}" ]]; then
-#     wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${CODE_ARCH}"
-#     sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/vscode.deb
-#     rm /tmp/vscode.deb
-#   else
-#     echo "  Skipping VS Code: unknown architecture $ARCH"
-#   fi
-# fi
+## Install VS Code if not present
+if ! command -v code &>/dev/null; then
+  echo "Installing VS Code..."
+  if [[ -n "${CODE_ARCH:-}" ]]; then
+    wget -q -O /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=${CODE_ARCH}"
+    sudo apt install --quiet -qq -y --allow-change-held-packages /tmp/vscode.deb
+    rm /tmp/vscode.deb
+  else
+    echo "  Skipping VS Code: unknown architecture $ARCH"
+  fi
+fi
 
-# ## Install Zed editor if not present
-# if ! command -v zed &>/dev/null; then
-#   echo "Installing Zed editor..."
-#   curl -f https://zed.dev/install.sh | sh
-# fi
+## Install Zed editor if not present
+if ! command -v zed &>/dev/null; then
+  echo "Installing Zed editor..."
+  curl -f https://zed.dev/install.sh | sh
+fi
+
+## Install Ghostty if not present (Debian trixie / Ubuntu via mkasberg/ghostty-ubuntu)
+if ! command -v ghostty &>/dev/null; then
+  echo "Installing Ghostty..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
+
+  ## ChromeOS: drop the lappy386 ghost as the launcher icon while Chrome's
+  ## icon cache is still cold (Chrome only re-fetches on app install/uninstall).
+  if [ -f /dev/.container_token ]; then
+    ICON_SRC="$SCRIPT_DIR/../theme/icons/hicolor/256x256/apps/com.mitchellh.ghostty.png"
+    ICON_DST="$HOME/.local/share/icons/hicolor/256x256/apps/com.mitchellh.ghostty.png"
+    if [ -f "$ICON_SRC" ]; then
+      mkdir -p "$(dirname "$ICON_DST")"
+      cp "$ICON_SRC" "$ICON_DST"
+    fi
+  fi
+fi
+
+## Seed ghostty config on fresh installs only (preserves per-machine tweaks on re-runs)
+GHOSTTY_CONFIG="$HOME/.config/ghostty/config.ghostty"
+if [ ! -f "$GHOSTTY_CONFIG" ]; then
+  echo "Seeding ghostty config from repo..."
+  mkdir -p "$(dirname "$GHOSTTY_CONFIG")"
+  cp "$SCRIPT_DIR/../theme/config.ghostty" "$GHOSTTY_CONFIG"
+fi
 
 # ## Install or update Obsidian
 # OBSIDIAN_LATEST=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
@@ -255,3 +285,6 @@ echo "Debian installation complete."
 
 ## RUN COMMON SETUP
 ./setup-common.sh
+
+## SANDBOX USER (sqrlbot): create the jailed user + provision its Claude
+./sqrlbot/setup-sqrlbot-debian.sh

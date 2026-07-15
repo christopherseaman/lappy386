@@ -17,7 +17,6 @@ echo "Brew: upgrading packages"
 brew upgrade --quiet >/dev/null
 
 echo "Brew: installing formulas"
-brew tap teamookla/speedtest 2>/dev/null
 brew install --quiet $(grep -v '#' artifacts/brew.lst) >/dev/null
 
 echo "Brew: installing fonts"
@@ -52,3 +51,6 @@ killall Dock
 
 ## RUN COMMON SETUP
 ./setup-common.sh
+
+## SANDBOX USER (sqrlbot): create the jailed user + provision its Claude
+./sqrlbot/setup-sqrlbot-mac.sh
