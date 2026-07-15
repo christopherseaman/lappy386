@@ -286,11 +286,12 @@ UID separation. macOS is the stronger boundary; Linux is lighter and more dispos
 - The `sqrlbot/` documentation block in `CLAUDE.md`.
 - Any incidental `sqrlbot` permission entries in `.claude/settings.local.json`.
 
-> The scripts only stop *creating* `sqrlbot`. Removing the already-created `sqrlbot`
-> user, its group, and the `~/projects` ACLs on machines already provisioned is a
-> **manual, operator-side step** — the toolkit does not (and should not) automate
-> user teardown. Re-running `setup.sh` after this change simply leaves the orphaned
-> user untouched until you remove it by hand.
+> The setup scripts only stop *creating* `sqrlbot`; nothing is torn down automatically
+> during provisioning. Removing the already-created `sqrlbot` user, group, and home dir
+> on machines already provisioned is a **manual, operator step** — never wired into
+> `setup.sh`. The opt-in helper `tools/remove-sqrlbot.sh` (idempotent, cross-platform,
+> `--dry-run` + typed confirmation) does exactly that; by design it leaves the
+> `~/projects` group/setgid/ACLs in place for you to reset by hand.
 
 **Rewrite:**
 - The `dan()` function in `tools/artifacts/dot-aliases` → the local Codex launcher above.

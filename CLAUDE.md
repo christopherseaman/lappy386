@@ -29,6 +29,7 @@ tools/
   sandbox/                  # Opt-in disposable agent sandboxes (run manually, not from setup.sh):
                             #   setup-sandbox-linux.sh (rootless Podman + Containerfile),
                             #   setup-sandbox-mac.sh (Tart macOS+Xcode VM). Run Codex via Happier.
+  remove-sqrlbot.sh         # Opt-in teardown: remove the retired sqrlbot user/group/home (manual)
 hosts/                      # Per-machine configs and setup scripts
   tarski/                   # Local QEMU/UTM VM (cloud-init via SMBIOS nocloud datasource)
   strongbad/                # ChromeOS Crostini container (LXC + cloud-config)
