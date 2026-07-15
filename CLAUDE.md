@@ -16,7 +16,7 @@ tools/
   setup-debian.sh           # Debian/Ubuntu: apt packages, neovim, fonts, VM tools, RDP, Firefox
   setup-arch.sh             # Arch: pacman packages
   setup-macos.sh            # macOS: Homebrew, Ghostty config, Dock prefs
-  setup-common.sh           # Cross-platform: dotfiles, git, SSH, nvim config, nvm, Claude/Copilot CLI
+  setup-common.sh           # Cross-platform: dotfiles, git, SSH, nvim config, nvm, Claude/Codex/Happier CLIs
   setup-firefox.sh          # Mozilla apt repo Firefox (replaces snap)
   setup-claude-mcp.sh       # Interactive: configures Notion/Atlassian MCP servers for Claude
   artifacts/                # Source-of-truth config files copied to target machine
@@ -26,6 +26,9 @@ tools/
     public_keys/            # All host SSH pubkeys -> aggregated into authorized_keys
     brew.lst, cask.lst      # macOS Homebrew package lists
   rdp/                      # GNOME headless RDP setup (GDM autologin, TLS, display fix service)
+  sandbox/                  # Opt-in disposable agent sandboxes (run manually, not from setup.sh):
+                            #   setup-sandbox-linux.sh (rootless Podman + Containerfile),
+                            #   setup-sandbox-mac.sh (Tart macOS+Xcode VM). Run Codex via Happier.
 hosts/                      # Per-machine configs and setup scripts
   tarski/                   # Local QEMU/UTM VM (cloud-init via SMBIOS nocloud datasource)
   strongbad/                # ChromeOS Crostini container (LXC + cloud-config)
@@ -43,6 +46,9 @@ theme/                      # Terminal theme files (Kitty, Ghostty, macOS Termin
 - **SSH key management.** Each host generates an ed25519 key named `client_key`. Its pubkey is committed to `artifacts/public_keys/<hostname>.pub`. All pubkeys are aggregated into `~/.ssh/authorized_keys` on every run.
 - **Cloud-init bootstrapping.** `hosts/tarski/` uses QEMU SMBIOS to point nocloud at the raw GitHub URL for `user-data`/`meta-data`. The cloud-init `runcmd` clones this repo and runs `setup-debian.sh`. The SMBIOS arg (`qemu_arg.txt`) can be passed to QEMU/UTM to auto-provision VMs.
 - **Host-specific scripts** live under `hosts/<hostname>/` and are run manually or via cloud-init, not from the main `setup.sh` flow.
+- **Two ways agents run.** `dan` (in `artifacts/dot-aliases`) runs Codex locally in
+  bypass mode, as you — supervised, no jail. For unattended/remote runs, `tools/sandbox/`
+  provides a disposable VM/container fronted by Happier. See `sqrlbot_migration.md`.
 
 ## Common Operations
 
