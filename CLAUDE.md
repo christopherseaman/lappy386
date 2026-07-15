@@ -19,8 +19,6 @@ tools/
   setup-common.sh           # Cross-platform: dotfiles, git, SSH, nvim config, nvm, Claude/Copilot CLI
   setup-firefox.sh          # Mozilla apt repo Firefox (replaces snap)
   setup-claude-mcp.sh       # Interactive: configures Notion/Atlassian MCP servers for Claude
-  sqrlbot/                  # Jailed sandbox user: setup-sqrlbot-{mac,debian}.sh create the
-                            #   user + ACLs, then setup-sqrlbot-common.sh provisions its Claude
   artifacts/                # Source-of-truth config files copied to target machine
     dot-bashrc, dot-aliases, dot-tmux.conf, dot-zshrc, dot-ssh-config
     dot-config-nvim/        # Full LazyVim config (copied to ~/.config/nvim)
