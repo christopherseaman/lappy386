@@ -1,0 +1,42 @@
+# happier-agent — disposable Codex + Happier coding sandbox (Debian, Node-free base).
+FROM debian:stable-slim
+
+ARG UID=1000
+ARG GID=1000
+
+# Base tooling: curl (installers), git/ssh (repos), ca-certificates (TLS), and a build
+# toolchain. Language toolchains (node, rust, …) are installed at runtime by the agent
+# into its home and treated as disposable.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl ca-certificates git openssh-client build-essential \
+      python3 python3-venv python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root agent user whose UID/GID match the host user, so rootless keep-id maps cleanly
+# onto the bind-mounted workspace and persistent auth volumes.
+RUN groupadd -g "${GID}" agent \
+    && useradd -m -u "${UID}" -g "${GID}" -s /bin/bash agent
+
+# Codex CLI — self-contained Rust binary. Install as root, copy onto the system PATH so the
+# agent user can run it. `codex --version` fails the build if the copy path is wrong.
+RUN curl -fsSL https://chatgpt.com/codex/install.sh | sh \
+    && install -m 0755 "$(ls /root/.local/bin/codex 2>/dev/null || command -v codex)" /usr/local/bin/codex \
+    && codex --version
+
+# Happier CLI — self-contained. Same install-then-copy-onto-PATH pattern. `happier --version`
+# fails the build if the candidate path is wrong (Happier is alpha; adjust the ls list here
+# if the build fails at this step).
+#
+# HAPPIER_WITH_DAEMON=0 / HAPPIER_NONINTERACTIVE=1 are passed to the installer (not to curl)
+# because its default preflight shells out to `happier service list --json` to decide whether
+# to register a background daemon; that check hangs indefinitely in a minimal container with
+# no init/dbus session for the daemon to attach to. This sandbox is disposable and has no use
+# for a persistent background service anyway, so daemon setup is disabled at install time —
+# the CLI itself runs `--version` normally afterward without either variable set.
+RUN curl -fsSL https://happier.dev/install | HAPPIER_WITH_DAEMON=0 HAPPIER_NONINTERACTIVE=1 bash \
+    && install -m 0755 "$(ls /root/.happier/bin/happier /root/.local/bin/happier 2>/dev/null | head -1 || command -v happier)" /usr/local/bin/happier \
+    && happier --version
+
+USER agent
+WORKDIR /workspace
+CMD ["/bin/bash"]
