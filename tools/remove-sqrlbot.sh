@@ -71,13 +71,17 @@ echo "  (~/projects is left untouched.)"
 
 if [ "$ASSUME_YES" -ne 1 ] && [ "$DRY_RUN" -ne 1 ]; then
   printf "Type 'remove' to proceed: "
-  read -r reply
-  [ "$reply" = "remove" ] || { echo "Aborted."; exit 1; }
+  if ! read -r reply || [ "$reply" != "remove" ]; then
+    echo "Aborted."
+    exit 1
+  fi
 fi
 
 # --- remove the sqrlbot traverse ACL from $HOME (do this before deleting the user) ---
 if [ "$OS" = "Darwin" ]; then
-  run sudo chmod -a "user:$SANDBOX_USER allow execute" "$HOME" 2>/dev/null || true
+  if ls -lde "$HOME" 2>/dev/null | grep -q "user:$SANDBOX_USER "; then
+    run sudo chmod -a "user:$SANDBOX_USER allow execute" "$HOME"
+  fi
 else
   if getfacl -p "$HOME" 2>/dev/null | grep -q "^user:$SANDBOX_USER:"; then
     run sudo setfacl -x "u:$SANDBOX_USER" "$HOME"
