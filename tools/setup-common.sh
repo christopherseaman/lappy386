@@ -102,13 +102,20 @@ else
   curl -fsSL https://claude.ai/install.sh | bash &>/dev/null || true
 fi
 echo "Claude: $(claude --version 2>/dev/null | head -1 || true)"
-# HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1 || true)
-# HAPPIER_LATEST=$(npm view @happier-dev/cli@next version 2>/dev/null || true)
-# if [[ "$HAPPIER_INSTALLED" != *"$HAPPIER_LATEST"* ]]; then
-#   npm i -g @happier-dev/cli@next --silent &>/dev/null || true
-#   HAPPIER_INSTALLED=$(happier --version 2>/dev/null | head -1 || true)
-# fi
-# echo "Happier: $HAPPIER_INSTALLED"
+if command -v codex &>/dev/null; then
+  codex --version &>/dev/null || true
+else
+  echo "Codex: installing..."
+  curl -fsSL https://chatgpt.com/codex/install.sh | sh &>/dev/null || true
+fi
+echo "Codex: $(codex --version 2>/dev/null | head -1 || true)"
+if command -v happier &>/dev/null; then
+  happier --version &>/dev/null || true
+else
+  echo "Happier: installing..."
+  curl -fsSL https://happier.dev/install | bash &>/dev/null || true
+fi
+echo "Happier: $(happier --version 2>/dev/null | head -1 || true)"
 
 ## CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
