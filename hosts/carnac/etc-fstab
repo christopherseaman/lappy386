@@ -1,2 +1,2 @@
-## Mount persistent projects drive in christopher's $HOME
-UUID=a87ace88-78fe-4c84-937f-766aadc6e5c8 /home/christopher/projects ext4 defaults,nofail 0 2
+## Mount persistent data volume as christopher's $HOME (contains home files + projects/ subdir)
+UUID=a87ace88-78fe-4c84-937f-766aadc6e5c8 /home/christopher ext4 defaults,nofail 0 2
