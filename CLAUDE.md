@@ -49,7 +49,7 @@ theme/                      # Terminal theme files (Kitty, Ghostty, macOS Termin
 - **Host-specific scripts** live under `hosts/<hostname>/` and are run manually or via cloud-init, not from the main `setup.sh` flow.
 - **Two ways agents run.** `dan` (in `artifacts/dot-aliases`) runs Codex locally in
   bypass mode, as you — supervised, no jail. For unattended/remote runs, `tools/sandbox/`
-  provides a disposable VM/container fronted by Happier. See `sqrlbot_migration.md`.
+  provides a disposable VM/container fronted by Happier.
 
 ## Common Operations
 
