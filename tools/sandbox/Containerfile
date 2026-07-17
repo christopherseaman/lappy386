@@ -23,18 +23,23 @@ RUN curl -fsSL https://chatgpt.com/codex/install.sh | sh \
     && install -m 0755 "$(ls /root/.local/bin/codex 2>/dev/null || command -v codex)" /usr/local/bin/codex \
     && codex --version
 
-# Happier CLI — self-contained. Same install-then-copy-onto-PATH pattern. `happier --version`
-# fails the build if the candidate path is wrong (Happier is alpha; adjust the ls list here
-# if the build fails at this step).
+# Happier CLI — a Node-style package (a launcher shim + a package-dist tree under
+# INSTALL_DIR/cli/current), NOT a single static binary. The launcher resolves its daemon
+# entrypoint (package-dist/index.mjs) relative to its own install dir, so copying just the
+# launcher onto PATH breaks `happier daemon start`. Let the installer lay down its full tree
+# via its own env vars: program in /usr/local/happier (a system path, so the runtime
+# ~/.happier volume mount can't shadow it), shim symlinked onto PATH in /usr/local/bin.
+# Runtime auth/state lives separately in the agent's ~/.happier (a mounted volume) and persists.
+# The installer makes INSTALL_DIR 0700 (root-only); chmod a+rX so the non-root agent can
+# traverse into the program tree it runs at runtime.
 #
-# HAPPIER_WITH_DAEMON=0 / HAPPIER_NONINTERACTIVE=1 are passed to the installer (not to curl)
-# because its default preflight shells out to `happier service list --json` to decide whether
-# to register a background daemon; that check hangs indefinitely in a minimal container with
-# no init/dbus session for the daemon to attach to. This sandbox is disposable and has no use
-# for a persistent background service anyway, so daemon setup is disabled at install time —
-# the CLI itself runs `--version` normally afterward without either variable set.
-RUN curl -fsSL https://happier.dev/install | HAPPIER_WITH_DAEMON=0 HAPPIER_NONINTERACTIVE=1 bash \
-    && install -m 0755 "$(ls /root/.happier/bin/happier /root/.local/bin/happier 2>/dev/null | head -1 || command -v happier)" /usr/local/bin/happier \
+# HAPPIER_WITH_DAEMON=0 / HAPPIER_NONINTERACTIVE=1 skip the installer's background-service
+# registration, which hangs in a minimal container with no init/dbus. The daemon is started
+# at runtime after auth instead (see the run wrapper).
+RUN curl -fsSL https://happier.dev/install | \
+      HAPPIER_INSTALL_DIR=/usr/local/happier HAPPIER_BIN_DIR=/usr/local/bin \
+      HAPPIER_WITH_DAEMON=0 HAPPIER_NONINTERACTIVE=1 bash \
+    && chmod -R a+rX /usr/local/happier \
     && happier --version
 
 # GitHub CLI — from the official apt repo, so `gh auth login` works inside the guest.
@@ -46,6 +51,11 @@ RUN mkdir -p -m 755 /etc/apt/keyrings \
     && apt-get update && apt-get install -y --no-install-recommends gh \
     && rm -rf /var/lib/apt/lists/* \
     && gh --version
+
+# Pre-create ~/.config owned by agent. Otherwise the gh creds volume nested at ~/.config/gh
+# makes podman create ~/.config itself as root, which blocks the agent from writing elsewhere
+# under it (e.g. `happier daemon install`'s ~/.config/systemd).
+RUN install -d -o agent -g agent /home/agent/.config
 
 USER agent
 WORKDIR /workspace

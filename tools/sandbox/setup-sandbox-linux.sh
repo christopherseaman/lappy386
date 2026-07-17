@@ -48,16 +48,17 @@ podman run -d \
   --volume "$CODEX_STATE:/home/agent/.codex:rw" \
   --volume "$GH_STATE:/home/agent/.config/gh:rw" \
   --workdir /workspace \
-  "$IMAGE" sleep infinity
+  "$IMAGE" bash -c 'happier daemon start >/dev/null 2>&1 || true; exec sleep infinity'
 
 cat <<EOF
 
-Sandbox '$NAME' is running (detached).
+Sandbox '$NAME' is running (detached). The Happier daemon auto-starts on container
+start/restart once you've authed (it's a benign no-op before that).
   Shell in:   sandbox              # alias; or:  podman exec -it $NAME bash
   Auth once (persists via mounted volumes):
     codex login
-    happier auth login             # mobile-first; daemon stays down until this completes
+    happier auth login             # mobile-first
     gh auth login
-  Optional remote agent:  (inside the shell)  happier daemon start
+  Bring the daemon up with your new auth:  podman restart $NAME
   Stop:  podman stop $NAME      Rebuild: re-run this script
 EOF
