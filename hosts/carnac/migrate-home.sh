@@ -176,24 +176,16 @@ if [ "$DRY_RUN" -eq 0 ]; then
   [ ! -e "$NEUTRAL/.ssh/authorized_keys" ] || fail "$NEUTRAL already looks like a home dir — refusing (idempotency guard)"
   mkdir -p "$NEUTRAL/$STAGE_SUBDIR"
 fi
-if [ "$DRY_RUN" -eq 1 ]; then
-  echo "   [dry-run] rsync -aHAXS --numeric-ids --exclude=/projects $HOME_DIR/ $NEUTRAL/$STAGE_SUBDIR/"
-else
-  echo "   + rsync -aHAXS --numeric-ids --exclude=/projects $HOME_DIR/ -> staging"
-  rc=0
-  rsync -aHAXS --numeric-ids --exclude='/projects' "$HOME_DIR/" "$NEUTRAL/$STAGE_SUBDIR/" || rc=$?
-  # rsync 24 = some source files vanished mid-copy — benign churn on a live home (gvfs
-  # metadata, caches, sockets the dying session was still touching). 23 = partial transfer
-  # (some files/attrs skipped). Neither is fatal here: the original home is untouched, we
-  # verify the critical files (.ssh) in the next step, and the full original is preserved as
-  # $OLD_DIR after cutover — so a missed file stays recoverable. Anything else rolls back.
-  case "$rc" in
-    0)  ;;
-    24) echo "   (rsync rc=24: some files vanished mid-copy — benign, continuing)" ;;
-    23) echo "!! rsync rc=23: partial transfer (some files/attrs skipped) — continuing; verify ~ after cutover" >&2 ;;
-    *)  fail "rsync failed (rc=$rc)" ;;
-  esac
-fi
+# Exclude volatile, auto-regenerated dirs that (a) churn constantly even after the session is
+# gone and (b) have no business on the new home: GVFS metadata (the file that vanished last run)
+# and the XDG cache. With these out, a quiesced home is static — so rsync stays STRICT: any
+# nonzero exit (including 24 "a file vanished") means something is genuinely still writing, and
+# the ERR trap rolls back to investigate rather than shipping a silently-incomplete home copy.
+run rsync -aHAXS --numeric-ids \
+  --exclude='/projects' \
+  --exclude='/.cache/' \
+  --exclude='/.local/share/gvfs-metadata/' \
+  "$HOME_DIR/" "$NEUTRAL/$STAGE_SUBDIR/"
 STAGE=copied
 
 say "Verifying + hardening the staged home (sshd StrictModes lockout guard)"
