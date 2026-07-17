@@ -27,7 +27,7 @@ podman build \
   --build-arg "GID=$(id -g)" \
   -t "$IMAGE" \
   -f "$SCRIPT_DIR/Containerfile" \
-  "$SCRIPT_DIR"
+  "$SCRIPT_DIR/.."
 
 # Replace any previous instance.
 podman rm -f "$NAME" >/dev/null 2>&1 || true
@@ -50,7 +50,7 @@ podman run -d \
   --volume "$CODEX_STATE:/home/agent/.codex:rw" \
   --volume "$GH_STATE:/home/agent/.config/gh:rw" \
   --workdir /workspace \
-  "$IMAGE" bash -c 'happier daemon start >/dev/null 2>&1 || true; exec sleep infinity'
+  "$IMAGE" bash -c 'hdev daemon start >/dev/null 2>&1 || true; exec sleep infinity'
 
 cat <<EOF
 
@@ -59,7 +59,7 @@ start/restart once you've authed (it's a benign no-op before that).
   Shell in:   sandbox              # alias; or:  podman exec -it $NAME bash
   Auth once (persists via mounted volumes):
     codex login
-    happier auth login             # mobile-first
+    hdev auth login                # mobile-first (dev channel; 'happier' also resolves via symlink)
     gh auth login
   Bring the daemon up with your new auth:  podman restart $NAME
   Stop:  podman stop $NAME      Rebuild: re-run this script

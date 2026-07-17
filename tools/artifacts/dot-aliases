@@ -117,7 +117,7 @@ yank() {
   fi
 
   # Native pbcopy only on a bare macOS terminal (no multiplexer to tunnel through).
-  if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]] && [[ -z "$ZELLIJ" ]]; then
+  if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]]; then
     printf "%s" "$content" | pbcopy
     return
   fi
@@ -128,7 +128,7 @@ yank() {
     # tmux needs OSC52 wrapped in its DCS passthrough
     printf '\033Ptmux;\033\033]52;c;%s\007\033\\' "$b64"
   else
-    # zellij copies OSC52 natively; bare terminals pass it to the host
+    # bare terminals pass OSC52 through to the host
     printf '\033]52;c;%s\007' "$b64"
   fi
 }
@@ -141,6 +141,9 @@ dan() {
   # DANgerous interactive agent: Codex with approvals + sandbox bypassed, as you.
   codex --dangerously-bypass-approvals-and-sandbox "$@"
 }
+
+# happier -> the Happier dev-channel binary
+alias happier=hdev
 
 # sandbox — open a shell in the disposable agent sandbox: podman container on Linux,
 # Tart VM on macOS. Provision it first with tools/sandbox/setup-sandbox-<os>.sh.
@@ -163,7 +166,7 @@ sandbox() {
     *) echo "sandbox: unsupported OS $(uname -s)" >&2; return 1 ;;
   esac
 }
-alias bye='if [ -n "$TMUX" ]; then tmux detach -P; elif [ -n "$ZELLIJ" ]; then zellij action detach; else exit; fi'
+alias bye='if [ -n "$TMUX" ]; then tmux detach -P; else exit; fi'
 
 # Draw Things gRPC image-generation server
 alias grpc='gRPCServerCLI-macOS ~/Library/Containers/com.liuliu.draw-things/Data/Documents/Models --port 7000'

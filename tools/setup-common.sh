@@ -1,14 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-## COPY DOT-FILES
-cat artifacts/dot-bashrc >~/.bashrc
-cat artifacts/dot-aliases >~/.aliases
-cat artifacts/dot-tmux.conf >~/.tmux.conf
-cat artifacts/dot-zshrc >~/.zshrc
-mkdir -p ~/.local/bin
-cp artifacts/tmux-zen.sh ~/.local/bin/tmux-zen.sh
-chmod +x ~/.local/bin/tmux-zen.sh
+## Shared CLI layer (dotfiles, starship, nvm, uv, golang, codex) — same as the sandbox guest
+./setup-cli.sh
 export PATH="$HOME/.local/bin:$PATH"
 
 ## Git defaults
@@ -49,73 +43,26 @@ echo "nameserver 10.1.0.1" | sudo tee /etc/resolver/home >/dev/null
 sudo cp artifacts/sudoers_nopasswd /etc/sudoers.d/sudoers_nopasswd
 sudo chmod 440 /etc/sudoers.d/sudoers_nopasswd
 
-## CONFIGS
+## NVIM CONFIG
 mkdir -p ~/.config
 rm -rf ~/.config/nvim
 cp -r artifacts/dot-config-nvim ~/.config/nvim
-cp artifacts/starship.toml ~/.config/starship.toml
-mkdir -p ~/.config/zellij
-cp artifacts/zellij-config.kdl ~/.config/zellij/config.kdl
 
-## STARSHIP (upstream binary, not apt)
-if dpkg -l starship 2>/dev/null | grep -q '^ii'; then
-  sudo apt purge --quiet -qq -y starship
-fi
-curl -sS https://starship.rs/install.sh | sudo sh -s -- -y >/dev/null
-echo "Starship: $(starship --version | head -1)"
-
-## UV
-if command -v uv &>/dev/null; then
-  uv self update &>/dev/null || true
-  echo "uv: $(uv --version | head -1)"
-else
-  echo "uv: installing..."
-  curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
-fi
-
-## NVM + NODE
-export NVM_DIR="$HOME/.config/nvm"
-if [ -s "$NVM_DIR/nvm.sh" ] && ls "$NVM_DIR/versions/node/" &>/dev/null; then
-  \. "$NVM_DIR/nvm.sh"
-  echo "Node: $(node --version)"
-else
-  echo "Node: installing nvm + LTS..."
-  mkdir -p "$NVM_DIR"
-  wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
-  \. "$NVM_DIR/nvm.sh"
-  nvm install --lts
-  npm install -g npm@latest
-fi
-
-## AGENT CLI'S
-# if command -v copilot &>/dev/null || command -v github-copilot-cli &>/dev/null; then
-#   copilot update &>/dev/null || true
-# else
-#   echo "Copilot: installing..."
-#   curl -fsSL https://gh.io/copilot-install | bash &>/dev/null || true
-# fi
-# echo "Copilot: $(copilot --version 2>/dev/null | head -1 || true)"
+## AGENT CLI'S (host-only: claude + happier dev channel; codex is installed by setup-cli.sh)
 if command -v claude &>/dev/null; then
-   claude update &>/dev/null || true
+  claude update &>/dev/null || true
 else
   echo "Claude: installing..."
   curl -fsSL https://claude.ai/install.sh | bash &>/dev/null || true
 fi
 echo "Claude: $(claude --version 2>/dev/null | head -1 || true)"
-if command -v codex &>/dev/null; then
-  codex --version &>/dev/null || true
+if command -v hdev &>/dev/null; then
+  hdev --version &>/dev/null || true
 else
-  echo "Codex: installing..."
-  curl -fsSL https://chatgpt.com/codex/install.sh | sh &>/dev/null || true
+  echo "Happier: installing (dev channel)..."
+  curl -fsSL https://happier.dev/install-dev | bash &>/dev/null || true
 fi
-echo "Codex: $(codex --version 2>/dev/null | head -1 || true)"
-if command -v happier &>/dev/null; then
-  happier --version &>/dev/null || true
-else
-  echo "Happier: installing..."
-  curl -fsSL https://happier.dev/install | bash &>/dev/null || true
-fi
-echo "Happier: $(happier --version 2>/dev/null | head -1 || true)"
+echo "Happier: $(hdev --version 2>/dev/null | head -1 || true)"
 
 ## CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude

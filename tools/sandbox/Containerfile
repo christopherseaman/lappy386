@@ -1,15 +1,21 @@
 # happier-agent — disposable Codex + Happier coding sandbox (Debian, Node-free base).
+# Build context is the repo's tools/ dir (see setup-sandbox-linux.sh), so COPY paths are
+# relative to tools/ (artifacts/…, setup-cli.sh).
 FROM debian:stable-slim
 
 ARG UID=1000
 ARG GID=1000
 
-# Base tooling: curl (installers), git/ssh (repos), ca-certificates (TLS), and a build
-# toolchain. Language toolchains (node, rust, …) are installed at runtime by the agent
-# into its home and treated as disposable.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      curl ca-certificates git openssh-client build-essential \
-      python3 python3-venv python3-pip \
+# Shared CLI packages (artifacts/apt-cli.lst) + GitHub CLI (its own apt repo — not in Debian).
+# Python is intentionally omitted; uv provides/manages it (`uv python install`).
+COPY artifacts/apt-cli.lst /tmp/apt-cli.lst
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg \
+    && mkdir -p -m 755 /etc/apt/keyrings \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gh $(grep -vE '^\s*#|^\s*$' /tmp/apt-cli.lst) \
     && rm -rf /var/lib/apt/lists/*
 
 # Non-root agent user whose UID/GID match the host user, so rootless keep-id maps cleanly
@@ -17,41 +23,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd -g "${GID}" agent \
     && useradd -m -u "${UID}" -g "${GID}" -s /bin/bash agent
 
-# Codex CLI — a self-contained static binary, so a single copy onto the system PATH lets the
-# agent run it. `codex --version` guards the copy path at build time.
-RUN curl -fsSL https://chatgpt.com/codex/install.sh | sh \
-    && install -m 0755 "$(ls /root/.local/bin/codex 2>/dev/null || command -v codex)" /usr/local/bin/codex \
-    && codex --version
-
-# GitHub CLI — from the official apt repo, so `gh auth login` works inside the guest.
-RUN mkdir -p -m 755 /etc/apt/keyrings \
-    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-    && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list \
-    && apt-get update && apt-get install -y --no-install-recommends gh \
-    && rm -rf /var/lib/apt/lists/* \
-    && gh --version
-
 # The gh creds volume mounts at ~/.config/gh; pre-create ~/.config owned by agent so podman
 # does not create it root-owned, which would block the agent writing elsewhere under it.
 RUN install -d -o agent -g agent /home/agent/.config
 
-# The happier shim lands in the agent's ~/.local/bin; put it on PATH.
+# The happier shim and codex land in the agent's ~/.local/bin; put it on PATH.
 ENV PATH="/home/agent/.local/bin:${PATH}"
 
-# Happier CLI — a launcher shim plus a package-dist tree, not a single static binary, so its
-# installer places the whole tree. The program installs to /usr/local/happier (kept out of
-# ~/.happier, which at runtime is a mounted volume holding happier's own auth/state) and the
-# shim to the agent's ~/.local/bin; both are chowned to the agent so it can update happier
-# in-guest by re-running the installer. HAPPIER_WITH_DAEMON=0 / HAPPIER_NONINTERACTIVE=1 skip
-# the installer's background-service registration, which needs an init/dbus session the
-# container lacks; the daemon is started from the run wrapper.
-RUN curl -fsSL https://happier.dev/install | \
+# Happier CLI, dev channel (binary `hdev`, whose self-update works). Program installs to
+# /usr/local/happier (kept out of ~/.happier, which at runtime is a mounted volume holding
+# happier's own auth/state) and the shim to the agent's ~/.local/bin; both are chowned to the
+# agent so it can update happier in-guest by re-running install-dev. A happier -> hdev symlink
+# makes both names resolve. HAPPIER_WITH_DAEMON=0 / HAPPIER_NONINTERACTIVE=1 skip the installer's
+# background-service registration (needs an init/dbus session the container lacks); the daemon
+# is started from the run wrapper.
+RUN curl -fsSL https://happier.dev/install-dev | \
       HAPPIER_INSTALL_DIR=/usr/local/happier HAPPIER_BIN_DIR=/home/agent/.local/bin \
       HAPPIER_WITH_DAEMON=0 HAPPIER_NONINTERACTIVE=1 bash \
+    && ln -sf /home/agent/.local/bin/hdev /home/agent/.local/bin/happier \
     && chown -R agent:agent /usr/local/happier /home/agent/.local \
-    && happier --version
+    && hdev --version
 
+# Shared CLI layer, installed as the agent the same way hosts do: dotfiles, starship, nvm, uv,
+# golang, codex. Only the artifacts setup-cli.sh needs are copied (not the whole repo).
+COPY --chown=agent:agent setup-cli.sh /home/agent/lappy-tools/setup-cli.sh
+COPY --chown=agent:agent artifacts/dot-bashrc artifacts/dot-aliases artifacts/dot-tmux.conf \
+     artifacts/dot-zshrc artifacts/tmux-zen.sh artifacts/starship.toml \
+     /home/agent/lappy-tools/artifacts/
 USER agent
+RUN cd /home/agent/lappy-tools && bash setup-cli.sh
+
 WORKDIR /workspace
 CMD ["/bin/bash"]
