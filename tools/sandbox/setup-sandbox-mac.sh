@@ -38,9 +38,13 @@ Starting '$VM_NAME':
 One-time first-boot steps inside the guest (login admin/admin, then CHANGE the password):
   curl -fsSL https://chatgpt.com/codex/install.sh | sh
   curl -fsSL https://happier.dev/install | bash
+  brew install gh
   codex login
   happier auth login          # mobile-first; the daemon will not start until this completes
+  gh auth login
   happier daemon service install && happier daemon start
+
+(From another terminal you can shell in with the 'sandbox' alias instead of the GUI console.)
 
 A Happier daemon error before auth completes is expected and benign.
 EOF

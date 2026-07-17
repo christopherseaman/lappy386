@@ -10,13 +10,14 @@ NAME="happier-agent"
 WORKSPACE="${SANDBOX_WORKSPACE:-$HOME/projects}"
 HAPPIER_STATE="$HOME/.local/share/happier-container"
 CODEX_STATE="$HOME/.local/share/codex-container"
+GH_STATE="$HOME/.local/share/gh-container"
 
 if ! command -v podman >/dev/null 2>&1; then
   echo "podman not found; installing..."
   sudo apt-get update && sudo apt-get install -y podman
 fi
 
-mkdir -p "$WORKSPACE" "$HAPPIER_STATE" "$CODEX_STATE"
+mkdir -p "$WORKSPACE" "$HAPPIER_STATE" "$CODEX_STATE" "$GH_STATE"
 
 # Build (idempotent; layer cache makes re-runs cheap). UID/GID baked in so keep-id maps clean.
 podman build \
@@ -30,8 +31,11 @@ podman build \
 podman rm -f "$NAME" >/dev/null 2>&1 || true
 
 # Rootless, no new privileges, all caps dropped, resource-limited, cut off from host
-# loopback services (slirp4netns). Only ~/projects + the two auth dirs are mounted.
-exec podman run \
+# loopback services (slirp4netns). Only ~/projects + the auth dirs are mounted. Runs
+# DETACHED with a keep-alive PID 1 — provisioning does not open a shell; use `sandbox`
+# (alias) or `podman exec -it happier-agent bash` for that. gh creds are persisted via
+# a mounted volume because the container's writable layer is discarded on rebuild.
+podman run -d \
   --name "$NAME" \
   --hostname "$NAME" \
   --userns="keep-id:uid=$(id -u),gid=$(id -g)" \
@@ -42,6 +46,18 @@ exec podman run \
   --volume "$WORKSPACE:/workspace:rw" \
   --volume "$HAPPIER_STATE:/home/agent/.happier:rw" \
   --volume "$CODEX_STATE:/home/agent/.codex:rw" \
+  --volume "$GH_STATE:/home/agent/.config/gh:rw" \
   --workdir /workspace \
-  --interactive --tty \
-  "$IMAGE" "$@"
+  "$IMAGE" sleep infinity
+
+cat <<EOF
+
+Sandbox '$NAME' is running (detached).
+  Shell in:   sandbox              # alias; or:  podman exec -it $NAME bash
+  Auth once (persists via mounted volumes):
+    codex login
+    happier auth login             # mobile-first; daemon stays down until this completes
+    gh auth login
+  Optional remote agent:  (inside the shell)  happier daemon start
+  Stop:  podman stop $NAME      Rebuild: re-run this script
+EOF

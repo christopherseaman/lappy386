@@ -141,6 +141,28 @@ dan() {
   # DANgerous interactive agent: Codex with approvals + sandbox bypassed, as you.
   codex --dangerously-bypass-approvals-and-sandbox "$@"
 }
+
+# sandbox — open a shell in the disposable agent sandbox: podman container on Linux,
+# Tart VM on macOS. Provision it first with tools/sandbox/setup-sandbox-<os>.sh.
+sandbox() {
+  case "$(uname -s)" in
+    Linux)
+      command -v podman >/dev/null 2>&1 || { echo "sandbox: podman not installed" >&2; return 1; }
+      podman container exists happier-agent 2>/dev/null || {
+        echo "sandbox: 'happier-agent' not found — run tools/sandbox/setup-sandbox-linux.sh first" >&2; return 1; }
+      podman start happier-agent >/dev/null 2>&1 || true
+      podman exec -it --workdir /workspace happier-agent bash -l
+      ;;
+    Darwin)
+      local vm="${SANDBOX_VM:-tahoe-xcode}" ip
+      command -v tart >/dev/null 2>&1 || { echo "sandbox: tart not installed" >&2; return 1; }
+      ip="$(tart ip "$vm" 2>/dev/null)" && [ -n "$ip" ] || {
+        echo "sandbox: VM '$vm' not running — start it with tools/sandbox/setup-sandbox-mac.sh" >&2; return 1; }
+      ssh "admin@$ip"
+      ;;
+    *) echo "sandbox: unsupported OS $(uname -s)" >&2; return 1 ;;
+  esac
+}
 alias bye='if [ -n "$TMUX" ]; then tmux detach -P; elif [ -n "$ZELLIJ" ]; then zellij action detach; else exit; fi'
 
 # Draw Things gRPC image-generation server
