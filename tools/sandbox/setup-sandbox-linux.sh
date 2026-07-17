@@ -6,7 +6,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE="localhost/happier-agent:latest"
-NAME="happier-agent"
+NAME="happier-agent"                         # podman container name — stable across hosts (exec/sandbox alias)
+# hostname INSIDE the guest — per-host so each machine's Happier daemon registers distinctly
+GUEST_HOSTNAME="${SANDBOX_HOSTNAME:-$(hostname -s 2>/dev/null || hostname)-happier}"
 WORKSPACE="${SANDBOX_WORKSPACE:-$HOME/projects}"
 HAPPIER_STATE="$HOME/.local/share/happier-container"
 CODEX_STATE="$HOME/.local/share/codex-container"
@@ -37,7 +39,7 @@ podman rm -f "$NAME" >/dev/null 2>&1 || true
 # a mounted volume because the container's writable layer is discarded on rebuild.
 podman run -d \
   --name "$NAME" \
-  --hostname "$NAME" \
+  --hostname "$GUEST_HOSTNAME" \
   --userns="keep-id:uid=$(id -u),gid=$(id -g)" \
   --cap-drop=all \
   --security-opt=no-new-privileges \
