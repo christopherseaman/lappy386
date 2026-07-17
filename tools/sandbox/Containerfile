@@ -53,5 +53,11 @@ COPY --chown=agent:agent artifacts/dot-bashrc artifacts/dot-aliases artifacts/do
 USER agent
 RUN cd /home/agent/lappy-tools && bash setup-cli.sh
 
+# codex is a self-contained binary, but its installer leaves a shim pointing into ~/.codex —
+# a mounted volume at runtime that shadows the target. Replace the shim with the real binary
+# so codex resolves regardless of the mount.
+RUN cp -L /home/agent/.local/bin/codex /home/agent/.local/bin/.codex.real \
+    && mv -f /home/agent/.local/bin/.codex.real /home/agent/.local/bin/codex
+
 WORKDIR /workspace
 CMD ["/bin/bash"]

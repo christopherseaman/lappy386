@@ -1,5 +1,6 @@
 # fastfetch greeting function
 fastfetch_greeting() {
+  command -v fastfetch >/dev/null 2>&1 || return 0
   shopt -q login_shell && {
     logos=("gnu") # "aperture"
     selected_logo=${logos[$RANDOM % ${#logos[@]}]}
