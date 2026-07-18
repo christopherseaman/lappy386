@@ -48,7 +48,7 @@ mkdir -p ~/.config
 rm -rf ~/.config/nvim
 cp -r artifacts/dot-config-nvim ~/.config/nvim
 
-## AGENT CLI'S (host-only: claude + happier; codex is installed by setup-cli.sh)
+## AGENT CLI'S (host-only: claude + happier + ntn; codex is installed by setup-cli.sh)
 if command -v claude &>/dev/null; then
   claude update &>/dev/null || true
 else
@@ -63,6 +63,13 @@ else
   curl -fsSL https://happier.dev/install | bash &>/dev/null || true
 fi
 echo "Happier: $(happier --version 2>/dev/null | head -1 || true)"
+if command -v ntn &>/dev/null; then
+  ntn update &>/dev/null || true
+else
+  echo "Notion CLI: installing..."
+  curl -fsSL https://ntn.dev | bash &>/dev/null || true
+fi
+echo "Notion CLI: $(ntn --version 2>/dev/null | head -1 || true)"
 
 ## CLAUDE GLOBAL CONFIG
 mkdir -p ~/.claude
