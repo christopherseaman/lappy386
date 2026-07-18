@@ -50,7 +50,12 @@ podman run -d \
   --volume "$CODEX_STATE:/home/agent/.codex:rw" \
   --volume "$GH_STATE:/home/agent/.config/gh:rw" \
   --workdir /workspace \
-  "$IMAGE" bash -c 'happier daemon start >/dev/null 2>&1 || true; exec sleep infinity'
+  "$IMAGE" bash -c '
+    mkdir -p "$HOME/.codex/packages"
+    [ -x "$HOME/.codex/packages/standalone/current/codex" ] \
+      || cp -a "$HOME/.local/share/codex-seed/packages/." "$HOME/.codex/packages/"
+    happier daemon start >/dev/null 2>&1 || true
+    exec sleep infinity'
 
 cat <<EOF
 

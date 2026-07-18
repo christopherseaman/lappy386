@@ -57,5 +57,12 @@ RUN cd /home/agent/lappy-tools && bash setup-cli.sh
 RUN cp -L /home/agent/.local/bin/codex /home/agent/.local/bin/.codex.real \
     && mv -f /home/agent/.local/bin/.codex.real /home/agent/.local/bin/codex
 
+# `codex remote-control` requires the installer-managed standalone package at the fixed path
+# ~/.codex/packages/standalone/current/codex, which the ~/.codex volume shadows at runtime.
+# Stash it under ~/.local/share (not a mount point); the run wrapper seeds the volume from here
+# on first start, after which codex updates it in place.
+RUN mkdir -p /home/agent/.local/share/codex-seed \
+    && cp -a /home/agent/.codex/packages /home/agent/.local/share/codex-seed/packages
+
 WORKDIR /workspace
 CMD ["/bin/bash"]

@@ -14,6 +14,7 @@ gnupg
 htop
 ncdu
 openssh-client
+procps
 ripgrep
 tmux
 wget
