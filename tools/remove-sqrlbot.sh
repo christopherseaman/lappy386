@@ -1,6 +1,6 @@
 #!/bin/bash
 ## Remove the sqrlbot sandbox user, group, and home directory.
-## Opt-in, operator-run teardown for the sqrlbot -> Codex/Happier migration.
+## Opt-in, operator-run teardown for the sqrlbot -> Codex migration.
 ## Leaves ~/projects untouched by design (its group/setgid/ACLs are not reverted here).
 ## Cross-platform: Debian/Ubuntu (userdel/groupdel) and macOS (sysadminctl/dseditgroup).
 ## Run as your normal user (it uses sudo as needed), NOT via sudo/root.

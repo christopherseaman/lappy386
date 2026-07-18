@@ -16,7 +16,7 @@ tools/
   setup-debian.sh           # Debian/Ubuntu: apt packages, neovim, fonts, VM tools, RDP, Firefox
   setup-arch.sh             # Arch: pacman packages
   setup-macos.sh            # macOS: Homebrew, Ghostty config, Dock prefs
-  setup-common.sh           # Cross-platform: dotfiles, git, SSH, nvim config, nvm, Claude/Codex/Happier CLIs
+  setup-common.sh           # Cross-platform: dotfiles, git, SSH, nvim config, nvm, Claude/Codex/Notion CLIs
   setup-firefox.sh          # Mozilla apt repo Firefox (replaces snap)
   setup-claude-mcp.sh       # Interactive: configures Notion/Atlassian MCP servers for Claude
   artifacts/                # Source-of-truth config files copied to target machine
@@ -28,7 +28,8 @@ tools/
   rdp/                      # GNOME headless RDP setup (GDM autologin, TLS, display fix service)
   sandbox/                  # Opt-in disposable agent sandboxes (run manually, not from setup.sh):
                             #   setup-sandbox-linux.sh (rootless Podman + Containerfile),
-                            #   setup-sandbox-mac.sh (Tart macOS+Xcode VM). Run Codex via Happier.
+                            #   setup-sandbox-mac.sh (Tart macOS+Xcode VM). Drive Codex from a
+                            #   phone via `codex remote-control`.
   remove-sqrlbot.sh         # Opt-in teardown: remove the retired sqrlbot user/group/home (manual)
 hosts/                      # Per-machine configs and setup scripts
   tarski/                   # Local QEMU/UTM VM (cloud-init via SMBIOS nocloud datasource)
@@ -49,7 +50,8 @@ theme/                      # Terminal theme files (Kitty, Ghostty, macOS Termin
 - **Host-specific scripts** live under `hosts/<hostname>/` and are run manually or via cloud-init, not from the main `setup.sh` flow.
 - **Two ways agents run.** `dan` (in `artifacts/dot-aliases`) runs Codex locally in
   bypass mode, as you — supervised, no jail. For unattended/remote runs, `tools/sandbox/`
-  provides a disposable VM/container fronted by Happier.
+  provides a disposable VM/container driven from a phone via `codex remote-control`,
+  which publishes no inbound port (it reaches OpenAI outbound over a unix socket).
 
 ## Common Operations
 

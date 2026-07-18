@@ -1,4 +1,4 @@
-# happier-agent — disposable Codex + Happier coding sandbox (Debian, Node-free base).
+# codex-agent — disposable Codex coding sandbox (Debian, Node-free base).
 # Build context is the repo's tools/ dir (see setup-sandbox-linux.sh), so COPY paths are
 # relative to tools/ (artifacts/…, setup-cli.sh).
 FROM debian:stable-slim
@@ -27,20 +27,8 @@ RUN groupadd -g "${GID}" agent \
 # does not create it root-owned, which would block the agent writing elsewhere under it.
 RUN install -d -o agent -g agent /home/agent/.config
 
-# The happier shim and codex land in the agent's ~/.local/bin; put it on PATH.
+# codex lands in the agent's ~/.local/bin; put it on PATH.
 ENV PATH="/home/agent/.local/bin:${PATH}"
-
-# Happier CLI (stable channel; binary `happier`). Program installs to /usr/local/happier
-# (kept out of ~/.happier, which at runtime is a mounted volume holding happier's own auth/state)
-# and the shim to the agent's ~/.local/bin; both are chowned to the agent so it can update
-# happier in-guest by re-running the installer (the `happier-install` alias). HAPPIER_WITH_DAEMON=0
-# / HAPPIER_NONINTERACTIVE=1 skip the installer's background-service registration (needs an
-# init/dbus session the container lacks); the daemon is started from the run wrapper.
-RUN curl -fsSL https://happier.dev/install | \
-      HAPPIER_INSTALL_DIR=/usr/local/happier HAPPIER_BIN_DIR=/home/agent/.local/bin \
-      HAPPIER_WITH_DAEMON=0 HAPPIER_NONINTERACTIVE=1 bash \
-    && chown -R agent:agent /usr/local/happier /home/agent/.local \
-    && happier --version
 
 # Shared CLI layer, installed as the agent the same way hosts do: dotfiles, starship, nvm, uv,
 # golang, codex. Only the artifacts setup-cli.sh needs are copied (not the whole repo).

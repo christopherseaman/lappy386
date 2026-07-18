@@ -1,5 +1,5 @@
 #!/bin/bash
-# Provision a disposable macOS + Xcode Tart VM running Codex + Happier, with ~/projects
+# Provision a disposable macOS + Xcode Tart VM running Codex, with ~/projects
 # shared in and the guest isolated from the host LAN. Apple Silicon only.
 set -euo pipefail
 
@@ -39,15 +39,14 @@ One-time first-boot steps inside the guest (login admin/admin, then CHANGE the p
   git clone https://github.com/christopherseaman/lappy386
   (cd lappy386/tools && ./setup-cli.sh)   # dotfiles + starship + nvm + uv + golang + codex
   brew install gh bat fd fzf ripgrep git-delta zoxide tmux   # CLI tools (parity with the Debian guest)
-  curl -fsSL https://happier.dev/install | bash              # Happier CLI (stable channel)
   codex login
-  happier auth login          # mobile-first; the daemon will not start until this completes
   gh auth login
-  happier daemon service install && happier daemon start
+  codex remote-control start  # publishes no port; reaches OpenAI outbound over a unix socket
+  codex remote-control pair   # short-lived code to pair a phone
 
 (From another terminal you can shell in with the 'sandbox' alias instead of the GUI console.)
 
-A Happier daemon error before auth completes is expected and benign.
+A remote-control error before 'codex login' completes is expected and benign.
 EOF
 
 exec tart run \

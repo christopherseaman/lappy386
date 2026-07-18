@@ -48,7 +48,7 @@ mkdir -p ~/.config
 rm -rf ~/.config/nvim
 cp -r artifacts/dot-config-nvim ~/.config/nvim
 
-## AGENT CLI'S (host-only: claude + happier + ntn; codex is installed by setup-cli.sh)
+## AGENT CLI'S (host-only: claude + ntn; codex is installed by setup-cli.sh)
 if command -v claude &>/dev/null; then
   claude update &>/dev/null || true
 else
@@ -56,13 +56,6 @@ else
   curl -fsSL https://claude.ai/install.sh | bash &>/dev/null || true
 fi
 echo "Claude: $(claude --version 2>/dev/null | head -1 || true)"
-if command -v happier &>/dev/null; then
-  happier --version &>/dev/null || true
-else
-  echo "Happier: installing..."
-  curl -fsSL https://happier.dev/install | bash &>/dev/null || true
-fi
-echo "Happier: $(happier --version 2>/dev/null | head -1 || true)"
 if command -v ntn &>/dev/null; then
   ntn update &>/dev/null || true
 else

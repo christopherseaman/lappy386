@@ -143,19 +143,16 @@ dan() {
   codex --dangerously-bypass-approvals-and-sandbox "$@"
 }
 
-# happier-install — (re)install/update the Happier CLI (stable channel)
-alias happier-install='curl -fsSL https://happier.dev/install | bash'
-
 # sandbox — open a shell in the disposable agent sandbox: podman container on Linux,
 # Tart VM on macOS. Provision it first with tools/sandbox/setup-sandbox-<os>.sh.
 sandbox() {
   case "$(uname -s)" in
     Linux)
       command -v podman >/dev/null 2>&1 || { echo "sandbox: podman not installed" >&2; return 1; }
-      podman container exists happier-agent 2>/dev/null || {
-        echo "sandbox: 'happier-agent' not found — run tools/sandbox/setup-sandbox-linux.sh first" >&2; return 1; }
-      podman start happier-agent >/dev/null 2>&1 || true
-      podman exec -it --workdir /workspace happier-agent bash -l
+      podman container exists codex-agent 2>/dev/null || {
+        echo "sandbox: 'codex-agent' not found — run tools/sandbox/setup-sandbox-linux.sh first" >&2; return 1; }
+      podman start codex-agent >/dev/null 2>&1 || true
+      podman exec -it --workdir /workspace codex-agent bash -l
       ;;
     Darwin)
       local vm="${SANDBOX_VM:-tahoe-xcode}" ip
