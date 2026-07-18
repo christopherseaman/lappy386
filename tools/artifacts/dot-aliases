@@ -143,8 +143,8 @@ dan() {
   codex --dangerously-bypass-approvals-and-sandbox "$@"
 }
 
-# happier -> the Happier dev-channel binary
-alias happier=hdev
+# happier-install — (re)install/update the Happier CLI (stable channel)
+alias happier-install='curl -fsSL https://happier.dev/install | bash'
 
 # sandbox — open a shell in the disposable agent sandbox: podman container on Linux,
 # Tart VM on macOS. Provision it first with tools/sandbox/setup-sandbox-<os>.sh.

@@ -39,11 +39,11 @@ One-time first-boot steps inside the guest (login admin/admin, then CHANGE the p
   git clone https://github.com/christopherseaman/lappy386
   (cd lappy386/tools && ./setup-cli.sh)   # dotfiles + starship + nvm + uv + golang + codex
   brew install gh bat fd fzf ripgrep git-delta zoxide tmux   # CLI tools (parity with the Debian guest)
-  curl -fsSL https://happier.dev/install-dev | bash          # Happier dev channel -> hdev
+  curl -fsSL https://happier.dev/install | bash              # Happier CLI (stable channel)
   codex login
-  hdev auth login             # mobile-first; the daemon will not start until this completes
+  happier auth login          # mobile-first; the daemon will not start until this completes
   gh auth login
-  hdev daemon service install && hdev daemon start
+  happier daemon service install && happier daemon start
 
 (From another terminal you can shell in with the 'sandbox' alias instead of the GUI console.)
 

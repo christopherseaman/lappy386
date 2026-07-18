@@ -30,19 +30,17 @@ RUN install -d -o agent -g agent /home/agent/.config
 # The happier shim and codex land in the agent's ~/.local/bin; put it on PATH.
 ENV PATH="/home/agent/.local/bin:${PATH}"
 
-# Happier CLI, dev channel (binary `hdev`, whose self-update works). Program installs to
-# /usr/local/happier (kept out of ~/.happier, which at runtime is a mounted volume holding
-# happier's own auth/state) and the shim to the agent's ~/.local/bin; both are chowned to the
-# agent so it can update happier in-guest by re-running install-dev. A happier -> hdev symlink
-# makes both names resolve. HAPPIER_WITH_DAEMON=0 / HAPPIER_NONINTERACTIVE=1 skip the installer's
-# background-service registration (needs an init/dbus session the container lacks); the daemon
-# is started from the run wrapper.
-RUN curl -fsSL https://happier.dev/install-dev | \
+# Happier CLI (stable channel; binary `happier`). Program installs to /usr/local/happier
+# (kept out of ~/.happier, which at runtime is a mounted volume holding happier's own auth/state)
+# and the shim to the agent's ~/.local/bin; both are chowned to the agent so it can update
+# happier in-guest by re-running the installer (the `happier-install` alias). HAPPIER_WITH_DAEMON=0
+# / HAPPIER_NONINTERACTIVE=1 skip the installer's background-service registration (needs an
+# init/dbus session the container lacks); the daemon is started from the run wrapper.
+RUN curl -fsSL https://happier.dev/install | \
       HAPPIER_INSTALL_DIR=/usr/local/happier HAPPIER_BIN_DIR=/home/agent/.local/bin \
       HAPPIER_WITH_DAEMON=0 HAPPIER_NONINTERACTIVE=1 bash \
-    && ln -sf /home/agent/.local/bin/hdev /home/agent/.local/bin/happier \
     && chown -R agent:agent /usr/local/happier /home/agent/.local \
-    && hdev --version
+    && happier --version
 
 # Shared CLI layer, installed as the agent the same way hosts do: dotfiles, starship, nvm, uv,
 # golang, codex. Only the artifacts setup-cli.sh needs are copied (not the whole repo).
