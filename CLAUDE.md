@@ -33,7 +33,7 @@ tools/
 hosts/                      # Per-machine configs and setup scripts
   tarski/                   # Local QEMU/UTM VM (cloud-init via SMBIOS nocloud datasource)
   strongbad/                # ChromeOS Crostini container (LXC + cloud-config)
-  carnac/                   # Server: Pi-hole, Caddy reverse proxy, code-server, firewall
+  carnac/                   # Server: Pi-hole, cloudflared tunnel (ingress), code-server, firewall
   gamepost/                 # Samba file server config
   hivemind/                 # NFS/fstab mounts
   schmaspberry/             # Cellular gateway setup
