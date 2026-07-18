@@ -37,14 +37,20 @@ podman rm -f "$NAME" >/dev/null 2>&1 || true
 # (alias) or `podman exec -it codex-agent bash` for that. gh creds are persisted via
 # a mounted volume because the container's writable layer is discarded on rebuild.
 #
-# On start the wrapper: seeds the installer-managed standalone codex package into the
-# ~/.codex volume that shadows the image copy; drops app-server control/daemon state left
-# by a previous container (a socket and pidfile whose process died with it, which otherwise
-# makes remote-control fail to become ready); then brings up remote control, which reaches
+# --init gives PID 1 an init that reaps orphans: codex spawns per-task children, and a
+# non-reaping PID 1 (e.g. a bare `sleep`) leaves each one a zombie until the pids-limit
+# is exhausted.
+#
+# On start the wrapper seeds the installer-managed standalone codex package into the
+# ~/.codex volume that shadows the image copy, then supervises remote control: whenever the
+# app-server is not running it drops the control/daemon state (a socket and pidfile whose
+# process is gone, which otherwise makes startup fail to become ready) and restarts it. That
+# covers both container restarts and the app-server dying mid-life. Remote control reaches
 # OpenAI outbound over a unix socket and publishes no port.
 podman run -d \
   --name "$NAME" \
   --hostname "$GUEST_HOSTNAME" \
+  --init \
   --userns="keep-id:uid=$(id -u),gid=$(id -g)" \
   --cap-drop=all \
   --security-opt=no-new-privileges \
@@ -58,9 +64,14 @@ podman run -d \
     mkdir -p "$HOME/.codex/packages"
     [ -x "$HOME/.codex/packages/standalone/current/codex" ] \
       || cp -a "$HOME/.local/share/codex-seed/packages/." "$HOME/.codex/packages/"
-    rm -rf "$HOME/.codex/app-server-control" "$HOME/.codex/app-server-daemon"
-    codex remote-control start >/dev/null 2>&1 || true
-    exec sleep infinity'
+    while true; do
+      # bracket keeps the pattern from matching this supervisor own command line
+      if ! pgrep -f "codex app-[s]erver" >/dev/null 2>&1; then
+        rm -rf "$HOME/.codex/app-server-control" "$HOME/.codex/app-server-daemon"
+        codex remote-control start >/dev/null 2>&1 || true
+      fi
+      sleep 30
+    done'
 
 cat <<EOF
 
