@@ -37,7 +37,7 @@ Starting '$VM_NAME':
 
 One-time first-boot steps inside the guest (login admin/admin, then CHANGE the password):
   git clone https://github.com/christopherseaman/lappy386
-  (cd lappy386/tools && ./setup-cli.sh)   # dotfiles + starship + nvm + uv + golang + codex
+  (cd lappy386/tools && ./setup-cli.sh)   # dotfiles, starship, nvm, uv, golang, codex, ~/.codex/AGENTS.md
   brew install gh bat fd fzf ripgrep git-delta zoxide tmux   # CLI tools (parity with the Debian guest)
   codex login
   gh auth login

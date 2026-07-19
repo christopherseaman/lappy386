@@ -41,8 +41,8 @@ podman rm -f "$NAME" >/dev/null 2>&1 || true
 # non-reaping PID 1 (e.g. a bare `sleep`) leaves each one a zombie until the pids-limit
 # is exhausted.
 #
-# On start the wrapper seeds the installer-managed standalone codex package into the
-# ~/.codex volume that shadows the image copy, then supervises remote control: whenever the
+# On start the wrapper restores what the ~/.codex volume shadows — the installer-managed
+# standalone codex package and the global AGENTS.md — then supervises remote control: whenever the
 # app-server is not running it drops the control/daemon state (a socket and pidfile whose
 # process is gone, which otherwise makes startup fail to become ready) and restarts it. That
 # covers both container restarts and the app-server dying mid-life. Remote control reaches
@@ -64,6 +64,10 @@ podman run -d \
     mkdir -p "$HOME/.codex/packages"
     [ -x "$HOME/.codex/packages/standalone/current/codex" ] \
       || cp -a "$HOME/.local/share/codex-seed/packages/." "$HOME/.codex/packages/"
+    # Global instructions, restored past the same mount. Overwritten every start (the
+    # image copy is canonical), unlike the package seed above which codex updates in place.
+    [ -f "$HOME/.local/share/agent-instructions/AGENTS.md" ] \
+      && cp -f "$HOME/.local/share/agent-instructions/AGENTS.md" "$HOME/.codex/AGENTS.md"
     while true; do
       # bracket keeps the pattern from matching this supervisor own command line
       if ! pgrep -f "codex app-[s]erver" >/dev/null 2>&1; then

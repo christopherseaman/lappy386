@@ -73,3 +73,27 @@ else
   curl -fsSL https://chatgpt.com/codex/install.sh | sh >/dev/null 2>&1 || true
 fi
 echo "Codex: $(codex --version 2>/dev/null | head -1 || true)"
+
+## Global agent instructions
+# Canonical source is a gist, not this repo — it governs every machine and project.
+#   view: https://gist.github.com/christopherseaman/310a389a659acf37a6b13675a92a2438
+#   edit: gh gist edit 310a389a659acf37a6b13675a92a2438 -f CLAUDE.md <file>
+# One body, two readers: Claude Code reads ~/.claude/CLAUDE.md and ignores AGENTS.md;
+# codex reads ~/.codex/AGENTS.md. Fetch once, write both. Metadata stays in these
+# comments — codex renders HTML comments in the body into the prompt verbatim.
+#
+# The third copy under ~/.local/share is for the sandbox guest: there ~/.codex is a
+# bind mount that shadows whatever the image wrote, so the container start wrapper
+# restores AGENTS.md from this (unmounted) path. Harmless on hosts.
+INSTRUCTIONS_URL="https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md"
+mkdir -p ~/.claude ~/.codex ~/.local/share/agent-instructions
+instructions_tmp=$(mktemp)
+if curl -fsSL "$INSTRUCTIONS_URL" -o "$instructions_tmp" && [ -s "$instructions_tmp" ]; then
+  cp "$instructions_tmp" ~/.claude/CLAUDE.md
+  cp "$instructions_tmp" ~/.codex/AGENTS.md
+  cp "$instructions_tmp" ~/.local/share/agent-instructions/AGENTS.md
+  echo "Agent instructions: $(wc -l <"$instructions_tmp") lines -> ~/.claude/CLAUDE.md + ~/.codex/AGENTS.md"
+else
+  echo "Agent instructions: fetch failed; existing files left untouched" >&2
+fi
+rm -f "$instructions_tmp"

@@ -64,26 +64,9 @@ else
 fi
 echo "Notion CLI: $(ntn --version 2>/dev/null | head -1 || true)"
 
-## GLOBAL AGENT INSTRUCTIONS
-# Canonical source is a gist, not this repo — it governs every machine and project.
-#   view: https://gist.github.com/christopherseaman/310a389a659acf37a6b13675a92a2438
-#   edit: gh gist edit 310a389a659acf37a6b13675a92a2438 -f CLAUDE.md <file>
-# One body, two readers: Claude Code reads ~/.claude/CLAUDE.md and ignores AGENTS.md;
-# codex reads ~/.codex/AGENTS.md. Fetch once, write both. Keep metadata in comments
-# here rather than in the body — codex renders HTML comments into the prompt verbatim.
-INSTRUCTIONS_URL="https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md"
-mkdir -p ~/.claude ~/.codex
-instructions_tmp=$(mktemp)
-if curl -fsSL "$INSTRUCTIONS_URL" -o "$instructions_tmp" && [ -s "$instructions_tmp" ]; then
-  cp "$instructions_tmp" ~/.claude/CLAUDE.md
-  cp "$instructions_tmp" ~/.codex/AGENTS.md
-  echo "Agent instructions: $(wc -l <"$instructions_tmp") lines -> ~/.claude/CLAUDE.md + ~/.codex/AGENTS.md"
-else
-  echo "Agent instructions: fetch failed; existing files left untouched" >&2
-fi
-rm -f "$instructions_tmp"
-
-## CLAUDE SETTINGS — merged, not overwritten: Claude Code writes some keys itself
+## CLAUDE SETTINGS — merged, not overwritten: Claude Code writes some keys itself.
+# Host-only: the sandbox guests run codex, not Claude Code. The global instructions
+# both agents read are deployed by setup-cli.sh, which runs on hosts and guests alike.
 if command -v python3 &>/dev/null; then
   ./merge-settings.py artifacts/claude-settings.json ~/.claude/settings.json
 else
