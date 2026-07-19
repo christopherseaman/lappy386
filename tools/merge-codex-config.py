@@ -28,10 +28,12 @@ MANAGED = {
     "host": {
         "personality": "pragmatic",
         "model_reasoning_effort": "xhigh",
+        "agents": {"max_depth": 2, "max_threads": 8},
     },
     "sandbox": {
         "personality": "pragmatic",
         "model_reasoning_effort": "xhigh",
+        "agents": {"max_depth": 2, "max_threads": 8},
         # Only ever correct inside the container.
         "approval_policy": "never",
         "sandbox_mode": "danger-full-access",
@@ -51,21 +53,56 @@ def split_preamble(text):
     return lines, []
 
 
-def apply(preamble, managed):
-    """Rewrite existing assignments in place; append the rest before any tables."""
+def toml_value(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    return f'"{value}"'
+
+
+def assignment(key, value):
+    return f"{key} = {toml_value(value)}"
+
+
+def apply(lines, managed):
+    """Rewrite existing assignments in place; append the rest at the end of the section."""
     out, seen = [], set()
-    for line in preamble:
+    for line in lines:
         for key, value in managed.items():
             if re.match(rf"^\s*{re.escape(key)}\s*=", line):
-                out.append(f'{key} = "{value}"')
+                out.append(assignment(key, value))
                 seen.add(key)
                 break
         else:
             out.append(line)
-    for key, value in managed.items():
-        if key not in seen:
-            out.append(f'{key} = "{value}"')
-    return out
+    new = [assignment(k, v) for k, v in managed.items() if k not in seen]
+    if not new:
+        return out
+    # Insert after the last real assignment so trailing blank lines stay at the end of
+    # the section: a key stranded below a blank line reads as belonging to the next table.
+    cut = len(out)
+    while cut and not out[cut - 1].strip():
+        cut -= 1
+    return out[:cut] + new + out[cut:]
+
+
+def apply_table(tables, name, managed):
+    """Rewrite managed keys inside [name], or append the table if it is absent.
+
+    Only the span between [name] and the next table header is touched, so sibling
+    tables — codex's own [projects.*] and [apps.*] state — are copied through.
+    """
+    header = re.compile(rf"^\s*\[{re.escape(name)}\]\s*$")
+    start = next((i for i, ln in enumerate(tables) if header.match(ln)), None)
+    if start is None:
+        block = [f"[{name}]"] + [assignment(k, v) for k, v in managed.items()]
+        return tables + ([""] if tables else []) + block
+    end = next(
+        (i for i in range(start + 1, len(tables)) if TABLE_START.match(tables[i])),
+        len(tables),
+    )
+    return tables[:start + 1] + apply(tables[start + 1:end], managed) + tables[end:]
 
 
 def render(preamble, tables):
@@ -93,8 +130,13 @@ def main(scope, path):
         except tomllib.TOMLDecodeError as e:
             sys.exit(f"error: {path} is not valid TOML, refusing to edit: {e}")
 
+    scalars = {k: v for k, v in managed.items() if not isinstance(v, dict)}
+    subtables = {k: v for k, v in managed.items() if isinstance(v, dict)}
+
     preamble, tables = split_preamble(original)
-    updated = render(apply(preamble, managed), tables)
+    for name, keys in subtables.items():
+        tables = apply_table(tables, name, keys)
+    updated = render(apply(preamble, scalars), tables)
 
     if updated == original:
         print(f"Codex config ({scope}): already current")
@@ -106,8 +148,14 @@ def main(scope, path):
         after = tomllib.loads(updated)
     except tomllib.TOMLDecodeError as e:
         sys.exit(f"error: edit produced invalid TOML, aborting: {e}")
+    # Managed subtables merge key-wise, matching what apply_table does: unmanaged keys
+    # inside a managed table survive, so a shallow update here would false-alarm.
     expected = dict(before)
-    expected.update(managed)
+    for key, value in managed.items():
+        if isinstance(value, dict):
+            expected[key] = {**before.get(key, {}), **value}
+        else:
+            expected[key] = value
     if after != expected:
         lost = sorted(set(before) - set(after))
         sys.exit(
