@@ -22,15 +22,15 @@ import stat
 import sys
 import tomllib
 
+# `model` is deliberately absent: model names drift, and a provisioning script that pins
+# one silently writes a dead string once it is renamed. Left to codex's default and /model.
 MANAGED = {
     "host": {
         "personality": "pragmatic",
-        "model": "gpt-5.6-sol",
         "model_reasoning_effort": "xhigh",
     },
     "sandbox": {
         "personality": "pragmatic",
-        "model": "gpt-5.6-sol",
         "model_reasoning_effort": "xhigh",
         # Only ever correct inside the container.
         "approval_policy": "never",
