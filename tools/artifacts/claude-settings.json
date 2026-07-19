@@ -15,5 +15,8 @@
   "ultracode": true,
   "skipDangerousModePermissionPrompt": true,
   "remoteControlAtStartup": true,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
+  "teammateMode": "auto",
   "tui": "fullscreen"
 }
