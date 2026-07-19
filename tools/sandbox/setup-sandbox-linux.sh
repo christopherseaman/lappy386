@@ -31,6 +31,16 @@ podman build \
 # Replace any previous instance.
 podman rm -f "$NAME" >/dev/null 2>&1 || true
 
+# Managed codex settings, written while the container is down so no guest codex process
+# is holding the file. $CODEX_STATE is the host side of the ~/.codex bind mount, so this
+# lands in the guest without needing anything installed there. The sandbox scope is what
+# supplies approval_policy/sandbox_mode: correct here because the container is the jail.
+if command -v python3 >/dev/null 2>&1; then
+  "$SCRIPT_DIR/../merge-codex-config.py" sandbox "$CODEX_STATE/config.toml"
+else
+  echo "Codex config: python3 not found; skipped (existing config untouched)" >&2
+fi
+
 # Rootless, no new privileges, all caps dropped, resource-limited, cut off from host
 # loopback services (slirp4netns). Only ~/projects + the auth dirs are mounted. Runs
 # DETACHED with a keep-alive PID 1 — provisioning does not open a shell; use `sandbox`

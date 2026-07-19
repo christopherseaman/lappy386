@@ -73,6 +73,16 @@ else
   echo "Claude settings: python3 not found; skipped (existing settings untouched)" >&2
 fi
 
+## CODEX SETTINGS — host scope. Merged for the same reason: codex writes project trust
+# levels and per-app approvals into this file itself. The host deliberately gets no
+# approval_policy/sandbox_mode; those are sandbox-only and the scope argument is what
+# makes them unreachable here.
+if command -v python3 &>/dev/null; then
+  ./merge-codex-config.py host ~/.codex/config.toml
+else
+  echo "Codex config: python3 not found; skipped (existing config untouched)" >&2
+fi
+
 ## REMINDER
 echo ""
 echo "┌──────────────────────────────┐"
