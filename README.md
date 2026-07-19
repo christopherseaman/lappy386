@@ -21,10 +21,12 @@ After setup completes, remember to run `gh auth login` to authenticate with GitH
 
 You can also run platform-specific scripts directly:
 
-- **Ubuntu/Linux**: `./tools/setup-ubuntu.sh`
+- **Debian/Ubuntu**: `./tools/setup-debian.sh`
 - **macOS**: `./tools/setup-macos.sh`
-- **Common configuration**: `./tools/setup-common.sh`
+- **Common configuration**: `./tools/setup-common.sh` (git, SSH, nvim, agent settings)
+- **Shared CLI layer**: `./tools/setup-cli.sh` (dotfiles, starship, nvm, uv, golang, codex)
 - **Claude MCP setup**: `./tools/setup-claude-mcp.sh`
+- **Agent sandbox**: `./tools/sandbox/setup-sandbox-linux.sh` (podman) or `setup-sandbox-mac.sh` (Tart VM)
 
 ## Host-Specific Configurations
 
