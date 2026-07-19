@@ -4,7 +4,7 @@
 #
 # Runs as the invoking user with NO sudo — system packages (apt/brew) and host-only config
 # (git identity, SSH, DNS, nvim, claude) are the caller's responsibility. Idempotent.
-# Must be run from the tools/ directory (it reads ./artifacts/).
+# Self-locating: cd's to its own directory, so it can be run from anywhere.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"

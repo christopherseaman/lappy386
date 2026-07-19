@@ -35,8 +35,12 @@ podman rm -f "$NAME" >/dev/null 2>&1 || true
 # is holding the file. $CODEX_STATE is the host side of the ~/.codex bind mount, so this
 # lands in the guest without needing anything installed there. The sandbox scope is what
 # supplies approval_policy/sandbox_mode: correct here because the container is the jail.
+# Non-fatal by design: this runs after `podman rm -f` and before `podman run`, so under
+# `set -euo pipefail` any nonzero exit here would destroy the container without recreating
+# it. A guest with stale settings beats a machine with no sandbox; the error is still loud.
 if command -v python3 >/dev/null 2>&1; then
-  "$SCRIPT_DIR/../merge-codex-config.py" sandbox "$CODEX_STATE/config.toml"
+  "$SCRIPT_DIR/../merge-codex-config.py" sandbox "$CODEX_STATE/config.toml" \
+    || echo "Codex config: merge failed; continuing with existing config" >&2
 else
   echo "Codex config: python3 not found; skipped (existing config untouched)" >&2
 fi

@@ -17,14 +17,21 @@ import stat
 import sys
 
 
-def merge(artifact_path, live_path):
-    with open(artifact_path) as f:
-        artifact = json.load(f)
+def load(path):
+    """Parse a settings file, refusing to proceed rather than crashing on bad input."""
+    try:
+        with open(path) as f:
+            value = json.load(f)
+    except json.JSONDecodeError as e:
+        sys.exit(f"error: {path} is not valid JSON, refusing to edit: {e}")
+    if not isinstance(value, dict):
+        sys.exit(f"error: {path} is not a JSON object, refusing to edit")
+    return value
 
-    live = {}
-    if os.path.exists(live_path):
-        with open(live_path) as f:
-            live = json.load(f)
+
+def merge(artifact_path, live_path):
+    artifact = load(artifact_path)
+    live = load(live_path) if os.path.exists(live_path) else {}
 
     merged = dict(live)
     merged.update(artifact)
@@ -40,6 +47,7 @@ def merge(artifact_path, live_path):
         if not os.path.exists(backup):
             shutil.copy2(live_path, backup)
 
+    os.makedirs(os.path.dirname(live_path) or ".", exist_ok=True)
     tmp = live_path + ".tmp"
     with open(tmp, "w") as f:
         json.dump(merged, f, indent=2)

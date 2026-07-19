@@ -101,7 +101,9 @@ def apply_table(tables, name, managed):
     Only the span between [name] and the next table header is touched, so sibling
     tables — codex's own [projects.*] and [apps.*] state — are copied through.
     """
-    header = re.compile(rf"^\s*\[{re.escape(name)}\]\s*$")
+    # Tolerate the legal spellings codex or a human may write: surrounding whitespace
+    # and a trailing comment. Missing one appends a duplicate table, which is invalid TOML.
+    header = re.compile(rf"^\s*\[\s*{re.escape(name)}\s*\]\s*(#.*)?$")
     start = next((i for i, ln in enumerate(tables) if header.match(ln)), None)
     if start is None:
         block = [f"[{name}]"] + [assignment(k, v) for k, v in managed.items()]
@@ -142,6 +144,16 @@ def main(scope, path):
     subtables = {k: v for k, v in managed.items() if isinstance(v, dict)}
 
     preamble, tables = split_preamble(original)
+    for name in subtables:
+        # A managed table can also be spelled as a preamble dotted key (agents.x = 1) or
+        # inline table (agents = { x = 1 }). Rewriting those safely is not worth the code;
+        # say so plainly instead of appending a duplicate table and failing on reparse.
+        header = re.compile(rf"^\s*\[\s*{re.escape(name)}\s*[].]")
+        if name in before and not any(header.match(ln) for ln in tables):
+            sys.exit(
+                f"error: {path} defines [{name}] as a dotted or inline key; "
+                f"rewrite it as a [{name}] table and re-run"
+            )
     for name, keys in subtables.items():
         tables = apply_table(tables, name, keys)
     updated = render(apply(preamble, scalars), tables)
