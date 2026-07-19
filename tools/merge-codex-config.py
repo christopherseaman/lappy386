@@ -28,12 +28,20 @@ MANAGED = {
     "host": {
         "personality": "pragmatic",
         "model_reasoning_effort": "xhigh",
-        "agents": {"max_depth": 2, "max_threads": 8},
+        # depth 1 = the root may spawn children, children may not spawn their own.
+        # Matches the AGENTS.md rule and codex's own advice: raising it turns broad
+        # delegation instructions into repeated fan-out. max_threads is a runtime
+        # ceiling only — it never reaches the model, which cannot see its budget.
+        "agents": {"max_depth": 1, "max_threads": 8},
     },
     "sandbox": {
         "personality": "pragmatic",
         "model_reasoning_effort": "xhigh",
-        "agents": {"max_depth": 2, "max_threads": 8},
+        # depth 1 = the root may spawn children, children may not spawn their own.
+        # Matches the AGENTS.md rule and codex's own advice: raising it turns broad
+        # delegation instructions into repeated fan-out. max_threads is a runtime
+        # ceiling only — it never reaches the model, which cannot see its budget.
+        "agents": {"max_depth": 1, "max_threads": 8},
         # Only ever correct inside the container.
         "approval_policy": "never",
         "sandbox_mode": "danger-full-access",
