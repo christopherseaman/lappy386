@@ -3,3 +3,6 @@ lazy-lock.json
 nvim.log
 __pycache__/
 *.pyc
+
+# Scratch/working dir (usage exports, ad-hoc diagnostics — not source)
+tmp/
