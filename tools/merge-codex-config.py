@@ -22,26 +22,32 @@ import stat
 import sys
 import tomllib
 
-# `model` is deliberately absent: model names drift, and a provisioning script that pins
-# one silently writes a dead string once it is renamed. Left to codex's default and /model.
+# `model` and `model_reasoning_effort` are deliberately absent: model names drift (a pinned
+# one becomes a dead string once renamed), and neither the model nor its reasoning effort is
+# this repo's call to impose — both are left to codex's default and the user's /model.
+#
+# Sub-agent lockdown (both scopes). codex forks the FULL parent context into every spawned
+# sub-agent — no context savings — and each child re-sends it as metered cache-reads, so one
+# "delegate this" turn can exhaust a weekly quota (openai/codex#9748, #12487, #13179; the
+# rollout logs also replay parent history, inflating apparent usage up to ~90x, ccusage#950).
+# No single switch is sufficient on gpt-5.6, so three overlapping brakes:
+#   features.multi_agent = false  removes the spawn tool surface. Best-effort: model metadata
+#                                 can still force it on 5.5/5.6 (openai/codex#31097, open).
+#   agents.max_threads   = 1      kills concurrent fan-out (what drains quota fastest); the
+#                                 binary's floor, a runtime cap the model never sees.
+#   agents.max_depth     = 1      the floor the binary allows (0 is rejected); a child cannot
+#                                 spawn its own children. The reliable brake is the AGENTS.md
+#                                 wording telling codex not to spawn — config alone is leaky.
 MANAGED = {
     "host": {
         "personality": "pragmatic",
-        "model_reasoning_effort": "xhigh",
-        # depth 1 = the root may spawn children, children may not spawn their own.
-        # Matches the AGENTS.md rule and codex's own advice: raising it turns broad
-        # delegation instructions into repeated fan-out. max_threads is a runtime
-        # ceiling only — it never reaches the model, which cannot see its budget.
-        "agents": {"max_depth": 1, "max_threads": 8},
+        "features": {"multi_agent": False},
+        "agents": {"max_depth": 1, "max_threads": 1},
     },
     "sandbox": {
         "personality": "pragmatic",
-        "model_reasoning_effort": "xhigh",
-        # depth 1 = the root may spawn children, children may not spawn their own.
-        # Matches the AGENTS.md rule and codex's own advice: raising it turns broad
-        # delegation instructions into repeated fan-out. max_threads is a runtime
-        # ceiling only — it never reaches the model, which cannot see its budget.
-        "agents": {"max_depth": 1, "max_threads": 8},
+        "features": {"multi_agent": False},
+        "agents": {"max_depth": 1, "max_threads": 1},
         # Only ever correct inside the container.
         "approval_policy": "never",
         "sandbox_mode": "danger-full-access",
