@@ -134,15 +134,6 @@ yank() {
   fi
 }
 
-dan() {
-  command -v codex >/dev/null 2>&1 || {
-    echo "dan: codex not installed (run tools/setup-common.sh)" >&2
-    return 1
-  }
-  # DANgerous interactive agent: Codex with approvals + sandbox bypassed, as you.
-  codex --dangerously-bypass-approvals-and-sandbox "$@"
-}
-
 # sandbox — open a shell in the disposable agent sandbox: podman container on Linux,
 # Tart VM on macOS. Provision it first with tools/sandbox/setup-sandbox-<os>.sh.
 sandbox() {

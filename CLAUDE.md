@@ -61,10 +61,12 @@ theme/                      # Terminal theme files (Kitty, Ghostty, macOS Termin
 - **SSH key management.** Each host generates an ed25519 key named `client_key`. Its pubkey is committed to `artifacts/public_keys/<hostname>.pub`. All pubkeys are aggregated into `~/.ssh/authorized_keys` on every run.
 - **Cloud-init bootstrapping.** `hosts/tarski/` uses QEMU SMBIOS to point nocloud at the raw GitHub URL for `user-data`/`meta-data`. The cloud-init `runcmd` clones this repo and runs `setup-debian.sh`. The SMBIOS arg (`qemu_arg.txt`) can be passed to QEMU/UTM to auto-provision VMs.
 - **Host-specific scripts** live under `hosts/<hostname>/` and are run manually or via cloud-init, not from the main `setup.sh` flow.
-- **Two ways agents run.** `dan` (in `artifacts/dot-aliases`) runs Codex locally in
-  bypass mode, as you — supervised, no jail. For unattended/remote runs, `tools/sandbox/`
-  provides a disposable VM/container driven from a phone via `codex remote-control`,
-  which publishes no inbound port (it reaches OpenAI outbound over a unix socket).
+- **Agents in the sandbox are explicitly allowed approval bypass** — the container is the jail,
+  which is why the permissive pair is scoped to it. Hosts run agents too, under normal
+  approvals. `tools/sandbox/` provides a disposable VM/container, reachable two ways: `codex
+  remote-control` from a phone (no inbound port — it reaches OpenAI outbound over a unix
+  socket), or the opencode web UI behind the tunnel. The container is named `agent` to be
+  tool-agnostic.
 
 ## Common Operations
 
