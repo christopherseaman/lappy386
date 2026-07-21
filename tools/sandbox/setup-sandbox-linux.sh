@@ -1,24 +1,33 @@
 #!/bin/bash
-# Build the codex-agent image and run a disposable Codex coding sandbox.
+# Build the agent image and run a disposable coding sandbox (codex + opencode web).
 # Rootless Podman, started by the normal user (never sudo). The container's writable
 # overlay layer is discarded on removal, so agent-installed toolchains stay disposable.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE="localhost/codex-agent:latest"
-NAME="codex-agent"                           # podman container name — stable across hosts (exec/sandbox alias)
+IMAGE="localhost/agent:latest"
+NAME="agent"                                 # podman container name — stable across hosts (exec/sandbox alias)
 # hostname INSIDE the guest — per-host so each machine registers distinctly for remote control
-GUEST_HOSTNAME="${SANDBOX_HOSTNAME:-$(hostname -s 2>/dev/null || hostname)-codex}"
+GUEST_HOSTNAME="${SANDBOX_HOSTNAME:-$(hostname -s 2>/dev/null || hostname)-agent}"
 WORKSPACE="${SANDBOX_WORKSPACE:-$HOME/projects}"
 CODEX_STATE="$HOME/.local/share/codex-container"
 GH_STATE="$HOME/.local/share/gh-container"
+OPENCODE_STATE="$HOME/.local/share/opencode-container"
+OPENCODE_CONFIG="$SCRIPT_DIR/../artifacts/opencode-config.json"
+
+# The published port must match what opencode binds inside the guest, so read it back out of
+# the config that sets it rather than restating the number here. A mismatch would publish a
+# dead port and fail only at the tunnel, so this is a hard error rather than a default.
+WEB_PORT="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["server"]["port"])' \
+  "$OPENCODE_CONFIG")" || {
+  echo "Cannot read server.port from $OPENCODE_CONFIG (needs python3)" >&2; exit 1; }
 
 if ! command -v podman >/dev/null 2>&1; then
   echo "podman not found; installing..."
   sudo apt-get update && sudo apt-get install -y podman
 fi
 
-mkdir -p "$WORKSPACE" "$CODEX_STATE" "$GH_STATE"
+mkdir -p "$WORKSPACE" "$CODEX_STATE" "$GH_STATE" "$OPENCODE_STATE"
 
 # Build (idempotent; layer cache makes re-runs cheap). UID/GID baked in so keep-id maps clean.
 podman build \
@@ -46,21 +55,18 @@ else
 fi
 
 # Rootless, no new privileges, all caps dropped, resource-limited, cut off from host
-# loopback services (slirp4netns). Only ~/projects + the auth dirs are mounted. Runs
-# DETACHED with a keep-alive PID 1 — provisioning does not open a shell; use `sandbox`
-# (alias) or `podman exec -it codex-agent bash` for that. gh creds are persisted via
-# a mounted volume because the container's writable layer is discarded on rebuild.
+# loopback services (slirp4netns). Only ~/projects + the auth/state dirs are mounted. Runs
+# DETACHED with agent-supervisor.sh as PID 1 — provisioning does not open a shell; use
+# `sandbox` (alias) or `podman exec -it agent bash` for that. Auth is persisted via mounted
+# volumes because the container's writable layer is discarded on rebuild.
 #
 # --init gives PID 1 an init that reaps orphans: codex spawns per-task children, and a
 # non-reaping PID 1 (e.g. a bare `sleep`) leaves each one a zombie until the pids-limit
 # is exhausted.
 #
-# On start the wrapper restores what the ~/.codex volume shadows — the installer-managed
-# standalone codex package and the global AGENTS.md — then supervises remote control: whenever the
-# app-server is not running it drops the control/daemon state (a socket and pidfile whose
-# process is gone, which otherwise makes startup fail to become ready) and restarts it. That
-# covers both container restarts and the app-server dying mid-life. Remote control reaches
-# OpenAI outbound over a unix socket and publishes no port.
+# The web UI is published to 127.0.0.1 ONLY — opencode has no auth of its own, so the sole
+# route in is the cloudflared tunnel (code.badmath.org), which does the authenticating.
+# Binding the host's 0.0.0.0 here would put an unauthenticated agent shell on the LAN.
 podman run -d \
   --name "$NAME" \
   --hostname "$GUEST_HOSTNAME" \
@@ -73,32 +79,22 @@ podman run -d \
   --volume "$WORKSPACE:/workspace:rw" \
   --volume "$CODEX_STATE:/home/agent/.codex:rw" \
   --volume "$GH_STATE:/home/agent/.config/gh:rw" \
+  --volume "$OPENCODE_STATE:/home/agent/.local/share/opencode:rw" \
+  --publish "127.0.0.1:$WEB_PORT:$WEB_PORT" \
+  --env "WEB_PORT=$WEB_PORT" \
   --workdir /workspace \
-  "$IMAGE" bash -c '
-    mkdir -p "$HOME/.codex/packages"
-    [ -x "$HOME/.codex/packages/standalone/current/codex" ] \
-      || cp -a "$HOME/.local/share/codex-seed/packages/." "$HOME/.codex/packages/"
-    # Global instructions, restored past the same mount. Overwritten every start (the
-    # image copy is canonical), unlike the package seed above which codex updates in place.
-    [ -f "$HOME/.local/share/agent-instructions/AGENTS.md" ] \
-      && cp -f "$HOME/.local/share/agent-instructions/AGENTS.md" "$HOME/.codex/AGENTS.md"
-    while true; do
-      # bracket keeps the pattern from matching this supervisor own command line
-      if ! pgrep -f "codex app-[s]erver" >/dev/null 2>&1; then
-        rm -rf "$HOME/.codex/app-server-control" "$HOME/.codex/app-server-daemon"
-        codex remote-control start >/dev/null 2>&1 || true
-      fi
-      sleep 30
-    done'
+  "$IMAGE" /home/agent/.local/bin/agent-supervisor.sh
 
 cat <<EOF
 
-Sandbox '$NAME' is running (detached) as '$GUEST_HOSTNAME'. Codex remote control
-auto-starts on container start/restart once you've authed (a no-op before that).
+Sandbox '$NAME' is running (detached) as '$GUEST_HOSTNAME'. Codex remote control and
+opencode web auto-start on container start/restart (codex is a no-op before you auth).
+  Web UI:     http://127.0.0.1:$WEB_PORT     # host loopback only; public via the tunnel
   Shell in:   sandbox              # alias; or:  podman exec -it $NAME bash
   Auth once (persists via mounted volumes):
     codex login
     gh auth login
+    opencode auth login  # only for paid providers; free models work unauthed
   Pair a phone (short-lived code; machine shows up as '$GUEST_HOSTNAME'):
     podman exec $NAME bash -lc 'codex remote-control pair'
   Restart:  podman restart $NAME

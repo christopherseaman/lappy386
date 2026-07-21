@@ -149,10 +149,10 @@ sandbox() {
   case "$(uname -s)" in
     Linux)
       command -v podman >/dev/null 2>&1 || { echo "sandbox: podman not installed" >&2; return 1; }
-      podman container exists codex-agent 2>/dev/null || {
-        echo "sandbox: 'codex-agent' not found — run tools/sandbox/setup-sandbox-linux.sh first" >&2; return 1; }
-      podman start codex-agent >/dev/null 2>&1 || true
-      podman exec -it --workdir /workspace codex-agent bash -l
+      podman container exists agent 2>/dev/null || {
+        echo "sandbox: 'agent' not found — run tools/sandbox/setup-sandbox-linux.sh first" >&2; return 1; }
+      podman start agent >/dev/null 2>&1 || true
+      podman exec -it --workdir /workspace agent bash -l
       ;;
     Darwin)
       local vm="${SANDBOX_VM:-tahoe-xcode}" ip
