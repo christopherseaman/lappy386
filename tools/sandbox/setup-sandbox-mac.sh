@@ -3,6 +3,7 @@
 # shared in and the guest isolated from the host LAN. Apple Silicon only.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VM_NAME="${SANDBOX_VM:-tahoe-xcode}"
 IMAGE="ghcr.io/cirruslabs/macos-tahoe-xcode:latest"
 WORKSPACE="${SANDBOX_WORKSPACE:-$HOME/projects}"
@@ -10,6 +11,7 @@ CPU="${SANDBOX_CPU:-8}"
 MEM_MB="${SANDBOX_MEM_MB:-16384}"
 DISK_GB="${SANDBOX_DISK_GB:-150}"
 USE_LAUNCHD="${SANDBOX_LAUNCHD:-1}"
+RECREATE_VM="${SANDBOX_RECREATE_VM:-1}"
 GUEST_SSH_USER="${SANDBOX_GUEST_SSH_USER:-admin}"
 HOST_CLIENT_PUBLIC_KEY="${SANDBOX_CLIENT_PUBLIC_KEY:-$HOME/.ssh/client_key.pub}"
 LAUNCH_LABEL="${SANDBOX_LAUNCHD_LABEL:-com.lappy386.sandbox.macos}"
@@ -66,6 +68,51 @@ provision_client_key() {
   echo "Provisioned host SSH key from $HOST_CLIENT_PUBLIC_KEY into $VM_NAME:$GUEST_AUTH_KEYS."
 }
 
+provision_guest_state() {
+  if ! wait_for_tart_exec 120; then
+    return 0
+  fi
+
+  local merged_config
+  merged_config="$(mktemp)"
+  cp "$HOME/.codex/config.toml" "$merged_config" 2>/dev/null || : > "$merged_config"
+
+  if ! uv run --managed-python --python 3.11 --script "$SCRIPT_DIR/../merge-codex-config.py" sandbox "$merged_config"; then
+    echo "Codex config merge failed; using unmodified config." >&2
+  fi
+
+  tart exec -i "$VM_NAME" /bin/sh -lc 'mkdir -p "$HOME/.codex" && cat > "$HOME/.codex/config.toml"' < "$merged_config" || {
+    echo "Failed to copy Codex config into guest." >&2
+    rm -f "$merged_config"
+    return 0
+  }
+
+  tart exec "$VM_NAME" /bin/sh -lc '
+    set -e
+    current=$(command -v codex || true)
+    if [ "$current" != "$HOME/.local/bin/codex" ]; then
+      if command -v brew >/dev/null 2>&1; then
+        brew uninstall --cask codex >/dev/null 2>&1 || true
+      fi
+    fi
+
+    current=$(command -v codex || true)
+    if [ "$current" = "$HOME/.local/bin/codex" ]; then
+      exit 0
+    fi
+    CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true curl -fsSL https://chatgpt.com/codex/install.sh | sh
+    CODEX_BIN="$HOME/.local/bin/codex"
+    if [ ! -x "$CODEX_BIN" ]; then
+      echo "codex installer did not create $CODEX_BIN" >&2
+      exit 1
+    fi
+  ' || {
+    echo "Codex install failed inside guest; continuing to keep VM up." >&2
+  }
+
+  rm -f "$merged_config"
+}
+
 if ! command -v tart >/dev/null 2>&1; then
   echo "tart not found; installing via Homebrew..."
   if ! brew tap | grep -qx "cirruslabs/cli"; then
@@ -75,6 +122,16 @@ if ! command -v tart >/dev/null 2>&1; then
 fi
 
 mkdir -p "$WORKSPACE"
+
+if [[ "$RECREATE_VM" == "1" ]]; then
+  if tart list --quiet 2>/dev/null | grep -qx "$VM_NAME"; then
+    echo "Recreating '$VM_NAME' (SANDBOX_RECREATE_VM=$RECREATE_VM)."
+    tart stop "$VM_NAME" 2>/dev/null || true
+    tart delete "$VM_NAME" 2>/dev/null || tart delete --force "$VM_NAME" 2>/dev/null || true
+  fi
+else
+  echo "Reusing existing VM '$VM_NAME' (set SANDBOX_RECREATE_VM=1 to recreate each run)."
+fi
 
 # Clone the prebuilt Xcode image once (large, one-time). Idempotent: skip if VM exists.
 if ! tart list --quiet 2>/dev/null | grep -qx "$VM_NAME"; then
@@ -92,11 +149,9 @@ Image:            $IMAGE
 
 Shared workspace:  $WORKSPACE  ->  /Volumes/My Shared Files/projects (in guest)
 
-One-time first-boot steps inside the guest (login admin/admin, then CHANGE the password):
-  git clone https://github.com/christopherseaman/lappy386
-  (cd lappy386/tools && ./setup-cli.sh)   # dotfiles, starship, nvm, uv, golang, codex, ~/.codex/AGENTS.md
-  (cd lappy386/tools && ./merge-codex-config.py sandbox ~/.codex/config.toml)  # this VM is the jail
-  brew install gh bat fd fzf ripgrep git-delta zoxide tmux   # CLI tools (parity with the Debian guest)
+One-time first-boot setup (now done automatically on first run):
+  merge ~/.codex/config.toml for sandbox scope and copy into guest (~/.codex/config.toml)
+  uninstall Homebrew Codex in guest (if any), then install via curl
   codex login
   gh auth login
   codex remote-control start  # publishes no port; reaches OpenAI outbound over a unix socket
@@ -168,3 +223,4 @@ else
 fi
 
 provision_client_key
+provision_guest_state

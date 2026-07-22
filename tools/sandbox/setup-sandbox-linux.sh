@@ -47,12 +47,8 @@ podman rm -f "$NAME" >/dev/null 2>&1 || true
 # Non-fatal by design: this runs after `podman rm -f` and before `podman run`, so under
 # `set -euo pipefail` any nonzero exit here would destroy the container without recreating
 # it. A guest with stale settings beats a machine with no sandbox; the error is still loud.
-if command -v python3 >/dev/null 2>&1; then
-  "$SCRIPT_DIR/../merge-codex-config.py" sandbox "$CODEX_STATE/config.toml" \
-    || echo "Codex config: merge failed; continuing with existing config" >&2
-else
-  echo "Codex config: python3 not found; skipped (existing config untouched)" >&2
-fi
+uv run --managed-python --python 3.11 --script "$SCRIPT_DIR/../merge-codex-config.py" sandbox "$CODEX_STATE/config.toml" \
+  || echo "Codex config: merge failed; continuing with existing config" >&2
 
 # Rootless, no new privileges, all caps dropped, resource-limited, cut off from host
 # loopback services (slirp4netns). Only ~/projects + the auth/state dirs are mounted. Runs

@@ -16,11 +16,22 @@ Stdlib only, matching merge-settings.py: tomllib reads TOML but cannot write it,
 third-party writer would add a network fetch to provisioning. Correctness is enforced by
 re-parsing the result and diffing it against the input rather than by trusting the edit.
 """
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["tomli; python_version < '3.11'"]
+# ///
 import os
 import re
 import stat
 import sys
-import tomllib
+try:
+    import tomllib as toml
+except ModuleNotFoundError:
+    import tomli as toml
+
+TABLE_START = re.compile(r"^\s*\[")
+MAX_MODE = 0o600
+TOML = toml
 
 # `model` and `model_reasoning_effort` are deliberately absent: model names drift (a pinned
 # one becomes a dead string once renamed), and neither the model nor its reasoning effort is
@@ -53,10 +64,6 @@ MANAGED = {
         "sandbox_mode": "danger-full-access",
     },
 }
-
-TABLE_START = re.compile(r"^\s*\[")
-MAX_MODE = 0o600
-
 
 def split_preamble(text):
     """Return (preamble_lines, table_lines). Top-level keys live in the preamble."""
@@ -142,8 +149,8 @@ def main(scope, path):
         with open(path, "rb") as f:
             original = f.read().decode()
         try:
-            before = tomllib.loads(original)
-        except tomllib.TOMLDecodeError as e:
+            before = TOML.loads(original)
+        except TOML.TOMLDecodeError as e:
             sys.exit(f"error: {path} is not valid TOML, refusing to edit: {e}")
 
     scalars = {k: v for k, v in managed.items() if not isinstance(v, dict)}
@@ -171,8 +178,8 @@ def main(scope, path):
     # Trust the diff, not the edit: the result must be the input plus exactly the
     # managed keys. Anything else means the rewrite corrupted something.
     try:
-        after = tomllib.loads(updated)
-    except tomllib.TOMLDecodeError as e:
+        after = TOML.loads(updated)
+    except TOML.TOMLDecodeError as e:
         sys.exit(f"error: edit produced invalid TOML, aborting: {e}")
     # Managed subtables merge key-wise, matching what apply_table does: unmanaged keys
     # inside a managed table survive, so a shallow update here would false-alarm.

@@ -67,12 +67,21 @@ if [ -n "$GO_ARCH" ]; then
 fi
 
 ## Codex CLI
-if command -v codex >/dev/null 2>&1; then
-  codex --version >/dev/null 2>&1 || true
+CODEX_BIN="$HOME/.local/bin/codex"
+if [ -x "$CODEX_BIN" ]; then
+  "$CODEX_BIN" --version >/dev/null 2>&1 || true
 else
-  curl -fsSL https://chatgpt.com/codex/install.sh | sh >/dev/null 2>&1 || true
+  # Use the upstream installer directly to target the project-standard user bin dir.
+  # Avoids the path ambiguity that can happen if a Homebrew cask remains installed.
+  CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true \
+    curl -fsSL https://chatgpt.com/codex/install.sh | sh >/dev/null 2>&1 || true
 fi
-echo "Codex: $(codex --version 2>/dev/null | head -1 || true)"
+ACTIVE_CODEX="$(command -v codex 2>/dev/null || true)"
+if [ -n "${ACTIVE_CODEX}" ] && [ "${ACTIVE_CODEX}" != "$CODEX_BIN" ]; then
+  echo "Codex warning: active command is $ACTIVE_CODEX (not $CODEX_BIN)."
+  echo "              Remove/replace that non-standard path if this is not intentional."
+fi
+echo "Codex: $("$CODEX_BIN" --version 2>/dev/null | head -1 || codex --version 2>/dev/null | head -1 || true)"
 
 ## Global agent instructions
 # Canonical source is a gist, not this repo — it governs every machine and project.
