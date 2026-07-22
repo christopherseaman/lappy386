@@ -150,7 +150,14 @@ sandbox() {
       command -v tart >/dev/null 2>&1 || { echo "sandbox: tart not installed" >&2; return 1; }
       ip="$(tart ip "$vm" 2>/dev/null)" && [ -n "$ip" ] || {
         echo "sandbox: VM '$vm' not running — start it with tools/sandbox/setup-sandbox-mac.sh" >&2; return 1; }
-      ssh "admin@$ip"
+      ssh -o BatchMode=yes \
+        -o PasswordAuthentication=no \
+        -o PubkeyAuthentication=yes \
+        -o IdentitiesOnly=yes \
+        -o IdentityFile="$HOME/.ssh/client_key" \
+        -o StrictHostKeyChecking=accept-new \
+        -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+        "admin@$ip"
       ;;
     *) echo "sandbox: unsupported OS $(uname -s)" >&2; return 1 ;;
   esac
@@ -159,4 +166,3 @@ alias bye='if [ -n "$TMUX" ]; then tmux detach -P; else exit; fi'
 
 # Draw Things gRPC image-generation server
 alias grpc='gRPCServerCLI-macOS ~/Library/Containers/com.liuliu.draw-things/Data/Documents/Models --port 7000'
-
