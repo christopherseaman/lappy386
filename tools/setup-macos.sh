@@ -51,6 +51,3 @@ killall Dock
 
 ## RUN COMMON SETUP
 ./setup-common.sh
-
-## SANDBOX USER (sqrlbot): create the jailed user + provision its Claude
-./sqrlbot/setup-sqrlbot-mac.sh

@@ -1,0 +1,68 @@
+# agent — disposable coding sandbox (Debian, Node-free base) running codex and opencode.
+# Build context is the repo's tools/ dir (see setup-sandbox-linux.sh), so COPY paths are
+# relative to tools/ (artifacts/…, setup-cli.sh).
+FROM debian:stable-slim
+
+ARG UID=1000
+ARG GID=1000
+
+# Shared CLI packages (artifacts/apt-cli.lst) + GitHub CLI (its own apt repo — not in Debian).
+# Python is intentionally omitted; uv provides/manages it (`uv python install`).
+COPY artifacts/apt-cli.lst /tmp/apt-cli.lst
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg \
+    && mkdir -p -m 755 /etc/apt/keyrings \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gh $(grep -vE '^\s*#|^\s*$' /tmp/apt-cli.lst) \
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root agent user whose UID/GID match the host user, so rootless keep-id maps cleanly
+# onto the bind-mounted workspace and persistent auth volumes.
+RUN groupadd -g "${GID}" agent \
+    && useradd -m -u "${UID}" -g "${GID}" -s /bin/bash agent
+
+# The gh creds volume mounts at ~/.config/gh; pre-create ~/.config owned by agent so podman
+# does not create it root-owned, which would block the agent writing elsewhere under it.
+RUN install -d -o agent -g agent /home/agent/.config
+
+# codex lands in the agent's ~/.local/bin, opencode in ~/.opencode/bin. Both installers also
+# append a PATH line to ~/.bashrc, which the non-interactive start wrapper never sources.
+ENV PATH="/home/agent/.local/bin:/home/agent/.opencode/bin:${PATH}"
+
+# Shared CLI layer, installed as the agent the same way hosts do: dotfiles, starship, nvm, uv,
+# golang, codex. Only the artifacts setup-cli.sh needs are copied (not the whole repo).
+COPY --chown=agent:agent setup-cli.sh /home/agent/lappy-tools/setup-cli.sh
+COPY --chown=agent:agent artifacts/dot-bashrc artifacts/dot-aliases artifacts/dot-tmux.conf \
+     artifacts/dot-zshrc artifacts/tmux-zen.sh artifacts/starship.toml \
+     /home/agent/lappy-tools/artifacts/
+USER agent
+RUN cd /home/agent/lappy-tools && bash setup-cli.sh
+
+# codex is a self-contained binary, but its installer leaves a shim pointing into ~/.codex —
+# a mounted volume at runtime that shadows the target. Replace the shim with the real binary
+# so codex resolves regardless of the mount.
+RUN cp -L /home/agent/.local/bin/codex /home/agent/.local/bin/.codex.real \
+    && mv -f /home/agent/.local/bin/.codex.real /home/agent/.local/bin/codex
+
+# `codex remote-control` requires the installer-managed standalone package at the fixed path
+# ~/.codex/packages/standalone/current/codex, which the ~/.codex volume shadows at runtime.
+# Stash it under ~/.local/share (not a mount point); the run wrapper seeds the volume from here
+# on first start, after which codex updates it in place.
+RUN mkdir -p /home/agent/.local/share/codex-seed \
+    && cp -a /home/agent/.codex/packages /home/agent/.local/share/codex-seed/packages
+
+# opencode, served as the sandbox's web UI. Its settings come from the artifact config rather
+# than `web` flags so port/hostname/CORS have one source; setup-sandbox-linux.sh reads the port
+# back out of the same file to publish it. ~/.config/opencode is not a mount point, so what is
+# written here survives at runtime (unlike ~/.codex above).
+RUN curl -fsSL https://opencode.ai/install | bash
+RUN mkdir -p /home/agent/.config/opencode
+COPY --chown=agent:agent artifacts/opencode-config.json /home/agent/.config/opencode/opencode.json
+
+# PID 1: seeds what the ~/.codex mount shadows, then supervises codex and opencode.
+COPY --chown=agent:agent sandbox/agent-supervisor.sh /home/agent/.local/bin/agent-supervisor.sh
+
+WORKDIR /workspace
+CMD ["/bin/bash"]

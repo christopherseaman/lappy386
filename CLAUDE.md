@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Does
 
-lappy386 is a machine provisioning toolkit. `./setup.sh` detects the OS (Debian/Ubuntu, Arch, macOS) and runs the appropriate platform script, which then calls `setup-common.sh` for cross-platform config (dotfiles, git, SSH keys, nvim, nvm/node, CLI tools like Claude Code and Copilot).
+lappy386 is a machine provisioning toolkit. `./setup.sh` detects the OS (Debian/Ubuntu or macOS; other distros exit unsupported) and runs the appropriate platform script, which then calls `setup-common.sh` for host config (git, SSH keys, nvim, Claude Code, Notion CLI), which in turn calls `setup-cli.sh` for the user-level layer shared with the sandbox guests (dotfiles, starship, nvm, uv, golang, codex, global agent instructions).
 
 **Idempotency is a core design goal.** Re-running `setup.sh` on an already-provisioned machine should update to latest settings without breaking anything. Most scripts use `command -v` / `dpkg -l` guards to skip already-installed software. When adding new setup steps, follow this pattern.
 
@@ -14,24 +14,34 @@ lappy386 is a machine provisioning toolkit. `./setup.sh` detects the OS (Debian/
 setup.sh                    # Entry point: OS detection, dispatches to tools/
 tools/
   setup-debian.sh           # Debian/Ubuntu: apt packages, neovim, fonts, VM tools, RDP, Firefox
-  setup-arch.sh             # Arch: pacman packages
   setup-macos.sh            # macOS: Homebrew, Ghostty config, Dock prefs
-  setup-common.sh           # Cross-platform: dotfiles, git, SSH, nvim config, nvm, Claude/Copilot CLI
+  setup-common.sh           # Host-only: git, SSH, nvim config, Claude/Notion CLIs, agent settings
+  setup-cli.sh              # Shared host+guest, no sudo: dotfiles, starship, nvm, uv, golang,
+                            #   codex, and the global agent instructions (see below)
+  merge-settings.py         # Merge artifacts/claude-settings.json into ~/.claude/settings.json
+  merge-codex-config.py     # Apply managed codex settings by scope: {host|sandbox}
   setup-firefox.sh          # Mozilla apt repo Firefox (replaces snap)
   setup-claude-mcp.sh       # Interactive: configures Notion/Atlassian MCP servers for Claude
-  sqrlbot/                  # Jailed sandbox user: setup-sqrlbot-{mac,debian}.sh create the
-                            #   user + ACLs, then setup-sqrlbot-common.sh provisions its Claude
   artifacts/                # Source-of-truth config files copied to target machine
     dot-bashrc, dot-aliases, dot-tmux.conf, dot-zshrc, dot-ssh-config
     dot-config-nvim/        # Full LazyVim config (copied to ~/.config/nvim)
     claude-settings.json    # Claude Code global settings
+    opencode-config.json    # opencode server settings (port/hostname/CORS) for the sandbox
     public_keys/            # All host SSH pubkeys -> aggregated into authorized_keys
     brew.lst, cask.lst      # macOS Homebrew package lists
   rdp/                      # GNOME headless RDP setup (GDM autologin, TLS, display fix service)
+  sandbox/                  # Opt-in disposable agent sandboxes (run manually, not from setup.sh):
+                            #   setup-sandbox-linux.sh (rootless Podman + Containerfile),
+                            #   setup-sandbox-mac.sh (Tart macOS+Xcode VM),
+                            #   agent-supervisor.sh (guest PID 1: keeps codex + opencode up).
+                            #   Drive Codex from a phone via `codex remote-control`, or use
+                            #   the opencode web UI.
+  remove-sqrlbot.sh         # Opt-in teardown: remove the retired sqrlbot user/group/home (manual)
 hosts/                      # Per-machine configs and setup scripts
   tarski/                   # Local QEMU/UTM VM (cloud-init via SMBIOS nocloud datasource)
   strongbad/                # ChromeOS Crostini container (LXC + cloud-config)
-  carnac/                   # Server: Pi-hole, Caddy reverse proxy, code-server, firewall
+  carnac/                   # Server: Pi-hole, cloudflared tunnel (ingress), firewall.
+                            #   code.badmath.org -> 127.0.0.1:4096 = the sandbox's opencode UI
   gamepost/                 # Samba file server config
   hivemind/                 # NFS/fstab mounts
   schmaspberry/             # Cellular gateway setup
@@ -42,9 +52,21 @@ theme/                      # Terminal theme files (Kitty, Ghostty, macOS Termin
 ## Key Patterns
 
 - **Artifacts are canonical.** Files in `tools/artifacts/` are the source of truth. They get copied wholesale to the target machine (e.g., `cat artifacts/dot-bashrc > ~/.bashrc`). Edit the artifact, not the deployed file.
+- **Global agent instructions live in a gist, not this repo** — they govern every machine and project, so vendoring them here would couple a universal file to one repo. `setup-cli.sh` fetches once and writes both `~/.claude/CLAUDE.md` (Claude Code ignores AGENTS.md) and `~/.codex/AGENTS.md` (codex ignores CLAUDE.md). Edit with `gh gist edit 310a389a659acf37a6b13675a92a2438 -f CLAUDE.md <file>`.
+- **Agent settings are merged, never overwritten.** Both agents write their own keys into their config (Claude Code adds keys when you dismiss prompts; codex writes `[projects.*]` trust levels and `[apps.*]` approvals). A wholesale copy destroys that state, so `merge-settings.py` and `merge-codex-config.py` overlay only managed keys.
+- **Sandbox scope is structural.** `merge-codex-config.py` takes `{host|sandbox}` rather than a key list, so `approval_policy = never` / `sandbox_mode = danger-full-access` cannot reach a host config. Those are only correct inside the container, which is itself the jail.
+- **Mounted dirs shadow the image.** In the Linux guest, `~/.codex` is a bind mount, so anything the build wrote there is hidden at runtime. Things that must survive (the codex standalone package, `AGENTS.md`) are stashed under `~/.local/share` — not a mount point — and restored by `agent-supervisor.sh` at start. `~/.config/opencode` is *not* mounted, so the config baked into the image is what runs.
+- **The supervisor is a file, not an inline `bash -c`.** Everything in an inline PID 1 body becomes part of PID 1's command line, so a `pgrep -f`/`pkill -f` for a supervised process matches the supervisor and kills the container. `agent-supervisor.sh` keeps PID 1's cmdline down to the script path.
+- **The sandbox web UI is published to host loopback only.** opencode has no auth of its own; the cloudflared tunnel (`code.badmath.org`) is what authenticates. `setup-sandbox-linux.sh` reads the port out of `artifacts/opencode-config.json` rather than restating it, so the published port cannot drift from the one opencode binds.
 - **SSH key management.** Each host generates an ed25519 key named `client_key`. Its pubkey is committed to `artifacts/public_keys/<hostname>.pub`. All pubkeys are aggregated into `~/.ssh/authorized_keys` on every run.
 - **Cloud-init bootstrapping.** `hosts/tarski/` uses QEMU SMBIOS to point nocloud at the raw GitHub URL for `user-data`/`meta-data`. The cloud-init `runcmd` clones this repo and runs `setup-debian.sh`. The SMBIOS arg (`qemu_arg.txt`) can be passed to QEMU/UTM to auto-provision VMs.
 - **Host-specific scripts** live under `hosts/<hostname>/` and are run manually or via cloud-init, not from the main `setup.sh` flow.
+- **Agents in the sandbox are explicitly allowed approval bypass** — the container is the jail,
+  which is why the permissive pair is scoped to it. Hosts run agents too, under normal
+  approvals. `tools/sandbox/` provides a disposable VM/container, reachable two ways: `codex
+  remote-control` from a phone (no inbound port — it reaches OpenAI outbound over a unix
+  socket), or the opencode web UI behind the tunnel. The container is named `agent` to be
+  tool-agnostic.
 
 ## Common Operations
 

@@ -55,31 +55,10 @@ fi
 ## Package Update and Install
 sudo apt update --quiet -qq
 #sudo apt full-upgrade --quiet -qq -y --allow-change-held-packages
-APT_PACKAGES=(
-  bash-completion
-  bat
-  build-essential
-  ca-certificates
-  # cmake        # no CMake project builds here; build-essential covers gcc/make
-  curl
-  fd-find
-  # findutils    # provides `find`, already part of the Debian base system
-  fontconfig
-  fonts-symbola
-  fzf
-  gh
-  git
-  git-delta
-  gnupg
-  htop
-  ncdu
-  openssh-server
-  ripgrep
-  tmux
-  wget
-  zellij
-  zoxide
-)
+# Shared CLI packages (artifacts/apt-cli.lst, also used by the sandbox guest) plus host-only
+# extras: the ssh server, desktop fonts, and gh (its apt repo is configured on the host).
+mapfile -t APT_PACKAGES < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' artifacts/apt-cli.lst)
+APT_PACKAGES+=(gh openssh-server fontconfig fonts-symbola)
 sudo apt install --quiet -qq -y --allow-change-held-packages "${APT_PACKAGES[@]}"
 sudo apt autoremove --quiet -qq -y
 
@@ -285,6 +264,3 @@ echo "Debian installation complete."
 
 ## RUN COMMON SETUP
 ./setup-common.sh
-
-## SANDBOX USER (sqrlbot): create the jailed user + provision its Claude
-./sqrlbot/setup-sqrlbot-debian.sh

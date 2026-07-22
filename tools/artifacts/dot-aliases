@@ -1,5 +1,6 @@
 # fastfetch greeting function
 fastfetch_greeting() {
+  command -v fastfetch >/dev/null 2>&1 || return 0
   shopt -q login_shell && {
     logos=("gnu") # "aperture"
     selected_logo=${logos[$RANDOM % ${#logos[@]}]}
@@ -117,7 +118,7 @@ yank() {
   fi
 
   # Native pbcopy only on a bare macOS terminal (no multiplexer to tunnel through).
-  if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]] && [[ -z "$ZELLIJ" ]]; then
+  if [[ "$OSTYPE" == "darwin"* ]] && [[ -z "$TMUX" ]]; then
     printf "%s" "$content" | pbcopy
     return
   fi
@@ -128,29 +129,33 @@ yank() {
     # tmux needs OSC52 wrapped in its DCS passthrough
     printf '\033Ptmux;\033\033]52;c;%s\007\033\\' "$b64"
   else
-    # zellij copies OSC52 natively; bare terminals pass it to the host
+    # bare terminals pass OSC52 through to the host
     printf '\033]52;c;%s\007' "$b64"
   fi
 }
 
-dan() {
-  if ! id -u sqrlbot &>/dev/null; then
-    echo "dan: sqrlbot sandbox user not found." >&2
-    echo "     Create it by running setup-debian.sh (Linux) or setup-macos.sh (macOS)." >&2
-    return 1
-  fi
-  local pre=(sudo -u sqrlbot -H)       # -H => HOME=~sqrlbot (its own ~/.claude); cwd preserved
-  # run via login shell so sqrlbot's ~/.bash_profile sets PATH and (on macOS) unlocks its keychain
-  case "${1:-}" in
-  install | update)
-    "${pre[@]}" bash -lc 'export CI=1; [ -x "$HOME/.local/bin/claude" ] && "$HOME/.local/bin/claude" install || curl -fsSL https://claude.ai/install.sh | bash'
-    ;;
-  *)
-    "${pre[@]}" bash -lc 'exec "$HOME/.local/bin/claude" --dangerously-skip-permissions "$@"' _ "$@"
-    ;;
+# sandbox — open a shell in the disposable agent sandbox: podman container on Linux,
+# Tart VM on macOS. Provision it first with tools/sandbox/setup-sandbox-<os>.sh.
+sandbox() {
+  case "$(uname -s)" in
+    Linux)
+      command -v podman >/dev/null 2>&1 || { echo "sandbox: podman not installed" >&2; return 1; }
+      podman container exists agent 2>/dev/null || {
+        echo "sandbox: 'agent' not found — run tools/sandbox/setup-sandbox-linux.sh first" >&2; return 1; }
+      podman start agent >/dev/null 2>&1 || true
+      podman exec -it --workdir /workspace agent bash -l
+      ;;
+    Darwin)
+      local vm="${SANDBOX_VM:-tahoe-xcode}" ip
+      command -v tart >/dev/null 2>&1 || { echo "sandbox: tart not installed" >&2; return 1; }
+      ip="$(tart ip "$vm" 2>/dev/null)" && [ -n "$ip" ] || {
+        echo "sandbox: VM '$vm' not running — start it with tools/sandbox/setup-sandbox-mac.sh" >&2; return 1; }
+      ssh "admin@$ip"
+      ;;
+    *) echo "sandbox: unsupported OS $(uname -s)" >&2; return 1 ;;
   esac
 }
-alias bye='if [ -n "$TMUX" ]; then tmux detach -P; elif [ -n "$ZELLIJ" ]; then zellij action detach; else exit; fi'
+alias bye='if [ -n "$TMUX" ]; then tmux detach -P; else exit; fi'
 
 # Draw Things gRPC image-generation server
 alias grpc='gRPCServerCLI-macOS ~/Library/Containers/com.liuliu.draw-things/Data/Documents/Models --port 7000'
