@@ -93,25 +93,25 @@ style = "bg:peach fg:crust"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
-
-[directory.substitutions]
-"Documents" = "󰈙"                        # nf-md-file_document U+F0219
-"Downloads" = "󰇚"                        # nf-md-download U+F01DA
-"Music" = "󰝚"                            # nf-md-music U+F075A
-"Pictures" = "󰋩"                         # nf-md-image U+F02E9
-"Developer" = "󰲋"                        # nf-md-code_braces_box U+F0C8B
-"Movies" = "󰿎"                           # nf-md-filmstrip U+F0FCE
-"Dropbox" = "󰇣"                          # nf-md-dropbox U+F01E3
-"Games" = "󰊗"                            # nf-md-gamepad_variant U+F0297
-"projects" = "󰅩"                         # nf-md-code_braces U+F0169
-"Desktop" = "󰇤"                          # nf-md-desktop_mac U+F01E4
-"Applications" = "󰀻"                     # nf-md-apps U+F003B
-"Library" = "󰂺"                          # nf-md-book_open_variant U+F00BA
-"Public" = "󰖟"                           # nf-md-earth U+F059F
-"OneDrive - UCSF" = "󰁯"                  # nf-md-cloud U+F006F
-"code" = "󰅩"                             # nf-md-code_braces U+F0169
-"Reading" = "󰂿"                          # nf-md-book_open_page_variant U+F00BF
-"Camera Uploads" = "󰄀"                   # nf-md-camera U+F0100
+substitutions = [
+  # Match complete path components so names such as "MyDocuments" remain unchanged.
+  { from = '(^|[/\\])Documents([/\\]|$)', to = '${1}󰈙${2}', regex = true },       # nf-md-file_document U+F0219
+  { from = '(^|[/\\])Downloads([/\\]|$)', to = '${1}󰇚${2}', regex = true },       # nf-md-download U+F01DA
+  { from = '(^|[/\\])Music([/\\]|$)', to = '${1}󰝚${2}', regex = true },           # nf-md-music U+F075A
+  { from = '(^|[/\\])Pictures([/\\]|$)', to = '${1}󰋩${2}', regex = true },        # nf-md-image U+F02E9
+  { from = '(^|[/\\])Developer([/\\]|$)', to = '${1}󰲋${2}', regex = true },       # nf-md-code_braces_box U+F0C8B
+  { from = '(^|[/\\])Movies([/\\]|$)', to = '${1}󰿎${2}', regex = true },          # nf-md-filmstrip U+F0FCE
+  { from = '(^|[/\\])Dropbox([/\\]|$)', to = '${1}󰇣${2}', regex = true },         # nf-md-dropbox U+F01E3
+  { from = '(^|[/\\])Games([/\\]|$)', to = '${1}󰊗${2}', regex = true },           # nf-md-gamepad_variant U+F0297
+  { from = '(^|[/\\])projects([/\\]|$)', to = '${1}󰅩${2}', regex = true },        # nf-md-code_braces U+F0169
+  { from = '(^|[/\\])Desktop([/\\]|$)', to = '${1}󰇤${2}', regex = true },         # nf-md-desktop_mac U+F01E4
+  { from = '(^|[/\\])Applications([/\\]|$)', to = '${1}󰀻${2}', regex = true },    # nf-md-apps U+F003B
+  { from = '(^|[/\\])Library([/\\]|$)', to = '${1}󰂺${2}', regex = true },         # nf-md-book_open_variant U+F00BA
+  { from = '(^|[/\\])Public([/\\]|$)', to = '${1}󰖟${2}', regex = true },          # nf-md-earth U+F059F
+  { from = '(^|[/\\])OneDrive - UCSF([/\\]|$)', to = '${1}󰁯${2}', regex = true }, # nf-md-cloud U+F006F
+  { from = '(^|[/\\])Reading([/\\]|$)', to = '${1}󰂿${2}', regex = true },         # nf-md-book_open_page_variant U+F00BF
+  { from = '(^|[/\\])Camera Uploads([/\\]|$)', to = '${1}󰄀${2}', regex = true },  # nf-md-camera U+F0100
+]
 
 [git_branch]
 symbol = ""
