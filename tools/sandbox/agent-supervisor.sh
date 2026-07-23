@@ -1,6 +1,6 @@
 #!/bin/bash
 # PID 1 of the agent sandbox: restore what the ~/.codex bind mount shadows, then keep the codex
-# app-server and the opencode web UI alive for the life of the container.
+# app-server and the opencode serve UI alive for the life of the container.
 #
 # A file rather than an inline `bash -c` in setup-sandbox-linux.sh, because inline every literal
 # in the body becomes part of PID 1's command line: a `pgrep -f`/`pkill -f` for either supervised
@@ -30,7 +30,7 @@ while true; do
   # Supervise opencode on the port rather than the PID: answering a request proves it is
   # serving, where a live process only proves it has not exited yet.
   if ! curl -fsS -o /dev/null "http://127.0.0.1:$WEB_PORT/"; then
-    opencode web >>"$HOME/.local/share/opencode/web.log" 2>&1 &
+    opencode serve >>"$HOME/.local/share/opencode/web.log" 2>&1 &
   fi
   sleep 30
 done
