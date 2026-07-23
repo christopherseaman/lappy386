@@ -148,7 +148,8 @@ sandbox() {
     Darwin)
       local vm="${SANDBOX_VM:-tahoe-xcode}" ip
       command -v tart >/dev/null 2>&1 || { echo "sandbox: tart not installed" >&2; return 1; }
-      ip="$(tart ip "$vm" 2>/dev/null)" && [ -n "$ip" ] || {
+      ip="$(tart exec "$vm" /bin/sh -lc 'ifconfig | awk "/inet / {print \$2}" | grep -Ev "^127\\.|^169\\.254\\." | head -n1' 2>/dev/null)" &&
+        [ -n "$ip" ] || {
         echo "sandbox: VM '$vm' not running — start it with tools/sandbox/setup-sandbox-mac.sh" >&2; return 1; }
       ssh -o BatchMode=yes \
         -o PasswordAuthentication=no \
