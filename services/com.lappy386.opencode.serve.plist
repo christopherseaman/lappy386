@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.lappy386.opencode.serve</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-lc</string>
+    <string>if [ -x "$HOME/.opencode/bin/opencode" ]; then exec "$HOME/.opencode/bin/opencode" serve; elif [ -x "$HOME/.local/bin/opencode" ]; then exec "$HOME/.local/bin/opencode" serve; else exec /opt/homebrew/bin/opencode serve; fi</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/opencode-serve.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/opencode-serve.err</string>
+</dict>
+</plist>

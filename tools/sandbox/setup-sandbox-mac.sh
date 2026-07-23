@@ -63,7 +63,7 @@ LAUNCH_AGENT_DIR="$HOME/Library/LaunchAgents"
 PLIST_PATH="$LAUNCH_AGENT_DIR/${LAUNCH_LABEL}.plist"
 PORT_FORWARD_PLIST_PATH="$LAUNCH_AGENT_DIR/${PORT_FORWARD_LABEL}.plist"
 LOG_DIR="$HOME/Library/Logs/lappy386-sandbox"
-OPENCODE_MODE="${1:-${OPENCODE_MODE:-web}}"
+OPENCODE_MODE="${1:-${OPENCODE_MODE:-serve}}"
 LAUNCHD_DOMAIN="gui/$(id -u)"
 GUEST_AUTH_KEYS_DIR="/Users/$GUEST_SSH_USER/.ssh"
 GUEST_AUTH_KEYS="$GUEST_AUTH_KEYS_DIR/authorized_keys"
@@ -79,7 +79,7 @@ case "$OPENCODE_MODE" in
   web|serve|server)
     ;;
   *)
-    echo "Invalid OPENCODE_MODE '$OPENCODE_MODE'. Use: web (default), serve, or server (alias for serve)." >&2
+    echo "Invalid OPENCODE_MODE '$OPENCODE_MODE'. Use: serve (default), web, or server (alias for serve)." >&2
     exit 1
     ;;
 esac

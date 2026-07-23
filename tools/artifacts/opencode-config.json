@@ -3,6 +3,17 @@
   "server": {
     "port": 4096,
     "hostname": "0.0.0.0",
-    "cors": ["https://code.badmath.org", "https://carnac.home", "https://10.1.1.5"]
+    "cors": [
+      "https://code.badmath.org",
+      "https://carnac.home",
+      "http://10.1.1.5",
+      "http://10.1.1.5:4096",
+      "https://10.1.1.5",
+      "https://10.1.1.5:4096",
+      "http://10.1.1.2",
+      "http://10.1.1.2:49152",
+      "https://10.1.1.2",
+      "https://10.1.1.2:49152"
+    ]
   }
 }

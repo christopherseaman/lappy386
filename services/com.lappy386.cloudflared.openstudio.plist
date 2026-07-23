@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.lappy386.cloudflared.openstudio</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/opt/cloudflared/bin/cloudflared</string>
+    <string>tunnel</string>
+    <string>run</string>
+    <string>studio</string>
+    <string>--config</string>
+    <string>/etc/cloudflared/config.yml</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/cloudflared-openstudio.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/cloudflared-openstudio.err</string>
+</dict>
+</plist>
