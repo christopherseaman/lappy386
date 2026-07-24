@@ -12,6 +12,12 @@
     <string>if [ -x "$HOME/.opencode/bin/opencode" ]; then exec "$HOME/.opencode/bin/opencode" serve; elif [ -x "$HOME/.local/bin/opencode" ]; then exec "$HOME/.local/bin/opencode" serve; else exec /opt/homebrew/bin/opencode serve; fi</string>
   </array>
 
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>OPENCODE_SERVER_PASSWORD</key>
+    <string>CHANGE_ME</string>
+  </dict>
+
   <key>RunAtLoad</key>
   <true/>
 
