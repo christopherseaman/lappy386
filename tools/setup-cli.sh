@@ -99,8 +99,7 @@ INSTRUCTIONS_URL="https://gist.githubusercontent.com/christopherseaman/310a389a6
 mkdir -p ~/.claude ~/.codex ~/.local/share/agent-instructions
 instructions_tmp=$(mktemp)
 if curl -fsSL "$INSTRUCTIONS_URL" -o "$instructions_tmp" && [ -s "$instructions_tmp" ]; then
-  # The delegation guidance differs by reader: Claude Code delegates freely (subagents are
-  # context-isolating), codex must not spawn (it forks the full context per child, metered).
+  # Harness-specific delegation guidance lives in the canonical gist blocks below.
   # Both paragraphs live in the gist wrapped in <!-- ONLY:claude --> / <!-- ONLY:codex -->
   # markers. strip_only keeps the matching block, drops the other and both markers, so each
   # file carries only its own line and no HTML comment reaches codex. A source with no

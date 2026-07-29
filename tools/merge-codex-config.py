@@ -37,28 +37,19 @@ TOML = toml
 # one becomes a dead string once renamed), and neither the model nor its reasoning effort is
 # this repo's call to impose — both are left to codex's default and the user's /model.
 #
-# Sub-agent lockdown (both scopes). codex forks the FULL parent context into every spawned
-# sub-agent — no context savings — and each child re-sends it as metered cache-reads, so one
-# "delegate this" turn can exhaust a weekly quota (openai/codex#9748, #12487, #13179; the
-# rollout logs also replay parent history, inflating apparent usage up to ~90x, ccusage#950).
-# No single switch is sufficient on gpt-5.6, so three overlapping brakes:
-#   features.multi_agent = false  removes the spawn tool surface. Best-effort: model metadata
-#                                 can still force it on 5.5/5.6 (openai/codex#31097, open).
-#   agents.max_threads   = 1      kills concurrent fan-out (what drains quota fastest); the
-#                                 binary's floor, a runtime cap the model never sees.
-#   agents.max_depth     = 1      the floor the binary allows (0 is rejected); a child cannot
-#                                 spawn its own children. The reliable brake is the AGENTS.md
-#                                 wording telling codex not to spawn — config alone is leaky.
+# Sub-agent configuration: allow shallow parallel delegation for independent workstreams while
+# requiring the instruction split to give Codex task-centric prompts with fork_context=false.
+# That per-spawn flag is not a config key; it starts each child with only its supplied prompt.
 MANAGED = {
     "host": {
         "personality": "pragmatic",
-        "features": {"multi_agent": False},
-        "agents": {"max_depth": 1, "max_threads": 1},
+        "features": {"multi_agent": True},
+        "agents": {"max_depth": 1, "max_threads": 8},
     },
     "sandbox": {
         "personality": "pragmatic",
-        "features": {"multi_agent": False},
-        "agents": {"max_depth": 1, "max_threads": 1},
+        "features": {"multi_agent": True},
+        "agents": {"max_depth": 1, "max_threads": 8},
         # Only ever correct inside the container.
         "approval_policy": "never",
         "sandbox_mode": "danger-full-access",
