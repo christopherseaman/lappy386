@@ -412,7 +412,4 @@ provision_client_key
 configure_guest_hostname
 provision_guest_state
 
-cat <<EOF
-VM:        $VM_NAME
-Workspace: $WORKSPACE -> $GUEST_WORKSPACE_HINT
-EOF
+echo "Sandbox '$VM_NAME' is running; workspace mounted from $WORKSPACE."
