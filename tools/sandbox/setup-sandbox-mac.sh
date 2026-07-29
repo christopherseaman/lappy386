@@ -1,6 +1,6 @@
 #!/bin/bash
 # Provision a disposable macOS + Xcode Tart VM running Codex, with ~/projects
-# shared in and opencode exposed via bridged networking on the configured port. Apple Silicon only.
+# shared in. Apple Silicon only.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -58,47 +58,18 @@ GUEST_SSH_USER="${SANDBOX_GUEST_SSH_USER:-admin}"
 HOST_CLIENT_PUBLIC_KEY="${SANDBOX_CLIENT_PUBLIC_KEY:-$HOME/.ssh/client_key.pub}"
 HOST_CLIENT_PRIVATE_KEY="${SANDBOX_CLIENT_PRIVATE_KEY:-${HOST_CLIENT_PUBLIC_KEY%.pub}}"
 LAUNCH_LABEL="${SANDBOX_LAUNCHD_LABEL:-com.lappy386.sandbox.macos}"
-PORT_FORWARD_LABEL="${SANDBOX_PORT_FORWARD_LAUNCHD_LABEL:-com.lappy386.sandbox.macos.opencode-forward}"
 LAUNCH_AGENT_DIR="$HOME/Library/LaunchAgents"
 PLIST_PATH="$LAUNCH_AGENT_DIR/${LAUNCH_LABEL}.plist"
-PORT_FORWARD_PLIST_PATH="$LAUNCH_AGENT_DIR/${PORT_FORWARD_LABEL}.plist"
 LOG_DIR="$HOME/Library/Logs/lappy386-sandbox"
-OPENCODE_MODE="${1:-${OPENCODE_MODE:-serve}}"
 LAUNCHD_DOMAIN="gui/$(id -u)"
 GUEST_AUTH_KEYS_DIR="/Users/$GUEST_SSH_USER/.ssh"
 GUEST_AUTH_KEYS="$GUEST_AUTH_KEYS_DIR/authorized_keys"
 GUEST_KEY_STAGING="/tmp/lappy386-host-client-key.pub"
-OPENCODE_CONFIG="$SCRIPT_DIR/../artifacts/opencode-config.json"
-OPENCODE_LAUNCH_LABEL="${SANDBOX_OPENCODE_LAUNCHD_LABEL:-com.lappy386.opencode}"
-OPENCODE_PORT="4096"
-OPENCODE_HOST_PORT="${SANDBOX_OPENCODE_HOST_PORT:-49152}"
-OPENCODE_HOST_BIND_ADDRESS="${SANDBOX_OPENCODE_HOST_BIND_ADDRESS:-0.0.0.0}"
 TART_BRIDGE_INTERFACE="${SANDBOX_TART_BRIDGE_INTERFACE:-en0}"
 
-case "$OPENCODE_MODE" in
-  web|serve|server)
-    ;;
-  *)
-    echo "Invalid OPENCODE_MODE '$OPENCODE_MODE'. Use: serve (default), web, or server (alias for serve)." >&2
-    exit 1
-    ;;
-esac
 if [[ ! "$GUEST_HOSTNAME" =~ ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$ ]]; then
   echo "Invalid SANDBOX_GUEST_HOSTNAME '$GUEST_HOSTNAME'." >&2
   exit 1
-fi
-if [[ "$OPENCODE_MODE" == "server" ]]; then
-  OPENCODE_MODE="serve"
-fi
-
-if command -v python3 >/dev/null 2>&1; then
-  OPENCODE_CONFIG_PORT="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["server"]["port"])' "$OPENCODE_CONFIG" 2>/dev/null || true)"
-  if [[ -n "${OPENCODE_CONFIG_PORT}" ]]; then
-    OPENCODE_PORT="$OPENCODE_CONFIG_PORT"
-  fi
-fi
-if [[ "${2:-}" != "" ]]; then
-  OPENCODE_HOST_PORT="${2}"
 fi
 TART_NETWORK_ARGS=(--net-bridged "$TART_BRIDGE_INTERFACE")
 
@@ -152,10 +123,6 @@ provision_guest_state() {
     return 0
   fi
 
-  if ! tart exec -i "$VM_NAME" /bin/sh -lc 'mkdir -p "$HOME/.config/opencode" && cat > "$HOME/.config/opencode/opencode.json"' < "$OPENCODE_CONFIG"; then
-    echo "Failed to copy opencode config into guest." >&2
-  fi
-
   local merged_config
   merged_config="$(mktemp)"
   cp "$HOME/.codex/config.toml" "$merged_config" 2>/dev/null || : > "$merged_config"
@@ -206,10 +173,6 @@ start_guest_opencode() {
 
   tart exec "$VM_NAME" /bin/sh -lc 'set -e
     mkdir -p "$HOME/.local/bin" "$HOME/.local/share/opencode" "$HOME/Library/LaunchAgents"
-    if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
-      curl -fsSL https://opencode.ai/install | bash
-    fi
-
     if [ ! -f "$HOME/.zprofile" ]; then
       : > "$HOME/.zprofile"
     fi
@@ -268,10 +231,6 @@ EOF
     launchctl bootstrap "gui/$(id -u)" "$OPENCODE_PLIST"
     launchctl kickstart -k "$OPENCODE_SERVICE"
   '
-}
-
-get_guest_ip() {
-  tart exec "$VM_NAME" /bin/sh -lc 'ifconfig | awk "/inet / {print \$2}" | grep -Ev "^127\\.|^169\\.254\\." | head -n1'
 }
 
 wait_for_opencode() {
@@ -452,18 +411,8 @@ fi
 provision_client_key
 configure_guest_hostname
 provision_guest_state
-start_guest_opencode
-GUEST_IP="$(get_guest_ip)"
-wait_for_opencode "$GUEST_IP"
-HOST_IP="$(ipconfig getifaddr "$TART_BRIDGE_INTERFACE")"
-start_host_opencode_forward "$GUEST_IP"
-wait_for_host_opencode "$HOST_IP"
-HOST_LOCAL_HOSTNAME="$(scutil --get LocalHostName)"
 
 cat <<EOF
 VM:        $VM_NAME
-Mode:      $OPENCODE_MODE
-Endpoint:  http://$HOST_IP:$OPENCODE_HOST_PORT
-Hostname:  http://$HOST_LOCAL_HOSTNAME.local:$OPENCODE_HOST_PORT
 Workspace: $WORKSPACE -> $GUEST_WORKSPACE_HINT
 EOF

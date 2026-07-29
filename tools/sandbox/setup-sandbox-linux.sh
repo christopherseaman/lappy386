@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build the agent image and run a disposable coding sandbox (codex + opencode serve).
+# Build the agent image and run a disposable coding sandbox for Codex.
 # Rootless Podman, started by the normal user (never sudo). The container's writable
 # overlay layer is discarded on removal, so agent-installed toolchains stay disposable.
 set -euo pipefail
@@ -9,38 +9,16 @@ IMAGE="localhost/agent:latest"
 NAME="agent"                                 # podman container name — stable across hosts (exec/sandbox alias)
 # hostname INSIDE the guest — per-host so each machine registers distinctly for remote control
 GUEST_HOSTNAME="${SANDBOX_HOSTNAME:-$(hostname -s 2>/dev/null || hostname)-agent}"
-OPENCODE_MODE="${OPENCODE_MODE:-serve}"
-PUBLISH_HOST="${SANDBOX_PUBLISH_HOST:-0.0.0.0}"
 WORKSPACE="${SANDBOX_WORKSPACE:-$HOME/projects}"
 CODEX_STATE="$HOME/.local/share/codex-container"
 GH_STATE="$HOME/.local/share/gh-container"
-OPENCODE_STATE="$HOME/.local/share/opencode-container"
-OPENCODE_CONFIG="$SCRIPT_DIR/../artifacts/opencode-config.json"
-
-# The published port must match what opencode binds inside the guest, so read it back out of
-# the config that sets it rather than restating the number here. A mismatch would publish a
-# dead port and fail only at the tunnel, so this is a hard error rather than a default.
-WEB_PORT="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["server"]["port"])' \
-  "$OPENCODE_CONFIG")" || {
-  echo "Cannot read server.port from $OPENCODE_CONFIG (needs python3)" >&2; exit 1; }
-if [ "$OPENCODE_MODE" = "server" ]; then
-  OPENCODE_MODE="serve"
-fi
-case "$OPENCODE_MODE" in
-  web|serve)
-    ;;
-  *)
-    echo "Invalid OPENCODE_MODE '$OPENCODE_MODE'. Use web or serve." >&2
-    exit 1
-    ;;
-esac
 
 if ! command -v podman >/dev/null 2>&1; then
   echo "podman not found; installing..."
   sudo apt-get update && sudo apt-get install -y podman
 fi
 
-mkdir -p "$WORKSPACE" "$CODEX_STATE" "$GH_STATE" "$OPENCODE_STATE"
+mkdir -p "$WORKSPACE" "$CODEX_STATE" "$GH_STATE"
 
 # Build (idempotent; layer cache makes re-runs cheap). UID/GID baked in so keep-id maps clean.
 podman build \
@@ -73,9 +51,6 @@ uv run --managed-python --python 3.11 --script "$SCRIPT_DIR/../merge-codex-confi
 # non-reaping PID 1 (e.g. a bare `sleep`) leaves each one a zombie until the pids-limit
 # is exhausted.
 #
-# The web UI is published to 127.0.0.1 ONLY — opencode has no auth of its own, so the sole
-# route in is the cloudflared tunnel (code.badmath.org), which does the authenticating.
-# This host is firewalled; if you prefer loopback-only, set SANDBOX_PUBLISH_HOST=127.0.0.1.
 podman run -d \
   --name "$NAME" \
   --hostname "$GUEST_HOSTNAME" \
@@ -88,23 +63,17 @@ podman run -d \
   --volume "$WORKSPACE:/workspace:rw" \
   --volume "$CODEX_STATE:/home/agent/.codex:rw" \
   --volume "$GH_STATE:/home/agent/.config/gh:rw" \
-  --volume "$OPENCODE_STATE:/home/agent/.local/share/opencode:rw" \
-  --publish "$PUBLISH_HOST:$WEB_PORT:$WEB_PORT" \
-  --env "WEB_PORT=$WEB_PORT" \
-  --env "OPENCODE_MODE=$OPENCODE_MODE" \
   --workdir /workspace \
   "$IMAGE" /home/agent/.local/bin/agent-supervisor.sh
 
 cat <<EOF
 
-Sandbox '$NAME' is running (detached) as '$GUEST_HOSTNAME'. Codex remote control and
-opencode serve auto-start on container start/restart (codex is a no-op before you auth).
-  Web UI:     http://$PUBLISH_HOST:$WEB_PORT     # host firewall + tunnel remain your external boundary
+Sandbox '$NAME' is running (detached) as '$GUEST_HOSTNAME'. Codex remote control
+auto-starts on container start/restart (codex is a no-op before you auth).
   Shell in:   sandbox              # alias; or:  podman exec -it $NAME bash
   Auth once (persists via mounted volumes):
     codex login
     gh auth login
-    opencode auth login  # only for paid providers; free models work unauthed
   Pair a phone (short-lived code; machine shows up as '$GUEST_HOSTNAME'):
     podman exec $NAME bash -lc 'codex remote-control pair'
   Restart:  podman restart $NAME
