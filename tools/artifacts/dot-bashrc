@@ -51,9 +51,18 @@ if [ -x /usr/bin/dircolors ]; then
   alias egrep='egrep --color=auto'
 fi
 
-# Colorize less for man pages and code
+# Pager and syntax highlighting
+unset NO_COLOR
+export PAGER='less'
 export LESS='-R --use-color -Dd+r$Du+b'
-export MANPAGER="less -R --use-color -Dd+r -Du+b"
+export MANPAGER='less'
+if [ -z "${LESSOPEN:-}" ]; then
+  if command -v bat &>/dev/null; then
+    export LESSOPEN='||bat --color=always --style=plain --paging=never %s'
+  elif command -v batcat &>/dev/null; then
+    export LESSOPEN='||batcat --color=always --style=plain --paging=never %s'
+  fi
+fi
 
 # Alias definitions.
 # You may want to put all your additions into a separate file like

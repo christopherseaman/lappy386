@@ -66,16 +66,4 @@ podman run -d \
   --workdir /workspace \
   "$IMAGE" /home/agent/.local/bin/agent-supervisor.sh
 
-cat <<EOF
-
-Sandbox '$NAME' is running (detached) as '$GUEST_HOSTNAME'. Codex remote control
-auto-starts on container start/restart (codex is a no-op before you auth).
-  Shell in:   sandbox              # alias; or:  podman exec -it $NAME bash
-  Auth once (persists via mounted volumes):
-    codex login
-    gh auth login
-  Pair a phone (short-lived code; machine shows up as '$GUEST_HOSTNAME'):
-    podman exec $NAME bash -lc 'codex remote-control pair'
-  Restart:  podman restart $NAME
-  Stop:  podman stop $NAME      Rebuild: re-run this script
-EOF
+echo "Sandbox '$NAME' is running (detached) as '$GUEST_HOSTNAME'."

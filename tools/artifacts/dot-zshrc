@@ -54,6 +54,17 @@ setopt GLOB_DOTS                 # Include dotfiles in globbing
 # Enable colors
 autoload -U colors && colors
 
+# Pager and syntax highlighting
+unset NO_COLOR
+export PAGER='less'
+export LESS='-R --use-color -Dd+r$Du+b'
+export MANPAGER='less'
+if command -v bat >/dev/null 2>&1; then
+    export LESSOPEN='||bat --color=always --style=plain --paging=never %s'
+elif command -v batcat >/dev/null 2>&1; then
+    export LESSOPEN='||batcat --color=always --style=plain --paging=never %s'
+fi
+
 # Colored GCC warnings and errors
 export CLICOLOR=1
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
