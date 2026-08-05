@@ -33,20 +33,23 @@ TABLE_START = re.compile(r"^\s*\[")
 MAX_MODE = 0o600
 TOML = toml
 
-# `model` and `model_reasoning_effort` are deliberately absent: model names drift (a pinned
-# one becomes a dead string once renamed), and neither the model nor its reasoning effort is
-# this repo's call to impose — both are left to codex's default and the user's /model.
+# The model and reasoning effort are managed defaults for this installation. They are explicit
+# here so setup keeps host and sandbox behavior aligned; a user's /model can still override them.
 #
 # Sub-agent configuration: allow shallow parallel delegation for independent workstreams while
 # requiring the instruction split to give Codex task-centric prompts with fork_context=false.
 # That per-spawn flag is not a config key; it starts each child with only its supplied prompt.
 MANAGED = {
     "host": {
+        "model": "gpt-5.6-luna",
+        "model_reasoning_effort": "xhigh",
         "personality": "pragmatic",
         "features": {"multi_agent": True},
         "agents": {"max_depth": 1, "max_threads": 8},
     },
     "sandbox": {
+        "model": "gpt-5.6-luna",
+        "model_reasoning_effort": "xhigh",
         "personality": "pragmatic",
         "features": {"multi_agent": True},
         "agents": {"max_depth": 1, "max_threads": 8},
