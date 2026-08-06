@@ -10,6 +10,9 @@ ServerAliveInterval 30
 Host deb deb-studio.home deb-studio deb-y7rgc54-dt deb-y7rgc54
   User cseaman
 
+Host spaceforce.home 10.1.1.6 biscuit-ai.home rita.home 10.1.1.8
+  User biscuit
+
 Host github.com *.github.com
   # Use GitHub key (created by gh auth login) instead of client_key
   IdentityFile ~/.ssh/id_ed25519
