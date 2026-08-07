@@ -10,6 +10,7 @@ NAME="agent"                                 # podman container name — stable 
 # hostname INSIDE the guest — per-host so each machine registers distinctly for remote control
 GUEST_HOSTNAME="${SANDBOX_HOSTNAME:-$(hostname -s 2>/dev/null || hostname)-agent}"
 WORKSPACE="${SANDBOX_WORKSPACE:-$HOME/projects}"
+WORKSPACE_GROUP="${SANDBOX_WORKSPACE_GROUP:-$(id -gn)}"
 CODEX_STATE="$HOME/.local/share/codex-container"
 GH_STATE="$HOME/.local/share/gh-container"
 
@@ -19,6 +20,18 @@ if ! command -v podman >/dev/null 2>&1; then
 fi
 
 mkdir -p "$WORKSPACE" "$CODEX_STATE" "$GH_STATE"
+
+if ! command -v setfacl >/dev/null 2>&1; then
+  echo "setfacl is required to configure group-writable workspace ACLs." >&2
+  exit 1
+fi
+
+chgrp "$WORKSPACE_GROUP" "$WORKSPACE"
+setfacl -b "$WORKSPACE"
+setfacl -k "$WORKSPACE"
+chmod 2770 "$WORKSPACE"
+setfacl -m "u::rwx,g::rwx,m::rwx,o::---" "$WORKSPACE"
+setfacl -d -m "u::rwx,g::rwx,m::rwx,o::---" "$WORKSPACE"
 
 # Build (idempotent; layer cache makes re-runs cheap). UID/GID baked in so keep-id maps clean.
 podman build \
