@@ -69,6 +69,7 @@ podman run -d \
   --hostname "$GUEST_HOSTNAME" \
   --init \
   --userns="keep-id:uid=$(id -u),gid=$(id -g)" \
+  --group-add=keep-groups \
   --cap-drop=all \
   --security-opt=no-new-privileges \
   --network=slirp4netns:allow_host_loopback=false \

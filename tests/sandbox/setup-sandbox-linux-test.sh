@@ -94,6 +94,16 @@ assert_acl_prefix() {
   [[ "$actual" == "$expected" ]] || fail "unexpected ACL/setup command order:\n$actual"
 }
 
+assert_podman_run_keeps_groups() {
+  local call_log="$1"
+  local podman_run
+
+  podman_run="$(sed -n '/^podman <run> /p' "$call_log")"
+  [[ -n "$podman_run" ]] || fail "podman run invocation was not recorded"
+  [[ "$podman_run" == *" <--userns=keep-id:uid=1000,gid=1000> <--group-add=keep-groups> "* ]] \
+    || fail "podman run did not retain supplementary groups: $podman_run"
+}
+
 test_missing_setfacl_fails_before_podman() {
   local case_root="$TEST_ROOT/missing-setfacl"
   local fake_bin="$case_root/bin"
@@ -138,7 +148,22 @@ test_group_override_is_used() {
   assert_acl_prefix "$call_log" "$case_root/workspace" "collaborators"
 }
 
+test_podman_run_keeps_supplementary_groups() {
+  local case_root="$TEST_ROOT/keep-groups"
+  local fake_bin="$case_root/bin"
+  local call_log="$case_root/calls.log"
+  mkdir -p "$case_root/home"
+  : > "$call_log"
+  make_fake_bin "$fake_bin"
+  ln -s stub "$fake_bin/setfacl"
+
+  run_setup "$fake_bin" "$case_root/home" "$case_root/workspace" "$call_log" \
+    "collaborators"
+  assert_podman_run_keeps_groups "$call_log"
+}
+
 test_missing_setfacl_fails_before_podman
 test_default_group_configures_acl_before_podman
 test_group_override_is_used
+test_podman_run_keeps_supplementary_groups
 echo "PASS: setup-sandbox-linux workspace ACL tests"
