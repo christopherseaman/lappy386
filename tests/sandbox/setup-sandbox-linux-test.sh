@@ -33,7 +33,7 @@ case "$command_name" in
     ;;
   chgrp|chmod|podman|setfacl|uv)
     printf '%s' "$command_name" >> "$CALL_LOG"
-    printf ' %q' "$@" >> "$CALL_LOG"
+    printf ' <%s>' "$@" >> "$CALL_LOG"
     printf '\n' >> "$CALL_LOG"
     ;;
   *)
@@ -83,13 +83,13 @@ assert_acl_prefix() {
 
   actual="$(sed -n '1,7p' "$call_log")"
   expected="$(printf '%s\n' \
-    "chgrp $expected_group $workspace" \
-    "setfacl -b $workspace" \
-    "setfacl -k $workspace" \
-    "chmod 2770 $workspace" \
-    "setfacl -m u::rwx,g::rwx,m::rwx,o::--- $workspace" \
-    "setfacl -d -m u::rwx,g::rwx,m::rwx,o::--- $workspace" \
-    "podman build --build-arg UID=1000 --build-arg GID=1000 -t localhost/agent:latest -f $REPO_ROOT/tools/sandbox/Containerfile $REPO_ROOT/tools/sandbox/..")"
+    "chgrp <$expected_group> <$workspace>" \
+    "setfacl <-b> <$workspace>" \
+    "setfacl <-k> <$workspace>" \
+    "chmod <2770> <$workspace>" \
+    "setfacl <-m> <u::rwx,g::rwx,m::rwx,o::---> <$workspace>" \
+    "setfacl <-d> <-m> <u::rwx,g::rwx,m::rwx,o::---> <$workspace>" \
+    "podman <build> <--build-arg> <UID=1000> <--build-arg> <GID=1000> <-t> <localhost/agent:latest> <-f> <$REPO_ROOT/tools/sandbox/Containerfile> <$REPO_ROOT/tools/sandbox/..>")"
 
   [[ "$actual" == "$expected" ]] || fail "unexpected ACL/setup command order:\n$actual"
 }
