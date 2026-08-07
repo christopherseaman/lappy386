@@ -51,3 +51,7 @@ killall Dock
 
 ## RUN COMMON SETUP
 ./setup-common.sh
+
+## KEYBOARD SHORTCUTS
+defaults write com.apple.Safari NSUserKeyEquivalents -dict-add "Close Tab" '@w'
+defaults write com.openai.codex NSUserKeyEquivalents -dict-add "New Window" '@n'
