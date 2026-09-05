@@ -28,6 +28,7 @@ These read `artifacts/` by relative path, so run them from `tools/`:
 - **Common configuration**: `cd tools && ./setup-common.sh` (git, SSH, nvim, agent settings)
 - **Shared CLI layer**: `cd tools && ./setup-cli.sh` (dotfiles, starship, nvm, uv, golang, codex)
 - **Claude MCP setup**: `cd tools && ./setup-claude-mcp.sh`
+- **Codex setup**: `cd tools && ./setup-codex.sh` (MCP servers and Ponytail plugin)
 - **Agent sandbox**: `./tools/sandbox/setup-sandbox-linux.sh` (podman) or `setup-sandbox-mac.sh` (Tart VM).
   The Linux sandbox runs codex plus an opencode web UI on host loopback, published for a tunnel to front.
 
