@@ -89,6 +89,17 @@ if ! command -v zed &>/dev/null; then
   curl -f https://zed.dev/install.sh | sh
 fi
 
+## ChromeOS: Zed only honours GPUI_X11_SCALE_FACTOR on X11, so launch it through XWayland
+## at a fixed scale. Runs outside the install guard and is idempotent, so a re-run repairs
+## the launcher entry if the installer or an update regenerated it.
+if [ -f /dev/.container_token ]; then
+  ZED_DESKTOP="$HOME/.local/share/applications/dev.zed.Zed.desktop"
+  ZED_LAUNCH_ENV="env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 GPUI_X11_SCALE_FACTOR=2"
+  if [ -f "$ZED_DESKTOP" ] && ! grep -q 'GPUI_X11_SCALE_FACTOR' "$ZED_DESKTOP"; then
+    sed -i "s|^Exec=|Exec=$ZED_LAUNCH_ENV |" "$ZED_DESKTOP"
+  fi
+fi
+
 ## Install Ghostty if not present (Debian trixie / Ubuntu via mkasberg/ghostty-ubuntu)
 if ! command -v ghostty &>/dev/null; then
   echo "Installing Ghostty..."
