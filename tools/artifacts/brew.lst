@@ -8,13 +8,11 @@ git-delta
 # gmp        # transitive dep (python etc. pull it in); not a top-level tool
 # handbrake  # HandBrakeCLI video transcoder; re-enable if transcoding
 # helix
-htop
 ncdu
 neovim
 # nvm
 # ollama
 python
-# qemu
 # rclone
 ripgrep
 # starship
@@ -23,7 +21,5 @@ ripgrep
 tmux
 # transmission-cli
 # uv
-watch
-wget
 yt-dlp
 zoxide

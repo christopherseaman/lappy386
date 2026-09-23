@@ -11,11 +11,9 @@ fzf
 git
 git-delta
 gnupg
-htop
 ncdu
 openssh-client
 procps
 ripgrep
 tmux
-wget
 zoxide

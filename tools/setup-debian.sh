@@ -56,9 +56,10 @@ fi
 sudo apt update --quiet -qq
 #sudo apt full-upgrade --quiet -qq -y --allow-change-held-packages
 # Shared CLI packages (artifacts/apt-cli.lst, also used by the sandbox guest) plus host-only
-# extras: the ssh server, desktop fonts, and gh (its apt repo is configured on the host).
+# extras: the ssh server, desktop fonts, gh (its apt repo is configured on the host), and
+# wget (this script's release downloads use it; the sandbox guest does not need it).
 mapfile -t APT_PACKAGES < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' artifacts/apt-cli.lst)
-APT_PACKAGES+=(gh openssh-server fontconfig fonts-symbola)
+APT_PACKAGES+=(gh openssh-server fontconfig fonts-symbola wget)
 sudo apt install --quiet -qq -y --allow-change-held-packages "${APT_PACKAGES[@]}"
 sudo apt autoremove --quiet -qq -y
 
@@ -67,7 +68,6 @@ if systemd-detect-virt --quiet 2>/dev/null; then
   echo "VM detected, installing guest tools..."
   sudo apt install --quiet -qq -y --allow-change-held-packages \
     qemu-guest-agent \
-    qemu-utils \
     spice-vdagent
 fi
 
@@ -168,16 +168,16 @@ fi
 # DESKTOP
 # fi
 
-# ## Firefox from Mozilla apt repo (skip on RPi, skip on ChromeOS, skip if already configured)
-# if [ -f /etc/rpi-issue ]; then
-#   echo "Firefox: skipped (Raspberry Pi)"
-# elif [ -f /dev/.container_token ]; then
-#   echo "Firefox: skipped (ChromeOS)"
-# elif [ -f /etc/apt/sources.list.d/mozilla.sources ]; then
-#   echo "Firefox: Mozilla apt repo already configured"
-# else
-#   "$SCRIPT_DIR/setup-firefox.sh"
-# fi
+## Firefox from Mozilla apt repo (skip on RPi, skip on ChromeOS, skip if already configured)
+if [ -f /etc/rpi-issue ]; then
+  echo "Firefox: skipped (Raspberry Pi)"
+elif [ -f /dev/.container_token ]; then
+  echo "Firefox: skipped (ChromeOS)"
+elif [ -f /etc/apt/sources.list.d/mozilla.sources ]; then
+  echo "Firefox: Mozilla apt repo already configured"
+else
+  "$SCRIPT_DIR/setup-firefox.sh"
+fi
 
 # Install or update Neovim from GitHub releases (always ensure latest)
 NVIM_LATEST=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
