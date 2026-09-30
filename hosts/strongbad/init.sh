@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-REPO_BASE="https://raw.githubusercontent.com/christopherseaman/lappy386/refs/heads/master/hosts/strongbad"
+REPO_BASE="https://raw.githubusercontent.com/christopherseaman/lappy386/refs/heads/main/hosts/strongbad"
 CONTAINER_NAME="penguin"
 IMAGE="ubuntu-minimal-daily:resolute"
 
