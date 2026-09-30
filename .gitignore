@@ -6,3 +6,6 @@ __pycache__/
 
 # Scratch/working dir (usage exports, ad-hoc diagnostics — not source)
 tmp/
+
+# Claude Code per-machine state (local permission approvals, etc.)
+.claude/

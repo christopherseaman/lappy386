@@ -25,10 +25,10 @@ These read `artifacts/` by relative path, so run them from `tools/`:
 
 - **Debian/Ubuntu**: `cd tools && ./setup-debian.sh`
 - **macOS**: `cd tools && ./setup-macos.sh`
-- **Common configuration**: `cd tools && ./setup-common.sh` (git, SSH, nvim, agent settings)
+- **Common configuration**: `cd tools && ./setup-common.sh` (git, SSH, nvim, agent settings, Ponytail plugin for Claude + Codex)
 - **Shared CLI layer**: `cd tools && ./setup-cli.sh` (dotfiles, starship, nvm, uv, golang, codex)
 - **Claude MCP setup**: `cd tools && ./setup-claude-mcp.sh`
-- **Codex setup**: `cd tools && ./setup-codex.sh` (MCP servers and Ponytail plugin)
+- **Codex setup**: `cd tools && ./setup-codex.sh` (MCP servers; Ponytail is also installed by setup-common.sh)
 - **Agent sandbox**: `./tools/sandbox/setup-sandbox-linux.sh` (podman) or `setup-sandbox-mac.sh` (Tart VM).
   The Linux sandbox runs codex plus an opencode web UI on host loopback, published for a tunnel to front.
 

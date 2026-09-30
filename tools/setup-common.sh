@@ -80,6 +80,17 @@ fi
 uv run --managed-python --python 3.11 --script ./merge-codex-config.py host ~/.codex/config.toml \
   || echo "Codex config: merge failed; continuing with existing config" >&2
 
+## PONYTAIL (https://ponytail.dev) — default plugin for both agents. Runs after the
+# merges: artifacts/claude-settings.json lists ponytail@ponytail in enabledPlugins
+# because that object is replaced wholesale, so the merge would otherwise disable it.
+if command -v claude &>/dev/null; then
+  if ! claude plugin marketplace list --json 2>/dev/null | grep -Eq '"name"[[:space:]]*:[[:space:]]*"ponytail"'; then
+    claude plugin marketplace add DietrichGebert/ponytail || echo "Claude: Ponytail marketplace add failed" >&2
+  fi
+  claude plugin install ponytail@ponytail || echo "Claude: Ponytail install failed" >&2
+fi
+./setup-codex.sh ponytail || echo "Codex: Ponytail install failed" >&2
+
 ## REMINDER
 echo ""
 echo "┌──────────────────────────────┐"
