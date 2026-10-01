@@ -32,6 +32,15 @@ These read `artifacts/` by relative path, so run them from `tools/`:
 - **Agent sandbox**: `./tools/sandbox/setup-sandbox-linux.sh` (podman) or `setup-sandbox-mac.sh` (Tart VM).
   The Linux sandbox runs codex plus an opencode web UI on host loopback, published for a tunnel to front.
 
+Neovim config deployment preserves live-only files and `lazy-lock.json`. Changed
+repo-managed files replace their live counterparts, keeping one previous version
+per file in `${XDG_STATE_HOME:-$HOME/.local/state}/nvim-config-backup`. Identical reruns
+leave files and backups untouched; files removed from the repo are not pruned live.
+Common host setup also installs the Codex ACP adapter in `~/.local/bin`, using an
+existing Node/npm installation or installing Node LTS through nvm when needed.
+Codex remains a commented Avante provider alternative; authenticate with
+`codex login` to use ChatGPT subscription access before enabling it.
+
 ## Host-Specific Configurations
 
 The `hosts/` directory contains configuration files and setup scripts for specific machines.

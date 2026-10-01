@@ -44,9 +44,10 @@ sudo cp artifacts/sudoers_nopasswd /etc/sudoers.d/sudoers_nopasswd
 sudo chmod 440 /etc/sudoers.d/sudoers_nopasswd
 
 ## NVIM CONFIG
-mkdir -p ~/.config
-rm -rf ~/.config/nvim
-cp -r artifacts/dot-config-nvim ~/.config/nvim
+./setup-codex-acp.sh
+uv run --managed-python --python 3.11 --script ./deploy-nvim-config.py \
+  artifacts/dot-config-nvim "${XDG_CONFIG_HOME:-$HOME/.config}/nvim" \
+  "${XDG_STATE_HOME:-$HOME/.local/state}/nvim-config-backup"
 
 ## AGENT CLI'S (host-only: claude + ntn; codex is installed by setup-cli.sh)
 if command -v claude &>/dev/null; then

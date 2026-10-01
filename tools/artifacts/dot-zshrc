@@ -9,14 +9,12 @@ SAVEHIST=200000
 HISTFILE=~/.zsh_history
 
 # History options
-setopt HIST_IGNORE_DUPS          # Don't record an entry that was just recorded again
 setopt HIST_IGNORE_ALL_DUPS      # Delete old recorded entry if new entry is a duplicate
 setopt HIST_FIND_NO_DUPS         # Do not display a line previously found
 setopt HIST_IGNORE_SPACE         # Don't record an entry starting with a space
 setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history file
 setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry
 setopt HIST_VERIFY               # Don't execute immediately upon history expansion
-setopt INC_APPEND_HISTORY        # Write to history file immediately, not when shell exits
 setopt SHARE_HISTORY             # Share history between all sessions
 
 # Homebrew setup (macOS)
@@ -47,7 +45,6 @@ autoload -Uz compinit && compinit
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' menu select
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-zstyle ':completion:*:ssh:*' hosts-ports $(cat ~/.ssh/known_hosts ~/.ssh/config 2>/dev/null | awk '/^Host[[:space:]]/ { print $2 }' | grep -v '\*' | sort -u)
 
 # Directory options
 setopt AUTO_CD                   # Auto change to a directory without typing cd
@@ -76,13 +73,6 @@ fi
 # Colored GCC warnings and errors
 export CLICOLOR=1
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-
-# Define a function to load env vars from a file
-load_env() {
-    set -o allexport
-    source $1
-    set +o allexport
-}
 
 # Load ssh-agent and keys
 [ -z "$SSH_AUTH_SOCK" ] && eval $(ssh-agent)
