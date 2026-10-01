@@ -86,13 +86,13 @@ fi
 
 ## Codex CLI
 CODEX_BIN="$HOME/.local/bin/codex"
-if [ -x "$CODEX_BIN" ]; then
-  "$CODEX_BIN" --version >/dev/null 2>&1 || true
+if command -v codex >/dev/null 2>&1; then
+  codex update || echo "Codex update failed; continuing with the existing installation." >&2
 else
-  # Use the upstream installer directly to target the project-standard user bin dir.
-  # Avoids the path ambiguity that can happen if a Homebrew cask remains installed.
+  # New installs use the project-standard user bin directory.
   curl -fsSL https://chatgpt.com/codex/install.sh | \
-    CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true sh >/dev/null 2>&1 || true
+    CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true sh >/dev/null 2>&1 \
+    || echo "Codex install failed; continuing setup." >&2
 fi
 ACTIVE_CODEX="$(command -v codex 2>/dev/null || true)"
 if [ -n "${ACTIVE_CODEX}" ] && [ "${ACTIVE_CODEX}" != "$CODEX_BIN" ]; then

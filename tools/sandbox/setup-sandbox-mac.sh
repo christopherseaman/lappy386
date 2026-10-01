@@ -151,25 +151,19 @@ provision_guest_state() {
 
   tart exec "$VM_NAME" /bin/sh -lc '
     set -e
-    current=$(command -v codex || true)
-    if [ "$current" != "$HOME/.local/bin/codex" ]; then
-      if command -v brew >/dev/null 2>&1; then
-        brew uninstall --cask codex >/dev/null 2>&1 || true
+    export PATH="$HOME/.local/bin:$PATH"
+    if command -v codex >/dev/null 2>&1; then
+      codex update
+    else
+      curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true sh
+      CODEX_BIN="$HOME/.local/bin/codex"
+      if [ ! -x "$CODEX_BIN" ]; then
+        echo "codex installer did not create $CODEX_BIN" >&2
+        exit 1
       fi
     fi
-
-    current=$(command -v codex || true)
-    if [ "$current" = "$HOME/.local/bin/codex" ]; then
-      exit 0
-    fi
-    curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true sh
-    CODEX_BIN="$HOME/.local/bin/codex"
-    if [ ! -x "$CODEX_BIN" ]; then
-      echo "codex installer did not create $CODEX_BIN" >&2
-      exit 1
-    fi
   ' || {
-    echo "Codex install failed inside guest; continuing to keep VM up." >&2
+    echo "Codex install/update failed inside guest; continuing to keep VM up." >&2
   }
 
   rm -f "$merged_config"

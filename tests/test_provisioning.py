@@ -82,6 +82,50 @@ with tempfile.TemporaryDirectory() as tmp:
                         if 'curl -fsSL https://chatgpt.com/codex/install.sh' in line)
     run('curl() { cat "$INSTALLER"; }\n' + mac_pipeline, env)
     assert (base / 'result').read_text() == f"{env['HOME']}/.local/bin\ntrue\n"
+
+    host_codex = cli[cli.index('## Codex CLI'):cli.index('ACTIVE_CODEX=')]
+    guest_start = mac.index('  tart exec "$VM_NAME" /bin/sh -lc \'\n    set -e\n')
+    guest_end = mac.index('\n\n  rm -f "$merged_config"', guest_start)
+    guest_codex = 'VM_NAME=test-vm\ntart() { /bin/sh -c "$5"; }\n' + mac[guest_start:guest_end]
+    fake_codex = base / 'fake-codex'
+    fake_codex.write_text('#!/bin/sh\n[ "$1" = update ] || exit 99\n'
+                          'printf "update\\n" >> "$CALL_LOG"\n'
+                          '[ "$FAIL_UPDATE" != yes ]\n')
+    fake_codex.chmod(0o755)
+    branch_installer = base / 'branch-installer'
+    branch_installer.write_text('printf "%s\\n%s\\n" "$CODEX_INSTALL_DIR" "$CODEX_NON_INTERACTIVE" > "$RESULT"\n'
+                                '/bin/mkdir -p "$CODEX_INSTALL_DIR"\n'
+                                '/bin/cp "$FAKE_CODEX" "$CODEX_INSTALL_DIR/codex"\n')
+    for scope, script in (('host', host_codex), ('guest', guest_codex)):
+        for state in ('present', 'absent', 'update-failure', 'install-failure'):
+            case_dir = base / f'codex-{scope}-{state}'
+            commands = case_dir / 'commands'
+            commands.mkdir(parents=True)
+            for shell in ('bash', 'sh'):
+                (commands / shell).symlink_to(f'/bin/{shell}')
+            (commands / 'curl').write_text('#!/bin/sh\nprintf "install\\n" >> "$CALL_LOG"\n'
+                                           '[ "$FAIL_INSTALL" != yes ] || exit 7\n'
+                                           '/bin/cat "$INSTALLER"\n')
+            (commands / 'curl').chmod(0o755)
+            if state in ('present', 'update-failure'):
+                # An existing command outside ~/.local/bin must also be updated.
+                (commands / 'codex').symlink_to(fake_codex)
+            install_root = case_dir / 'user'
+            calls_file = case_dir / 'calls'
+            branch_env = dict(env, PATH=str(commands), TEST_INSTALL_ROOT=str(install_root),
+                              CALL_LOG=str(calls_file), RESULT=str(case_dir / 'result'),
+                              INSTALLER=str(branch_installer), FAKE_CODEX=str(fake_codex),
+                              FAIL_UPDATE='yes' if state == 'update-failure' else 'no',
+                              FAIL_INSTALL='yes' if state == 'install-failure' else 'no')
+            checked = run(script.replace('$HOME', '$TEST_INSTALL_ROOT'), branch_env)
+            assert calls_file.read_text() == ('update\n' if state in ('present', 'update-failure') else 'install\n')
+            assert ('failed' in checked.stderr) == state.endswith('failure')
+            if state == 'absent':
+                assert (case_dir / 'result').read_text() == f'{install_root}/.local/bin\ntrue\n'
+                assert os.access(install_root / '.local/bin/codex', os.X_OK)
+            else:
+                assert not (install_root / '.local/bin/codex').exists()
+
     recreate_default = next(line for line in mac.splitlines() if line.startswith('RECREATE_VM='))
     recreate_block = mac[mac.index('if [[ "$RECREATE_VM"'):mac.index('# Clone the prebuilt Xcode image')]
     fake_vm_commands = '''
