@@ -53,10 +53,9 @@ CPU="${SANDBOX_CPU:-8}"
 MEM_MB="${SANDBOX_MEM_MB:-16384}"
 DISK_GB="${SANDBOX_DISK_GB:-150}"
 USE_LAUNCHD="${SANDBOX_LAUNCHD:-1}"
-RECREATE_VM="${SANDBOX_RECREATE_VM:-1}"
+RECREATE_VM="${SANDBOX_RECREATE_VM:-0}"
 GUEST_SSH_USER="${SANDBOX_GUEST_SSH_USER:-admin}"
 HOST_CLIENT_PUBLIC_KEY="${SANDBOX_CLIENT_PUBLIC_KEY:-$HOME/.ssh/client_key.pub}"
-HOST_CLIENT_PRIVATE_KEY="${SANDBOX_CLIENT_PRIVATE_KEY:-${HOST_CLIENT_PUBLIC_KEY%.pub}}"
 LAUNCH_LABEL="${SANDBOX_LAUNCHD_LABEL:-com.lappy386.sandbox.macos}"
 LAUNCH_AGENT_DIR="$HOME/Library/LaunchAgents"
 PLIST_PATH="$LAUNCH_AGENT_DIR/${LAUNCH_LABEL}.plist"
@@ -123,12 +122,25 @@ provision_guest_state() {
     return 0
   fi
 
-  local merged_config
+  local merged_config config_status=0
   merged_config="$(mktemp)"
-  cp "$HOME/.codex/config.toml" "$merged_config" 2>/dev/null || : > "$merged_config"
+  tart exec "$VM_NAME" /bin/sh -lc '
+    [ -e "$HOME/.codex/config.toml" ] || exit 3
+    cat "$HOME/.codex/config.toml"
+  ' > "$merged_config" || config_status=$?
+
+  if [[ "$config_status" == "3" ]]; then
+    cp "$HOME/.codex/config.toml" "$merged_config" 2>/dev/null || : > "$merged_config"
+  elif [[ "$config_status" != "0" ]]; then
+    echo "Failed to read guest Codex config; keeping it untouched." >&2
+    rm -f "$merged_config"
+    return 0
+  fi
 
   if ! uv run --managed-python --python 3.11 --script "$SCRIPT_DIR/../merge-codex-config.py" sandbox "$merged_config"; then
-    echo "Codex config merge failed; using unmodified config." >&2
+    echo "Codex config merge failed; keeping guest config untouched." >&2
+    rm -f "$merged_config"
+    return 0
   fi
 
   tart exec -i "$VM_NAME" /bin/sh -lc 'mkdir -p "$HOME/.codex" && cat > "$HOME/.codex/config.toml"' < "$merged_config" || {
@@ -150,7 +162,7 @@ provision_guest_state() {
     if [ "$current" = "$HOME/.local/bin/codex" ]; then
       exit 0
     fi
-    CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true curl -fsSL https://chatgpt.com/codex/install.sh | sh
+    curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true sh
     CODEX_BIN="$HOME/.local/bin/codex"
     if [ ! -x "$CODEX_BIN" ]; then
       echo "codex installer did not create $CODEX_BIN" >&2
@@ -168,159 +180,6 @@ configure_guest_hostname() {
   tart exec "$VM_NAME" /usr/bin/sudo -n /usr/sbin/scutil --set LocalHostName "$GUEST_HOSTNAME"
 }
 
-start_guest_opencode() {
-  wait_for_tart_exec 180
-
-  tart exec "$VM_NAME" /bin/sh -lc 'set -e
-    mkdir -p "$HOME/.local/bin" "$HOME/.local/share/opencode" "$HOME/Library/LaunchAgents"
-    if [ ! -f "$HOME/.zprofile" ]; then
-      : > "$HOME/.zprofile"
-    fi
-    if ! grep -qxF "export PATH=\"\$HOME/.opencode/bin:\$HOME/.local/bin:\$PATH\"" "$HOME/.zprofile" >/dev/null 2>&1; then
-      echo "export PATH=\"\$HOME/.opencode/bin:\$HOME/.local/bin:\$PATH\"" >> "$HOME/.zprofile"
-    fi
-
-    OPENCODE_BIN="$HOME/.opencode/bin/opencode"
-    if [ ! -x "$OPENCODE_BIN" ] && command -v opencode >/dev/null 2>&1; then
-      OPENCODE_BIN="$(command -v opencode)"
-    fi
-    if [ -x "$OPENCODE_BIN" ]; then
-      ln -sf "$OPENCODE_BIN" "$HOME/.local/bin/opencode"
-    fi
-
-    if [ ! -x "$OPENCODE_BIN" ]; then
-      echo "opencode install failed; skipping startup."
-      exit 0
-    fi
-
-    OPENCODE_LOG_PATH="$HOME/.local/share/opencode/web.log"
-    OPENCODE_MODE_BIN_ARGS="serve"
-    case '"$OPENCODE_MODE"' in
-      web) OPENCODE_MODE_BIN_ARGS="web" ;;
-      serve|server) OPENCODE_MODE_BIN_ARGS="serve" ;;
-    esac
-    OPENCODE_LABEL="'"$OPENCODE_LAUNCH_LABEL"'"
-    OPENCODE_PLIST="$HOME/Library/LaunchAgents/$OPENCODE_LABEL.plist"
-    cat > "$OPENCODE_PLIST" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>$OPENCODE_LABEL</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>$OPENCODE_BIN</string>
-    <string>$OPENCODE_MODE_BIN_ARGS</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-  <key>KeepAlive</key>
-  <true/>
-  <key>StandardOutPath</key>
-  <string>$OPENCODE_LOG_PATH</string>
-  <key>StandardErrorPath</key>
-  <string>$OPENCODE_LOG_PATH</string>
-</dict>
-</plist>
-EOF
-    OPENCODE_SERVICE="gui/$(id -u)/$OPENCODE_LABEL"
-    if launchctl print "$OPENCODE_SERVICE" >/dev/null 2>&1; then
-      launchctl bootout "$OPENCODE_SERVICE"
-    fi
-    launchctl bootstrap "gui/$(id -u)" "$OPENCODE_PLIST"
-    launchctl kickstart -k "$OPENCODE_SERVICE"
-  '
-}
-
-wait_for_opencode() {
-  local guest_ip="$1"
-  local attempts=30
-  while (( attempts > 0 )); do
-    if curl --fail --silent --max-time 2 "http://$guest_ip:$OPENCODE_PORT" >/dev/null; then
-      return 0
-    fi
-    attempts=$(( attempts - 1 ))
-    sleep 1
-  done
-  echo "OpenCode did not become reachable at http://$guest_ip:$OPENCODE_PORT." >&2
-  return 1
-}
-
-start_host_opencode_forward() {
-  local guest_ip="$1"
-  local forward_spec="$OPENCODE_HOST_BIND_ADDRESS:$OPENCODE_HOST_PORT:127.0.0.1:$OPENCODE_PORT"
-
-  if [[ ! -f "$HOST_CLIENT_PRIVATE_KEY" ]]; then
-    echo "Missing SSH private key for OpenCode forwarding: $HOST_CLIENT_PRIVATE_KEY" >&2
-    return 1
-  fi
-
-  if launchctl print "$LAUNCHD_DOMAIN/$PORT_FORWARD_LABEL" >/dev/null 2>&1; then
-    launchctl bootout "$LAUNCHD_DOMAIN/$PORT_FORWARD_LABEL"
-  fi
-
-  mkdir -p "$LAUNCH_AGENT_DIR" "$LOG_DIR"
-  cat > "$PORT_FORWARD_PLIST_PATH" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>$PORT_FORWARD_LABEL</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>/usr/bin/ssh</string>
-    <string>-N</string>
-    <string>-g</string>
-    <string>-L</string>
-    <string>$forward_spec</string>
-    <string>-i</string>
-    <string>$HOST_CLIENT_PRIVATE_KEY</string>
-    <string>-o</string>
-    <string>BatchMode=yes</string>
-    <string>-o</string>
-    <string>ExitOnForwardFailure=yes</string>
-    <string>-o</string>
-    <string>ServerAliveInterval=15</string>
-    <string>-o</string>
-    <string>ServerAliveCountMax=3</string>
-    <string>-o</string>
-    <string>StrictHostKeyChecking=accept-new</string>
-    <string>$GUEST_SSH_USER@$guest_ip</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-  <key>KeepAlive</key>
-  <true/>
-  <key>ThrottleInterval</key>
-  <integer>2</integer>
-  <key>StandardOutPath</key>
-  <string>$LOG_DIR/opencode-forward.log</string>
-  <key>StandardErrorPath</key>
-  <string>$LOG_DIR/opencode-forward.log</string>
-</dict>
-</plist>
-EOF
-
-  launchctl bootstrap "$LAUNCHD_DOMAIN" "$PORT_FORWARD_PLIST_PATH"
-  launchctl kickstart -k "$LAUNCHD_DOMAIN/$PORT_FORWARD_LABEL"
-}
-
-wait_for_host_opencode() {
-  local host_ip="$1"
-  local attempts=30
-  while (( attempts > 0 )); do
-    if curl --fail --silent --max-time 2 "http://$host_ip:$OPENCODE_HOST_PORT" >/dev/null; then
-      return 0
-    fi
-    attempts=$(( attempts - 1 ))
-    sleep 1
-  done
-  echo "OpenCode did not become reachable through http://$host_ip:$OPENCODE_HOST_PORT." >&2
-  return 1
-}
-
 if ! command -v tart >/dev/null 2>&1; then
   echo "tart not found; installing via Homebrew..."
   if ! brew tap | grep -qx "cirruslabs/cli"; then
@@ -333,9 +192,6 @@ mkdir -p "$WORKSPACE"
 
 if [[ "$RECREATE_VM" == "1" ]]; then
   echo "Recreating '$VM_NAME' (SANDBOX_RECREATE_VM=$RECREATE_VM)."
-  if launchctl print "$LAUNCHD_DOMAIN/$PORT_FORWARD_LABEL" >/dev/null 2>&1; then
-    launchctl bootout "$LAUNCHD_DOMAIN/$PORT_FORWARD_LABEL"
-  fi
   launchctl bootout "$LAUNCHD_DOMAIN/$LAUNCH_LABEL" 2>/dev/null || true
   tart stop "$VM_NAME" 2>/dev/null || true
   tart delete "$VM_NAME" 2>/dev/null || tart delete --force "$VM_NAME" 2>/dev/null || true

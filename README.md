@@ -30,7 +30,8 @@ These read `artifacts/` by relative path, so run them from `tools/`:
 - **Claude MCP setup**: `cd tools && ./setup-claude-mcp.sh`
 - **Codex setup**: `cd tools && ./setup-codex.sh` (MCP servers; Ponytail is also installed by setup-common.sh)
 - **Agent sandbox**: `./tools/sandbox/setup-sandbox-linux.sh` (podman) or `setup-sandbox-mac.sh` (Tart VM).
-  The Linux sandbox runs codex plus an opencode web UI on host loopback, published for a tunnel to front.
+  The Linux sandbox keeps Codex remote control running. The Mac sandbox reuses its VM by default;
+  set `SANDBOX_RECREATE_VM=1` to delete and recreate it.
 
 Neovim config deployment preserves live-only files and `lazy-lock.json`. Changed
 repo-managed files replace their live counterparts, keeping one previous version

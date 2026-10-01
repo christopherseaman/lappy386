@@ -29,7 +29,7 @@ while true; do
       echo "$SESSION_ID" >"$SESSION_FILE"
       echo "$(date): New RDP session ${SESSION_ID}" >>"$LOG"
       sleep 2
-      /home/christopher/.local/bin/fix-rdp.py
+      "$HOME/.local/bin/fix-rdp.py"
     fi
   done
   sleep "$POLL_INTERVAL"

@@ -168,13 +168,11 @@ fi
 # DESKTOP
 # fi
 
-## Firefox from Mozilla apt repo (skip on RPi, skip on ChromeOS, skip if already configured)
+## Firefox from Mozilla apt repo (skip on RPi and ChromeOS)
 if [ -f /etc/rpi-issue ]; then
   echo "Firefox: skipped (Raspberry Pi)"
 elif [ -f /dev/.container_token ]; then
   echo "Firefox: skipped (ChromeOS)"
-elif [ -f /etc/apt/sources.list.d/mozilla.sources ]; then
-  echo "Firefox: Mozilla apt repo already configured"
 else
   "$SCRIPT_DIR/setup-firefox.sh"
 fi
