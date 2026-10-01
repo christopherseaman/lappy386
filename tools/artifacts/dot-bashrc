@@ -11,6 +11,14 @@ esac
 # User's private bin on PATH early, before the tool inits below resolve their binaries.
 export PATH="$HOME/.local/bin:$PATH"
 
+if command -v nvim >/dev/null 2>&1; then
+    export EDITOR='nvim'
+elif command -v vim >/dev/null 2>&1; then
+    export EDITOR='vim'
+else
+    export EDITOR='vi'
+fi
+
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
@@ -115,4 +123,3 @@ export NVM_DIR="$HOME/.config/nvm"
 
 # Auto-attach to tmux session on SSH login only (skip for biscuit)
 [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && [[ "$USER" != "biscuit" ]] && { tmux attach || tmux; }
-

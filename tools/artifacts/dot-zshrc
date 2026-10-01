@@ -24,6 +24,14 @@ if [[ "$OSTYPE" == "darwin"* ]] && [[ -f "/opt/homebrew/bin/brew" ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
+if command -v nvim >/dev/null 2>&1; then
+    export EDITOR='nvim'
+elif command -v vim >/dev/null 2>&1; then
+    export EDITOR='vim'
+else
+    export EDITOR='vi'
+fi
+
 # Add user's private bin to PATH
 export PATH="$HOME/.local/bin:$PATH"
 
