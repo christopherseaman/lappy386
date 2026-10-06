@@ -19,6 +19,24 @@ cat artifacts/dot-zshrc   >~/.zshrc
 cp artifacts/tmux-zen.sh ~/.local/bin/tmux-zen.sh && chmod +x ~/.local/bin/tmux-zen.sh
 cp artifacts/starship.toml ~/.config/starship.toml
 
+# Extend the profile Bash already reads, preserving its environment setup.
+bash_login_profile="$HOME/.profile"
+for candidate in .bash_profile .bash_login .profile; do
+  if [ -r "$HOME/$candidate" ]; then
+    bash_login_profile="$HOME/$candidate"
+    break
+  fi
+done
+if ! grep -Fqx '# lappy386: load interactive Bash settings' "$bash_login_profile" 2>/dev/null; then
+  cat >>"$bash_login_profile" <<'EOF'
+
+# lappy386: load interactive Bash settings
+if [ -n "${BASH_VERSION:-}" ] && [ "${LAPPY386_BASHRC_LOADED:-}" != 1 ] && [ -r "$HOME/.bashrc" ]; then
+  . "$HOME/.bashrc"
+fi
+EOF
+fi
+
 ## Starship prompt (user-level install, no sudo)
 if ! command -v starship >/dev/null 2>&1; then
   curl -sS https://starship.rs/install.sh | sh -s -- -y -b "$HOME/.local/bin" >/dev/null
@@ -68,13 +86,13 @@ fi
 
 ## Codex CLI
 CODEX_BIN="$HOME/.local/bin/codex"
-if [ -x "$CODEX_BIN" ]; then
-  "$CODEX_BIN" --version >/dev/null 2>&1 || true
+if command -v codex >/dev/null 2>&1; then
+  codex update || echo "Codex update failed; continuing with the existing installation." >&2
 else
-  # Use the upstream installer directly to target the project-standard user bin dir.
-  # Avoids the path ambiguity that can happen if a Homebrew cask remains installed.
-  CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true \
-    curl -fsSL https://chatgpt.com/codex/install.sh | sh >/dev/null 2>&1 || true
+  # New installs use the project-standard user bin directory.
+  curl -fsSL https://chatgpt.com/codex/install.sh | \
+    CODEX_INSTALL_DIR="$HOME/.local/bin" CODEX_NON_INTERACTIVE=true sh >/dev/null 2>&1 \
+    || echo "Codex install failed; continuing setup." >&2
 fi
 ACTIVE_CODEX="$(command -v codex 2>/dev/null || true)"
 if [ -n "${ACTIVE_CODEX}" ] && [ "${ACTIVE_CODEX}" != "$CODEX_BIN" ]; then

@@ -1,11 +1,7 @@
 # fastfetch greeting function
 fastfetch_greeting() {
   command -v fastfetch >/dev/null 2>&1 || return 0
-  shopt -q login_shell && {
-    logos=("gnu") # "aperture"
-    selected_logo=${logos[$RANDOM % ${#logos[@]}]}
-    fastfetch --logo $selected_logo
-  }
+  shopt -q login_shell && fastfetch --logo gnu
 }
 
 # update more easily
@@ -16,17 +12,10 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 
-# git init + push alias
-alias ginit='git init && git add . && git commit -m "init" && gh repo create --private --source . --push'
-
-# Better grep - use ripgrep if available, otherwise enhanced grep
 if command -v rg &>/dev/null; then
-  alias grep='rg --smart-case'
   alias rg='rg --smart-case'
   alias rgf='rg --files-with-matches'
   alias rgi='rg --no-ignore'
-else
-  alias grep='grep --color=auto --exclude-dir={.git,.svn,.hg}'
 fi
 
 # Use fd if available for finding files
@@ -46,11 +35,6 @@ elif command -v batcat &>/dev/null; then
   alias bat='batcat'
 fi
 
-# Better disk usage
-if command -v ncdu &>/dev/null; then
-  alias du='ncdu --color dark'
-fi
-
 # Git delta for better diffs
 if command -v delta &>/dev/null; then
   export GIT_PAGER='delta'
@@ -60,12 +44,6 @@ fi
 if command -v fzf &>/dev/null; then
   # History search with fzf
   alias h='history | fzf --tac'
-
-  # cd to directory using fzf
-  fcd() {
-    local dir
-    dir=$(find ${1:-.} -type d 2>/dev/null | fzf +m) && cd "$dir"
-  }
 
   # Open file in editor using fzf
   fe() {

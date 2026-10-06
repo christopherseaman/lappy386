@@ -3,31 +3,34 @@ set -euo pipefail
 
 # Install Firefox from Mozilla's official apt repository
 
-## Remove Firefox snap if snapd is available
-if command -v snap &>/dev/null && snap list firefox &>/dev/null; then
-  echo "Removing Firefox snap..."
-  sudo snap remove --purge firefox
-fi
+# Migrate only before the Mozilla repository exists; retries must not purge its Firefox.
+if [ ! -f /etc/apt/sources.list.d/mozilla.sources ]; then
+  ## Remove Firefox snap if snapd is available
+  if command -v snap &>/dev/null && snap list firefox &>/dev/null; then
+    echo "Removing Firefox snap..."
+    sudo snap remove --purge firefox
+  fi
 
-## Remove distro Firefox so Mozilla's version installs cleanly
-if dpkg -l firefox 2>/dev/null | grep -q '^ii'; then
-  echo "Removing distro Firefox..."
-  sudo apt purge --quiet -qq -y firefox
-fi
+  ## Remove distro Firefox so Mozilla's version installs cleanly
+  if dpkg -l firefox 2>/dev/null | grep -q '^ii'; then
+    echo "Removing distro Firefox..."
+    sudo apt purge --quiet -qq -y firefox
+  fi
 
-## Set up Mozilla apt repository
-echo "Setting up Mozilla apt repository..."
-sudo install -d -m 0755 /etc/apt/keyrings
-wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | \
-  sudo tee /etc/apt/keyrings/packages.mozilla.org.asc >/dev/null
+  ## Set up Mozilla apt repository
+  echo "Setting up Mozilla apt repository..."
+  sudo install -d -m 0755 /etc/apt/keyrings
+  wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | \
+    sudo tee /etc/apt/keyrings/packages.mozilla.org.asc >/dev/null
 
-cat <<'EOF' | sudo tee /etc/apt/sources.list.d/mozilla.sources >/dev/null
+  cat <<'EOF' | sudo tee /etc/apt/sources.list.d/mozilla.sources >/dev/null
 Types: deb
 URIs: https://packages.mozilla.org/apt
 Suites: mozilla
 Components: main
 Signed-By: /etc/apt/keyrings/packages.mozilla.org.asc
 EOF
+fi
 
 # Prefer Mozilla's repo over distro packages
 cat <<'EOF' | sudo tee /etc/apt/preferences.d/mozilla >/dev/null

@@ -25,12 +25,22 @@ These read `artifacts/` by relative path, so run them from `tools/`:
 
 - **Debian/Ubuntu**: `cd tools && ./setup-debian.sh`
 - **macOS**: `cd tools && ./setup-macos.sh`
-- **Common configuration**: `cd tools && ./setup-common.sh` (git, SSH, nvim, agent settings)
+- **Common configuration**: `cd tools && ./setup-common.sh` (git, SSH, nvim, agent settings, Ponytail plugin for Claude + Codex)
 - **Shared CLI layer**: `cd tools && ./setup-cli.sh` (dotfiles, starship, nvm, uv, golang, codex)
 - **Claude MCP setup**: `cd tools && ./setup-claude-mcp.sh`
-- **Codex setup**: `cd tools && ./setup-codex.sh` (MCP servers and Ponytail plugin)
+- **Codex setup**: `cd tools && ./setup-codex.sh` (MCP servers; Ponytail is also installed by setup-common.sh)
 - **Agent sandbox**: `./tools/sandbox/setup-sandbox-linux.sh` (podman) or `setup-sandbox-mac.sh` (Tart VM).
-  The Linux sandbox runs codex plus an opencode web UI on host loopback, published for a tunnel to front.
+  The Linux sandbox keeps Codex remote control running. The Mac sandbox reuses its VM by default;
+  set `SANDBOX_RECREATE_VM=1` to delete and recreate it.
+
+Neovim config deployment preserves live-only files and `lazy-lock.json`. Changed
+repo-managed files replace their live counterparts, keeping one previous version
+per file in `${XDG_STATE_HOME:-$HOME/.local/state}/nvim-config-backup`. Identical reruns
+leave files and backups untouched; files removed from the repo are not pruned live.
+Common host setup also installs the Codex ACP adapter in `~/.local/bin`, using an
+existing Node/npm installation or installing Node LTS through nvm when needed.
+Codex remains a commented Avante provider alternative; authenticate with
+`codex login` to use ChatGPT subscription access before enabling it.
 
 ## Host-Specific Configurations
 

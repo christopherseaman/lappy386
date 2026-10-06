@@ -106,6 +106,12 @@ setup_ponytail() {
     echo ""
 }
 
+# Non-interactive path used by setup-common.sh, which installs Ponytail by default.
+if [ "${1:-}" = "ponytail" ]; then
+    setup_ponytail
+    exit 0
+fi
+
 echo "Which Codex components would you like to configure?"
 echo "1) Notion only"
 echo "2) Atlassian only (OAuth)"
