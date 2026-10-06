@@ -56,10 +56,11 @@ fi
 sudo apt update --quiet -qq
 #sudo apt full-upgrade --quiet -qq -y --allow-change-held-packages
 # Shared CLI packages (artifacts/apt-cli.lst, also used by the sandbox guest) plus host-only
-# extras: the ssh server, desktop fonts, gh (its apt repo is configured on the host), and
-# wget (this script's release downloads use it; the sandbox guest does not need it).
+# extras: the ssh server, desktop fonts, gh (its apt repo is configured on the host), wget
+# (this script's release downloads use it; the sandbox guest does not need it), rsync
+# (required by Zed for self-updates), and x11-utils (used by the ChromeOS Zed launcher).
 mapfile -t APT_PACKAGES < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' artifacts/apt-cli.lst)
-APT_PACKAGES+=(gh openssh-server fontconfig fonts-symbola wget)
+APT_PACKAGES+=(gh openssh-server fontconfig fonts-symbola wget rsync x11-utils)
 sudo apt install --quiet -qq -y --allow-change-held-packages "${APT_PACKAGES[@]}"
 sudo apt autoremove --quiet -qq -y
 
@@ -90,13 +91,20 @@ if ! command -v zed &>/dev/null; then
 fi
 
 ## ChromeOS: Zed only honours GPUI_X11_SCALE_FACTOR on X11, so launch it through XWayland
-## at a fixed scale. Runs outside the install guard and is idempotent, so a re-run repairs
-## the launcher entry if the installer or an update regenerated it.
+## at a fixed scale. Use server-side decorations so ChromeOS/Sommelier can provide the
+## window frame and apply its light/dark appearance. Runs outside the install guard and is
+## idempotent, so a re-run repairs the launcher entry if the installer or an update
+## regenerated it.
 if [ -f /dev/.container_token ]; then
   ZED_DESKTOP="$HOME/.local/share/applications/dev.zed.Zed.desktop"
-  ZED_LAUNCH_ENV="env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 GPUI_X11_SCALE_FACTOR=2"
-  if [ -f "$ZED_DESKTOP" ] && ! grep -q 'GPUI_X11_SCALE_FACTOR' "$ZED_DESKTOP"; then
-    sed -i "s|^Exec=|Exec=$ZED_LAUNCH_ENV |" "$ZED_DESKTOP"
+  ZED_CHROMEOS_LAUNCHER="$HOME/.local/bin/zed-chromeos"
+  mkdir -p "$(dirname "$ZED_CHROMEOS_LAUNCHER")"
+  install -m 0755 "$SCRIPT_DIR/artifacts/zed-chromeos" "$ZED_CHROMEOS_LAUNCHER"
+  if [ -f "$ZED_DESKTOP" ]; then
+    sed -i -E \
+      -e "s|^Exec=env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 GPUI_X11_SCALE_FACTOR=2( ZED_WINDOW_DECORATIONS=server)? [^ ]+|Exec=$ZED_CHROMEOS_LAUNCHER|" \
+      -e "s|^Exec=[^ ]+|Exec=$ZED_CHROMEOS_LAUNCHER|" \
+      "$ZED_DESKTOP"
   fi
 fi
 
