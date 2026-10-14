@@ -20,9 +20,9 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:blue bg:magenta)\
+[](fg:blue bg:purple)\
 $conda\
-[](fg:magenta bg:cyan)\
+[](fg:purple bg:cyan)\
 $time\
 [ ](fg:cyan)\
 $cmd_duration\
@@ -169,12 +169,12 @@ format = '[[ $symbol(\(#$virtualenv\)) ](fg:crust bg:blue)]($style)'
 
 [docker_context]
 symbol = ""
-style = "bg:magenta"
-format = '[[ $symbol( $context) ](fg:crust bg:magenta)]($style)'
+style = "bg:purple"
+format = '[[ $symbol( $context) ](fg:crust bg:purple)]($style)'
 
 [conda]
 symbol = "  "
-style = "fg:crust bg:magenta"
+style = "fg:crust bg:purple"
 format = '[$symbol$environment ]($style)'
 ignore_base = false
 
