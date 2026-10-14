@@ -5,12 +5,12 @@ format = """
 $os\
 $hostname\
 $username\
-[](bg:green fg:red)\
+[](bg:cyan fg:red)\
 $directory\
-[](bg:yellow fg:green)\
+[](bg:green fg:cyan)\
 $git_branch\
 $git_status\
-[](fg:yellow bg:blue)\
+[](fg:green bg:yellow)\
 $c\
 $rust\
 $golang\
@@ -20,11 +20,11 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:blue bg:purple)\
+[](fg:yellow bg:purple)\
 $conda\
-[](fg:purple bg:cyan)\
+[](fg:purple bg:blue)\
 $time\
-[ ](fg:cyan)\
+[ ](fg:blue)\
 $cmd_duration\
 $line_break\
 $character"""
@@ -89,7 +89,7 @@ format = "[ $hostname ]($style)"
 "tarski" = "󰿉"                           # nf-md-math_integral_box U+F0FC9
 
 [directory]
-style = "bg:green fg:crust"
+style = "bg:cyan fg:crust"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
@@ -115,57 +115,57 @@ substitutions = [
 
 [git_branch]
 symbol = ""
-style = "bg:yellow"
-format = '[[ $symbol $branch ](fg:crust bg:yellow)]($style)'
+style = "bg:green"
+format = '[[ $symbol $branch ](fg:crust bg:green)]($style)'
 
 [git_status]
-style = "bg:yellow"
-format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
+style = "bg:green"
+format = '[[($all_status$ahead_behind )](fg:crust bg:green)]($style)'
 
 [nodejs]
 symbol = ""
-style = "bg:blue"
-format = '[[ $symbol ](fg:crust bg:blue)]($style)'
+style = "bg:yellow"
+format = '[[ $symbol ](fg:crust bg:yellow)]($style)'
 
 [c]
 symbol = " "
-style = "bg:blue"
-format = '[[ $symbol ](fg:crust bg:blue)]($style)'
+style = "bg:yellow"
+format = '[[ $symbol ](fg:crust bg:yellow)]($style)'
 
 [rust]
 symbol = ""
-style = "bg:blue"
-format = '[[ $symbol ](fg:crust bg:blue)]($style)'
+style = "bg:yellow"
+format = '[[ $symbol ](fg:crust bg:yellow)]($style)'
 
 [golang]
 symbol = ""
-style = "bg:blue"
-format = '[[ $symbol ](fg:crust bg:blue)]($style)'
+style = "bg:yellow"
+format = '[[ $symbol ](fg:crust bg:yellow)]($style)'
 
 [php]
 symbol = ""
-style = "bg:blue"
-format = '[[ $symbol ](fg:crust bg:blue)]($style)'
+style = "bg:yellow"
+format = '[[ $symbol ](fg:crust bg:yellow)]($style)'
 
 [java]
 symbol = " "
-style = "bg:blue"
-format = '[[ $symbol ](fg:crust bg:blue)]($style)'
+style = "bg:yellow"
+format = '[[ $symbol ](fg:crust bg:yellow)]($style)'
 
 [kotlin]
 symbol = ""
-style = "bg:blue"
-format = '[[ $symbol ](fg:crust bg:blue)]($style)'
+style = "bg:yellow"
+format = '[[ $symbol ](fg:crust bg:yellow)]($style)'
 
 [haskell]
 symbol = ""
-style = "bg:blue"
-format = '[[ $symbol ](fg:crust bg:blue)]($style)'
+style = "bg:yellow"
+format = '[[ $symbol ](fg:crust bg:yellow)]($style)'
 
 [python]
 symbol = ""
-style = "bg:blue"
-format = '[[ $symbol(\(#$virtualenv\)) ](fg:crust bg:blue)]($style)'
+style = "bg:yellow"
+format = '[[ $symbol(\(#$virtualenv\)) ](fg:crust bg:yellow)]($style)'
 
 [docker_context]
 symbol = ""
@@ -181,8 +181,8 @@ ignore_base = false
 [time]
 disabled = true
 time_format = "%I:%M %p"
-style = "bg:cyan"
-format = '[[  $time ](fg:crust bg:cyan)]($style)'
+style = "bg:blue"
+format = '[[  $time ](fg:crust bg:blue)]($style)'
 
 [line_break]
 disabled = false
@@ -192,14 +192,14 @@ disabled = false
 success_symbol = '[❯](bold fg:green)'
 error_symbol = '[❯](bold fg:red)'
 vimcmd_symbol = '[❮](bold fg:green)'
-vimcmd_replace_one_symbol = '[❮](bold fg:cyan)'
-vimcmd_replace_symbol = '[❮](bold fg:cyan)'
+vimcmd_replace_one_symbol = '[❮](bold fg:blue)'
+vimcmd_replace_symbol = '[❮](bold fg:blue)'
 vimcmd_visual_symbol = '[❮](bold fg:yellow)'
 
 [cmd_duration]
 show_milliseconds = true
 format = " in $duration "
-style = "bg:cyan"
+style = "bg:blue"
 disabled = false
 show_notifications = true
 min_time_to_notify = 45000
