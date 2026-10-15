@@ -1,0 +1,26 @@
+Background: #1e1e1e
+Foreground: #ffffff
+Bold: #ffffff
+Selection background: #3f638b
+Selected text: #ffffff
+Cursor: #98989d
+Cursor text: #ffffff
+ANSI 0: #1a1a1a
+ANSI 1: #cc372e
+ANSI 2: #26a439
+ANSI 3: #cdac08
+ANSI 4: #0869cb
+ANSI 5: #9647bf
+ANSI 6: #479ec2
+ANSI 7: #98989d
+ANSI 8 (bright): #464646
+ANSI 9 (bright): #ff453a
+ANSI 10 (bright): #32d74b
+ANSI 11 (bright): #ffd60a
+ANSI 12 (bright): #0a84ff
+ANSI 13 (bright): #bf5af2
+ANSI 14 (bright): #76d6ff
+ANSI 15 (bright): #ffffff
+Link Color: #419cff
+Badge Color: #ff2600
+Cursor Guide Color: #b3ecff
