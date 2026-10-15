@@ -33,6 +33,62 @@ fi
 
 AUTOLOGIN_UID=$(id -u "$AUTOLOGIN_USER")
 
+## TEMPORARY: FreeRDP 3.32.0/3.32.1 server regression. Remove once the archive
+## carries a fixed build everywhere (this block then only unholds).
+# The server sends the HYBRID_EX Early User Authorization Result before the
+# client's TSCredentials, so Microsoft Windows App stalls after NLA. gnome-
+# remote-desktop exposes no setting for it. Upstream: FreeRDP#13549 (fixed in
+# 3.32.2, commit cbb6a73); Ubuntu: LP#2168823. Runs before the --auto early
+# exit so already-provisioned hosts get it too.
+# Any archive build newer than FREERDP_LAST_BAD is assumed fixed (Ubuntu may
+# patch 3.32.1 rather than ship 3.32.2), so the hold never outlives the fix.
+FREERDP_PKGS=(libfreerdp3-3 libfreerdp-server3-3 libwinpr3-3)
+FREERDP_BAD_FROM=3.32.0
+FREERDP_LAST_BAD=3.32.1+dfsg-0ubuntu0.26.04.1
+FREERDP_INSTALLED=$(dpkg-query -W -f='${Version}' libfreerdp-server3-3 2>/dev/null || true)
+FREERDP_CANDIDATE=$(apt-cache policy libfreerdp-server3-3 | awk '/Candidate:/ {print $2}')
+FREERDP_HELD=$(apt-mark showhold "${FREERDP_PKGS[@]}")
+if [[ -n "$FREERDP_INSTALLED" && -n "$FREERDP_CANDIDATE" && "$FREERDP_CANDIDATE" != "(none)" ]]; then
+  if dpkg --compare-versions "$FREERDP_CANDIDATE" gt "$FREERDP_LAST_BAD"; then
+    if [[ -n "$FREERDP_HELD" ]]; then
+      apt-mark unhold "${FREERDP_PKGS[@]}" >/dev/null
+      echo "    FreeRDP $FREERDP_CANDIDATE available: released temporary hold (apt upgrade picks it up)"
+    fi
+  elif dpkg --compare-versions "$FREERDP_INSTALLED" lt "$FREERDP_BAD_FROM"; then
+    if [[ -n "$FREERDP_HELD" ]]; then
+      echo "    Note: FreeRDP held at $FREERDP_INSTALLED until a build newer than $FREERDP_LAST_BAD ships (LP#2168823)"
+    fi
+  elif dpkg --compare-versions "$FREERDP_INSTALLED" le "$FREERDP_LAST_BAD"; then
+    # Newest archive version below the regression, present for all three packages
+    FREERDP_GOOD=""
+    for v in $(apt-cache madison libfreerdp-server3-3 | awk '{print $3}'); do
+      dpkg --compare-versions "$v" lt "$FREERDP_BAD_FROM" || continue
+      [[ -z "$FREERDP_GOOD" ]] || dpkg --compare-versions "$v" gt "$FREERDP_GOOD" || continue
+      FREERDP_GOOD=$v
+    done
+    for p in "${FREERDP_PKGS[@]}"; do
+      apt-cache madison "$p" | awk '{print $3}' | grep -qxF "$FREERDP_GOOD" || FREERDP_GOOD=""
+    done
+    FREERDP_INSTALL=(apt-get install -y -qq --allow-downgrades "${FREERDP_PKGS[@]/%/=$FREERDP_GOOD}")
+    if [[ -z "$FREERDP_GOOD" ]]; then
+      echo "    Warning: FreeRDP $FREERDP_INSTALLED has the Windows App NLA regression and no older archive version is available" >&2
+    elif ! "${FREERDP_INSTALL[@]}" -s 2>/dev/null | grep -q '^Inst' \
+      || "${FREERDP_INSTALL[@]}" -s 2>/dev/null | grep -q '^Remv'; then
+      # Exact-version dependents (libfreerdp-client3-3 for Remmina etc.) would be removed
+      echo "    Warning: FreeRDP $FREERDP_INSTALLED has the Windows App NLA regression; downgrade to $FREERDP_GOOD would remove packages or does not resolve, skipped" >&2
+    else
+      echo "    FreeRDP $FREERDP_INSTALLED has the Windows App NLA regression; holding at $FREERDP_GOOD"
+      if DEBIAN_FRONTEND=noninteractive "${FREERDP_INSTALL[@]}" >/dev/null; then
+        apt-mark hold "${FREERDP_PKGS[@]}" >/dev/null
+        sudo -u "$AUTOLOGIN_USER" XDG_RUNTIME_DIR="/run/user/${AUTOLOGIN_UID}" \
+          systemctl --user try-restart gnome-remote-desktop-headless.service 2>/dev/null || true
+      else
+        echo "    Warning: FreeRDP downgrade to $FREERDP_GOOD failed" >&2
+      fi
+    fi
+  fi
+fi
+
 ## Check for existing setup
 HEADLESS_ACTIVE=$(sudo -u "$AUTOLOGIN_USER" \
   DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${AUTOLOGIN_UID}/bus" \
