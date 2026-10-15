@@ -180,21 +180,47 @@ USER_GRD_DIR="/home/${AUTOLOGIN_USER}/.local/share/gnome-remote-desktop"
 TLS_CERT="${USER_GRD_DIR}/rdp-tls.crt"
 TLS_KEY="${USER_GRD_DIR}/rdp-tls.key"
 
+# Apple clients (Windows App on iPadOS/macOS) enforce Apple's TLS server cert
+# rules: RSA >= 2048, SAN carrying the name dialed, serverAuth EKU, and
+# validity <= 825 days. Names: short hostname, short.<search domain> (e.g.
+# hivemind.home), and the primary IPv4.
+SHORT_HOST=$(hostname -s)
+TLS_SAN="DNS:${SHORT_HOST}"
+for domain in $(awk '/^search/ {for (i = 2; i <= NF; i++) print $i}' /etc/resolv.conf 2>/dev/null); do
+  domain=${domain%.}  # resolved writes "search ." when no domains are set
+  [[ -n "$domain" ]] && TLS_SAN+=",DNS:${SHORT_HOST}.${domain}"
+done
+PRIMARY_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for (i = 1; i < NF; i++) if ($i == "src") print $(i + 1)}' || true)
+[[ -n "$PRIMARY_IP" ]] && TLS_SAN+=",IP:${PRIMARY_IP}"
+# Same SAN as openssl prints it, so a renamed host or changed IP/domain regenerates
+WANT_SAN=$(sed -e 's/,/, /g' -e 's/IP:/IP Address:/g' <<<"$TLS_SAN")
+
 NEED_TLS=false
 if [[ ! -f "$TLS_CERT" || ! -f "$TLS_KEY" ]]; then
   NEED_TLS=true
 elif ! openssl x509 -in "$TLS_CERT" -noout 2>/dev/null; then
   echo "    Existing TLS certificate is invalid, regenerating"
   NEED_TLS=true
+elif ! openssl x509 -in "$TLS_CERT" -noout -checkend 2592000 >/dev/null; then
+  echo "    Existing TLS certificate expires within 30 days, regenerating"
+  NEED_TLS=true
+elif ! openssl x509 -in "$TLS_CERT" -noout -ext extendedKeyUsage 2>/dev/null | grep -q 'TLS Web Server Authentication' \
+  || [[ "$(openssl x509 -in "$TLS_CERT" -noout -ext subjectAltName 2>/dev/null | tail -n +2 | sed 's/^ *//')" != "$WANT_SAN" ]]; then
+  echo "    Existing TLS certificate lacks serverAuth EKU or current SAN, regenerating"
+  NEED_TLS=true
 fi
 
 if [[ "$NEED_TLS" == "true" ]]; then
-  echo "    Generating self-signed TLS certificate for RDP..."
+  echo "    Generating self-signed TLS certificate for RDP (SAN: $TLS_SAN)..."
   sudo -u "$AUTOLOGIN_USER" mkdir -p "$USER_GRD_DIR"
-  sudo -u "$AUTOLOGIN_USER" openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
-    -sha256 -days 3650 -nodes \
+  sudo -u "$AUTOLOGIN_USER" openssl req -x509 -newkey rsa:2048 \
+    -sha256 -days 825 -nodes \
     -keyout "$TLS_KEY" -out "$TLS_CERT" \
-    -subj "/CN=$(hostname)" 2>/dev/null
+    -subj "/CN=${SHORT_HOST}" \
+    -addext "subjectAltName=${TLS_SAN}" \
+    -addext "basicConstraints=critical,CA:FALSE" \
+    -addext "keyUsage=critical,digitalSignature,keyEncipherment" \
+    -addext "extendedKeyUsage=serverAuth" 2>/dev/null
   chmod 600 "$TLS_KEY"
   chown "$AUTOLOGIN_USER":"$AUTOLOGIN_USER" "$TLS_CERT" "$TLS_KEY"
   echo "    TLS certificate generated"
