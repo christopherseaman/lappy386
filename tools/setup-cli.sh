@@ -1,5 +1,5 @@
 #!/bin/bash
-# setup-cli.sh — shared user-level CLI/dev layer for both hosts and the agent sandbox guests:
+# setup-cli.sh — user-level CLI/dev layer:
 # shell dotfiles, the starship prompt, and on-demand toolchains (nvm, uv, golang, codex).
 #
 # Runs as the invoking user with NO sudo — system packages (apt/brew) and host-only config
@@ -105,42 +105,14 @@ echo "Codex: $("$CODEX_BIN" --version 2>/dev/null | head -1 || codex --version 2
 # Canonical source is a gist, not this repo — it governs every machine and project.
 #   view: https://gist.github.com/christopherseaman/310a389a659acf37a6b13675a92a2438
 #   edit: gh gist edit 310a389a659acf37a6b13675a92a2438 -f CLAUDE.md <file>
-# One body, two readers, split per harness: Claude Code reads ~/.claude/CLAUDE.md and
-# ignores AGENTS.md; codex reads ~/.codex/AGENTS.md. Fetch once, then emit a tailored copy
-# for each (the ONLY:* strip below). Metadata stays in these shell comments — codex renders
-# HTML comments in the body verbatim, so the strip also drops the markers it keys on.
-#
-# The third copy under ~/.local/share is for the sandbox guest: there ~/.codex is a
-# bind mount that shadows whatever the image wrote, so the container start wrapper
-# restores AGENTS.md from this (unmounted) path. Harmless on hosts.
+# Both tools receive the same document; harness-specific guidance belongs in its text.
 INSTRUCTIONS_URL="https://gist.githubusercontent.com/christopherseaman/310a389a659acf37a6b13675a92a2438/raw/CLAUDE.md"
-mkdir -p ~/.claude ~/.codex ~/.local/share/agent-instructions
+mkdir -p ~/.claude ~/.codex
 instructions_tmp=$(mktemp)
 if curl -fsSL "$INSTRUCTIONS_URL" -o "$instructions_tmp" && [ -s "$instructions_tmp" ]; then
-  # Harness-specific delegation guidance lives in the canonical gist blocks below.
-  # Both paragraphs live in the gist wrapped in <!-- ONLY:claude --> / <!-- ONLY:codex -->
-  # markers. strip_only keeps the matching block, drops the other and both markers, so each
-  # file carries only its own line and no HTML comment reaches codex. A source with no
-  # markers (older revision) passes through whole — same as the previous copy-both behaviour.
-  strip_only() {  # $1 = harness to keep (claude|codex) -> stdout
-    awk -v keep="$1" '
-      /^<!-- ONLY:claude -->/ { blk=1; tag="claude"; next }
-      /^<!-- ONLY:codex -->/  { blk=1; tag="codex";  next }
-      /^<!-- \/ONLY:/         { blk=0; next }
-      { if (!blk || tag==keep) print }
-    ' "$instructions_tmp"
-  }
-  emit() {  # $1=harness  $2=dest — never overwrite a destination with an empty strip
-    local out; out=$(mktemp)
-    strip_only "$1" >"$out"
-    if [ -s "$out" ]; then cp "$out" "$2"
-    else echo "Agent instructions: strip($1) empty; left $2 untouched" >&2; fi
-    rm -f "$out"
-  }
-  emit claude ~/.claude/CLAUDE.md
-  emit codex  ~/.codex/AGENTS.md
-  emit codex  ~/.local/share/agent-instructions/AGENTS.md
-  echo "Agent instructions: split -> ~/.claude/CLAUDE.md (claude), ~/.codex/AGENTS.md (codex)"
+  cp "$instructions_tmp" ~/.claude/CLAUDE.md
+  cp "$instructions_tmp" ~/.codex/AGENTS.md
+  echo "Agent instructions: copied to ~/.claude/CLAUDE.md and ~/.codex/AGENTS.md"
 else
   echo "Agent instructions: fetch failed; existing files left untouched" >&2
 fi

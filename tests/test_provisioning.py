@@ -7,9 +7,7 @@ import os
 from pathlib import Path
 import shlex
 import subprocess
-import sys
 import tempfile
-import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -77,16 +75,7 @@ with tempfile.TemporaryDirectory() as tmp:
     run('curl() { cat "$INSTALLER"; }\n' + pipeline, env)
     assert (base / 'result').read_text() == f"{env['HOME']}/.local/bin\ntrue\n"
 
-    mac = (ROOT / 'tools/sandbox/setup-sandbox-mac.sh').read_text()
-    mac_pipeline = next(line for line in mac.splitlines()
-                        if 'curl -fsSL https://chatgpt.com/codex/install.sh' in line)
-    run('curl() { cat "$INSTALLER"; }\n' + mac_pipeline, env)
-    assert (base / 'result').read_text() == f"{env['HOME']}/.local/bin\ntrue\n"
-
     host_codex = cli[cli.index('## Codex CLI'):cli.index('ACTIVE_CODEX=')]
-    guest_start = mac.index('  tart exec "$VM_NAME" /bin/sh -lc \'\n    set -e\n')
-    guest_end = mac.index('\n\n  rm -f "$merged_config"', guest_start)
-    guest_codex = 'VM_NAME=test-vm\ntart() { /bin/sh -c "$5"; }\n' + mac[guest_start:guest_end]
     fake_codex = base / 'fake-codex'
     fake_codex.write_text('#!/bin/sh\n[ "$1" = update ] || exit 99\n'
                           'printf "update\\n" >> "$CALL_LOG"\n'
@@ -96,90 +85,59 @@ with tempfile.TemporaryDirectory() as tmp:
     branch_installer.write_text('printf "%s\\n%s\\n" "$CODEX_INSTALL_DIR" "$CODEX_NON_INTERACTIVE" > "$RESULT"\n'
                                 '/bin/mkdir -p "$CODEX_INSTALL_DIR"\n'
                                 '/bin/cp "$FAKE_CODEX" "$CODEX_INSTALL_DIR/codex"\n')
-    for scope, script in (('host', host_codex), ('guest', guest_codex)):
-        for state in ('present', 'absent', 'update-failure', 'install-failure'):
-            case_dir = base / f'codex-{scope}-{state}'
-            commands = case_dir / 'commands'
-            commands.mkdir(parents=True)
-            for shell in ('bash', 'sh'):
-                (commands / shell).symlink_to(f'/bin/{shell}')
-            (commands / 'curl').write_text('#!/bin/sh\nprintf "install\\n" >> "$CALL_LOG"\n'
-                                           '[ "$FAIL_INSTALL" != yes ] || exit 7\n'
-                                           '/bin/cat "$INSTALLER"\n')
-            (commands / 'curl').chmod(0o755)
-            if state in ('present', 'update-failure'):
-                # An existing command outside ~/.local/bin must also be updated.
-                (commands / 'codex').symlink_to(fake_codex)
-            install_root = case_dir / 'user'
-            calls_file = case_dir / 'calls'
-            branch_env = dict(env, PATH=str(commands), TEST_INSTALL_ROOT=str(install_root),
-                              CALL_LOG=str(calls_file), RESULT=str(case_dir / 'result'),
-                              INSTALLER=str(branch_installer), FAKE_CODEX=str(fake_codex),
-                              FAIL_UPDATE='yes' if state == 'update-failure' else 'no',
-                              FAIL_INSTALL='yes' if state == 'install-failure' else 'no')
-            checked = run(script.replace('$HOME', '$TEST_INSTALL_ROOT'), branch_env)
-            assert calls_file.read_text() == ('update\n' if state in ('present', 'update-failure') else 'install\n')
-            assert ('failed' in checked.stderr) == state.endswith('failure')
-            if state == 'absent':
-                assert (case_dir / 'result').read_text() == f'{install_root}/.local/bin\ntrue\n'
-                assert os.access(install_root / '.local/bin/codex', os.X_OK)
-            else:
-                assert not (install_root / '.local/bin/codex').exists()
+    for state in ('present', 'absent', 'update-failure', 'install-failure'):
+        case_dir = base / f'codex-{state}'
+        commands = case_dir / 'commands'
+        commands.mkdir(parents=True)
+        for shell in ('bash', 'sh'):
+            (commands / shell).symlink_to(f'/bin/{shell}')
+        (commands / 'curl').write_text('#!/bin/sh\nprintf "install\\n" >> "$CALL_LOG"\n'
+                                       '[ "$FAIL_INSTALL" != yes ] || exit 7\n'
+                                       '/bin/cat "$INSTALLER"\n')
+        (commands / 'curl').chmod(0o755)
+        if state in ('present', 'update-failure'):
+            # An existing command outside ~/.local/bin must also be updated.
+            (commands / 'codex').symlink_to(fake_codex)
+        install_root = case_dir / 'user'
+        calls_file = case_dir / 'calls'
+        branch_env = dict(env, PATH=str(commands), TEST_INSTALL_ROOT=str(install_root),
+                          CALL_LOG=str(calls_file), RESULT=str(case_dir / 'result'),
+                          INSTALLER=str(branch_installer), FAKE_CODEX=str(fake_codex),
+                          FAIL_UPDATE='yes' if state == 'update-failure' else 'no',
+                          FAIL_INSTALL='yes' if state == 'install-failure' else 'no')
+        checked = run(host_codex.replace('$HOME', '$TEST_INSTALL_ROOT'), branch_env)
+        assert calls_file.read_text() == ('update\n' if state in ('present', 'update-failure') else 'install\n')
+        assert ('failed' in checked.stderr) == state.endswith('failure')
+        if state == 'absent':
+            assert (case_dir / 'result').read_text() == f'{install_root}/.local/bin\ntrue\n'
+            assert os.access(install_root / '.local/bin/codex', os.X_OK)
+        else:
+            assert not (install_root / '.local/bin/codex').exists()
 
-    recreate_default = next(line for line in mac.splitlines() if line.startswith('RECREATE_VM='))
-    recreate_block = mac[mac.index('if [[ "$RECREATE_VM"'):mac.index('# Clone the prebuilt Xcode image')]
-    fake_vm_commands = '''
-    VM_NAME=test-vm
-    LAUNCHD_DOMAIN=gui/test
-    LAUNCH_LABEL=test-vm
-    launchctl() { printf 'launchctl %s\\n' "$*"; }
-    tart() { printf 'tart %s\\n' "$*"; }
-    '''
-    default_env = {key: value for key, value in env.items() if key != 'SANDBOX_RECREATE_VM'}
-    reused = run(fake_vm_commands + recreate_default + '\n' + recreate_block, default_env)
-    assert 'Reusing existing VM' in reused.stdout
-    assert 'tart delete' not in reused.stdout and 'launchctl bootout' not in reused.stdout
-    recreated = run(fake_vm_commands + recreate_default + '\n' + recreate_block,
-                    dict(default_env, SANDBOX_RECREATE_VM='1'))
-    assert 'tart stop test-vm' in recreated.stdout
-    assert 'tart delete test-vm' in recreated.stdout
+    instructions = cli[cli.index('## Global agent instructions'):]
+    instruction_home = base / 'instructions'
+    instruction_home.mkdir()
+    instruction_source = base / 'instructions.md'
+    instruction_source.write_text('Shared rules\n<!-- ONLY:codex -->\nCodex guidance\n<!-- /ONLY:codex -->\n')
+    instruction_env = dict(env, HOME=str(instruction_home), SOURCE=str(instruction_source))
+    curl = 'curl() { [ "${FAIL_FETCH:-}" != yes ] || return 1; cp "$SOURCE" "$4"; }\n'
+    for _ in range(2):
+        run(curl + instructions, instruction_env)
+        for destination in ('.claude/CLAUDE.md', '.codex/AGENTS.md'):
+            assert (instruction_home / destination).read_bytes() == instruction_source.read_bytes()
+    for failure in ('failed', 'empty'):
+        instruction_source.write_text('' if failure == 'empty' else 'partial download')
+        before = [(instruction_home / destination).read_bytes()
+                  for destination in ('.claude/CLAUDE.md', '.codex/AGENTS.md')]
+        run(curl + instructions, dict(instruction_env, FAIL_FETCH='yes' if failure == 'failed' else 'no'))
+        assert before == [(instruction_home / destination).read_bytes()
+                          for destination in ('.claude/CLAUDE.md', '.codex/AGENTS.md')]
 
-    provision_guest = mac[mac.index('provision_guest_state() {'):mac.index('configure_guest_hostname() {')]
-    guest = base / 'guest.toml'
-    host = base / 'host.toml'
-    host.write_text('model = "host-choice"\n[projects.host]\ntrust_level = "trusted"\n')
-    env.update(GUEST_CONFIG=str(guest), HOST_CONFIG=str(host), PYTHON_BIN=sys.executable,
-               MERGER=str(ROOT / 'tools/merge-codex-config.py'), SCRIPT_DIR=str(ROOT / 'tools/sandbox'))
-    guest_commands = '''
-    VM_NAME=test-vm
-    wait_for_tart_exec() { return 0; }
-    cp() { command cp "$HOST_CONFIG" "$2"; }
-    uv() {
-      [ "${FAIL_MERGE:-}" != yes ] || return 1
-      "$PYTHON_BIN" "$MERGER" sandbox "${@: -1}"
-    }
-    tart() {
-      if [ "$2" = -i ]; then
-        cat > "$GUEST_CONFIG"
-      elif [[ "$*" == *'cat "$HOME/.codex/config.toml"'* ]]; then
-        [ "${FAIL_READ:-}" != yes ] || return 1
-        [ -e "$GUEST_CONFIG" ] || return 3
-        cat "$GUEST_CONFIG"
-      fi
-    }
-    '''
-    guest.write_text('model = "guest-choice"\n[projects.guest]\ntrust_level = "trusted"\n')
-    run(guest_commands + provision_guest + '\nprovision_guest_state', env)
-    merged = tomllib.loads(guest.read_text())
-    assert merged['projects'] == {'guest': {'trust_level': 'trusted'}}
-    assert merged['approval_policy'] == 'never' and merged['sandbox_mode'] == 'danger-full-access'
-    original = guest.read_bytes()
-    for failure in ('FAIL_READ', 'FAIL_MERGE'):
-        run(guest_commands + provision_guest + '\nprovision_guest_state', dict(env, **{failure: 'yes'}))
-        assert guest.read_bytes() == original
-    guest.unlink()
-    run(guest_commands + provision_guest + '\nprovision_guest_state', env)
-    assert tomllib.loads(guest.read_text())['projects'] == {'host': {'trust_level': 'trusted'}}
+    claude_mcp = (ROOT / 'tools/setup-claude-mcp.sh').read_text()
+    # Supply the menu selection without launching authentication or requesting a PAT.
+    existing_servers = run('claude() { [ "$1 $2" = "mcp get" ]; }\n' +
+                           '{\n' + claude_mcp + '\n} <<< 1', env)
+    assert existing_servers.stdout.count('Keeping existing ') == 3
 
     apt = base / 'apt'
     for directory in ('sources.list.d', 'preferences.d', 'keyrings'):
@@ -223,4 +181,4 @@ with tempfile.TemporaryDirectory() as tmp:
     assert 'mozilla.sources' not in firefox_block
     assert '"$SCRIPT_DIR/setup-firefox.sh"' in firefox_block
 
-print('Provisioning regressions passed (Bash startup, Git, Codex installers, VM opt-in/state, Firefox retries).')
+print('Provisioning regressions passed (Bash startup, Git, Codex installer, shared instructions, Firefox retries).')

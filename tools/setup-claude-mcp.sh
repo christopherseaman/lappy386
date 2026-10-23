@@ -3,34 +3,25 @@
 # Combined MCP setup script for Claude - Notion, Atlassian (Cloud), and UCSF Confluence (self-hosted)
 # This script sets up MCP servers at user scope for portability
 
-## TODO
-## Context7
-# claude mcp add context7 -s user -t http https://mcp.context7.com/mcp --header "CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}"
-## MorphLLM
-# claude mcp add filesystem-with-morph -s user -e MORPH_API_KEY=${MORPH_API_KEY} -e ALL_TOOLS=false -- npx @morph-llm/morph-fast-apply
-## Sequential Thinking
-# claude mcp add sequential-thinking -s user "npx -y @modelcontextprotocol/server-sequential-thinking"
-## Zilliz "Claude Context"
-# claude mcp add claude-context -s user \
-#    -e OPENAI_API_KEY=${OPENAI_API_KEY} \
-#    -e MILVUS_TOKEN=${ZILLIZ_API_KEY} \
-#    -- npx @zilliz/claude-context-mcp@latest
-
 set -e  # Exit on error
 
 echo "=== Claude MCP Setup Script ==="
 echo "This script will configure MCP servers for Notion, Atlassian, and UCSF Confluence"
 echo ""
 
+server_exists() {
+    if claude mcp get "$1" >/dev/null 2>&1; then
+        echo "Keeping existing $1 MCP server. Remove it explicitly before replacing it."
+        return 0
+    fi
+    return 1
+}
+
 # Function to setup Notion MCP
 setup_notion() {
+    server_exists notion && return 0
     echo "=== Setting up Notion MCP ==="
     echo ""
-
-    # Remove existing notion MCP server if it exists
-    claude mcp remove notion -s project 2>/dev/null || true
-    claude mcp remove notion -s local 2>/dev/null || true
-    claude mcp remove notion -s user 2>/dev/null || true
 
     # Add Notion MCP server with the API key at user scope
     claude mcp add notion -t http -s user https://mcp.notion.com/mcp
@@ -41,6 +32,7 @@ setup_notion() {
 
 # Function to setup Atlassian MCP (Cloud, OAuth)
 setup_atlassian() {
+    server_exists atlassian && return 0
     echo "=== Setting up Atlassian MCP ==="
     echo ""
     echo "This will use OAuth authentication for user-scoped access."
@@ -67,9 +59,6 @@ setup_atlassian() {
     echo ""
     echo "Step 2: Adding MCP server to Claude configuration..."
 
-    # Remove existing atlassian MCP server if it exists
-    claude mcp remove atlassian 2>/dev/null || true
-
     # Add the official Atlassian MCP server configuration at user scope
     claude mcp add atlassian -s user "npx -y mcp-remote https://mcp.atlassian.com/v1/sse"
 
@@ -79,6 +68,7 @@ setup_atlassian() {
 
 # Function to setup UCSF Confluence MCP (self-hosted Data Center/Server, PAT/Bearer auth)
 setup_ucsf_confluence() {
+    server_exists ucsf-confluence && return 0
     echo "=== Setting up UCSF Confluence MCP (self-hosted, PAT auth) ==="
     echo ""
     echo "Uses sooperset/mcp-atlassian via uvx against the UCSF Data Center instance."
@@ -95,11 +85,6 @@ setup_ucsf_confluence() {
         echo "No PAT provided. Skipping UCSF Confluence setup."
         return 1
     fi
-
-    # Remove existing server at all scopes
-    claude mcp remove ucsf-confluence -s project 2>/dev/null || true
-    claude mcp remove ucsf-confluence -s local 2>/dev/null || true
-    claude mcp remove ucsf-confluence -s user 2>/dev/null || true
 
     # Add self-hosted Confluence (DC/Server) via mcp-atlassian.
     # DC-specific: base URL has NO /wiki suffix; PAT uses CONFLUENCE_PERSONAL_TOKEN (Bearer),
@@ -155,5 +140,5 @@ echo "- Notion: Uses API token authentication"
 echo "- Atlassian (Cloud): Uses OAuth authentication (tokens managed by mcp-remote)"
 echo "- UCSF Confluence (self-hosted): Uses a Personal Access Token (Bearer)"
 echo ""
-echo "To switch Atlassian instance: Re-run this script and authenticate with a different account"
-echo "To rotate the UCSF PAT: export UCSF_CONFLUENCE_PAT=... (or let the prompt handle it) and re-run"
+echo "Existing registrations are preserved. Remove the intended entry explicitly before replacing it."
+echo "For a user entry: claude mcp remove <name> -s user; then re-run setup with the new account or PAT."

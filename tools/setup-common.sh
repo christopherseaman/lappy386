@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-## Shared CLI layer (dotfiles, starship, nvm, uv, golang, codex) — same as the sandbox guest
+## User CLI layer (dotfiles, starship, nvm, uv, golang, codex)
 ./setup-cli.sh
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -65,32 +65,14 @@ else
 fi
 echo "Notion CLI: $(ntn --version 2>/dev/null | head -1 || true)"
 
-## CLAUDE SETTINGS — merged, not overwritten: Claude Code writes some keys itself.
-# Host-only: the sandbox guests run codex, not Claude Code. The global instructions
-# both agents read are deployed by setup-cli.sh, which runs on hosts and guests alike.
-if command -v python3 &>/dev/null; then
-  ./merge-settings.py artifacts/claude-settings.json ~/.claude/settings.json
-else
-  echo "Claude settings: python3 not found; skipped (existing settings untouched)" >&2
-fi
-
-## CODEX SETTINGS — host scope. Merged for the same reason: codex writes project trust
-# levels and per-app approvals into this file itself. The host deliberately gets no
-# approval_policy/sandbox_mode; those are sandbox-only and the scope argument is what
-# makes them unreachable here.
-uv run --managed-python --python 3.11 --script ./merge-codex-config.py host ~/.codex/config.toml \
-  || echo "Codex config: merge failed; continuing with existing config" >&2
-
-## PONYTAIL (https://ponytail.dev) — default plugin for both agents. Runs after the
-# merges: artifacts/claude-settings.json lists ponytail@ponytail in enabledPlugins
-# because that object is replaced wholesale, so the merge would otherwise disable it.
+## Agent plugins; model and runtime preferences remain user-managed.
 if command -v claude &>/dev/null; then
-  if ! claude plugin marketplace list --json 2>/dev/null | grep -Eq '"name"[[:space:]]*:[[:space:]]*"ponytail"'; then
-    claude plugin marketplace add DietrichGebert/ponytail || echo "Claude: Ponytail marketplace add failed" >&2
-  fi
-  claude plugin install ponytail@ponytail || echo "Claude: Ponytail install failed" >&2
+  claude plugin install ponytail --marketplace DietrichGebert/ponytail \
+    || echo "Claude: Ponytail install failed" >&2
+  claude plugin install terse --marketplace lowenbjer/claude-terse \
+    || echo "Claude: Terse install failed" >&2
 fi
-./setup-codex.sh ponytail || echo "Codex: Ponytail install failed" >&2
+./setup-codex.sh plugins || echo "Codex: plugin setup failed" >&2
 
 ## REMINDER
 echo ""

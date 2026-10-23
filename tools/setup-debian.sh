@@ -55,9 +55,8 @@ fi
 ## Package Update and Install
 sudo apt update --quiet -qq
 #sudo apt full-upgrade --quiet -qq -y --allow-change-held-packages
-# Shared CLI packages (artifacts/apt-cli.lst, also used by the sandbox guest) plus host-only
-# extras: the ssh server, desktop fonts, gh (its apt repo is configured on the host), wget
-# (this script's release downloads use it; the sandbox guest does not need it), rsync
+# CLI packages from artifacts/apt-cli.lst plus the ssh server, desktop fonts, gh
+# (its apt repo is configured here), wget (used for release downloads), rsync
 # (required by Zed for self-updates), and x11-utils (used by the ChromeOS Zed launcher).
 mapfile -t APT_PACKAGES < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' artifacts/apt-cli.lst)
 APT_PACKAGES+=(gh openssh-server fontconfig fonts-symbola wget rsync x11-utils)

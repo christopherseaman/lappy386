@@ -1,5 +1,5 @@
-# Shared CLI packages for Debian/Ubuntu — installed on both hosts (setup-debian.sh)
-# and the agent sandbox guest (tools/sandbox/Containerfile). One package per line, '#' comments.
+# CLI packages for Debian/Ubuntu, installed by setup-debian.sh.
+# One package per line, '#' comments.
 # Host-only extras (openssh-server, fonts, gh's apt repo, GUI apps) are added by setup-debian.sh.
 bash-completion
 bat
