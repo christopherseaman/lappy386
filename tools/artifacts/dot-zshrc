@@ -30,6 +30,9 @@ else
     export EDITOR='vi'
 fi
 
+# Keep inherited EDITOR=vim/nvim from selecting vi command-line bindings.
+bindkey -e
+
 # Add user's private bin to PATH
 export PATH="$HOME/.local/bin:$PATH"
 
