@@ -70,10 +70,11 @@ if [[ -n "$FREERDP_INSTALLED" && -n "$FREERDP_CANDIDATE" && "$FREERDP_CANDIDATE"
       apt-cache madison "$p" | awk '{print $3}' | grep -qxF "$FREERDP_GOOD" || FREERDP_GOOD=""
     done
     FREERDP_INSTALL=(apt-get install -y -qq --allow-downgrades "${FREERDP_PKGS[@]/%/=$FREERDP_GOOD}")
+    # Captured first: under pipefail, grep -q closing the pipe early fails the pipeline
+    FREERDP_SIM=$("${FREERDP_INSTALL[@]}" -s 2>/dev/null || true)
     if [[ -z "$FREERDP_GOOD" ]]; then
       echo "    Warning: FreeRDP $FREERDP_INSTALLED has the Windows App NLA regression and no older archive version is available" >&2
-    elif ! "${FREERDP_INSTALL[@]}" -s 2>/dev/null | grep -q '^Inst' \
-      || "${FREERDP_INSTALL[@]}" -s 2>/dev/null | grep -q '^Remv'; then
+    elif ! grep -q '^Inst' <<<"$FREERDP_SIM" || grep -q '^Remv' <<<"$FREERDP_SIM"; then
       # Exact-version dependents (libfreerdp-client3-3 for Remmina etc.) would be removed
       echo "    Warning: FreeRDP $FREERDP_INSTALLED has the Windows App NLA regression; downgrade to $FREERDP_GOOD would remove packages or does not resolve, skipped" >&2
     else
